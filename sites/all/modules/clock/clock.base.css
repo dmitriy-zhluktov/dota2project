@@ -1,0 +1,7 @@
+/**
+ * Base styles for clock.module.
+ */
+
+.clock-daylight-savings-time-marker {
+  color: #ff8000;
+}

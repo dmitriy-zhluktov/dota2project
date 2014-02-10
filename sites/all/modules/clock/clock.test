@@ -1,0 +1,112 @@
+<?php
+
+/**
+ * @file
+ * Tests for Clock module.
+ */
+
+class ClockBlockTestCase extends DrupalWebTestCase {
+  protected $profile = 'testing';
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Clock module tests',
+      'description' => 'Ensure that the clock block and the configuration form functions properly.',
+      'group' => 'Clock',
+    );
+  }
+
+  public function setUp() {
+    parent::setUp('block', 'date_api', 'clock');
+    $user = $this->drupalCreateUser(array('administer blocks', 'administer site configuration'));
+    $this->drupalLogin($user);
+    // Enable the clock block (and the main content block) in main content area.
+    $edit = array();
+    $edit['blocks[clock_clock][region]'] = 'content';
+    $edit['blocks[system_main][region]'] = 'content';
+    $this->drupalPost('admin/structure/block/list/' . variable_get('theme_default', ''), $edit, 'Save blocks');
+    // Create a custom date type.
+    system_date_format_type_save(array(
+      'type' => 'Custom',
+      'title' => 'custom',
+      'locked' => 0,
+    ));
+    // Create a custom date format.
+    system_date_format_save(array(
+      'type' => 'custom',
+      'format' => 'aAbBcCdDeEfFgGhHiIjJlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ',
+      'locked' => FALSE,
+      'is_new' => TRUE,
+    ));
+    // Make the date format the default for the new date type.
+    include_once DRUPAL_ROOT . '/includes/locale.inc';
+    locale_date_format_save('en', 'custom', 'aAbBcCdDeEfFgGhHiIjJlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ');
+    // Make sure user-configurable time zones are enabled.
+    variable_set('configurable_timezones', 1);
+  }
+
+  public function testClockBlock() {  
+    // Add a new clock for each time zone type.
+    $time_zone_types = array(
+      'site' => variable_get('date_default_timezone', 'UTC'),
+      'user' => NULL,
+      'local' => variable_get('date_default_timezone', 'UTC'),
+      'custom' => 'UTC',
+    );
+    foreach ($time_zone_types as $type => $time_zone) {
+      $edit = array();
+      $edit['time_zone_type'] = $type;
+      $edit['date_type'] = 'long';
+      $this->drupalPost('admin/structure/block/manage/clock/clock/configure/add', $edit, 'Save');
+      $clock = date_format_date(date_now($time_zone), 'long');
+      $this->assertText($clock, "Adding a clock with the $type time zone type works.");
+    }
+
+    // Edit the first block to show each date type.
+    $clocks = clock_info();
+    $cids = array_keys($clocks);
+    $cid = $cids[0];
+    foreach (system_get_date_types() as $type => $info) {
+      $stub = new StdClass();
+      $stub->date_type = $type;
+      $format = clock_get_date_format($stub);
+      $edit = array();
+      $edit['date_type'] = $type;
+      $this->drupalPost("admin/structure/block/manage/clock/clock/configure/$cid/edit", $edit, 'Save');
+      $clock = date_format_date(date_now(NULL), 'custom', $format);
+      $this->assertText($clock, "Editing a clock to show the $type date format type works.");
+    }
+
+    // Reorder the clocks.
+    $clocks = clock_info();
+    $cids = array_keys($clocks);
+    $output = '';
+    foreach (array(0, 1, 2, 3) as $i) {
+      $clock = date_format_date(date_now(clock_get_time_zone($clocks[$cids[$i]])), 'custom', clock_get_date_format($clocks[$cids[$i]]));
+      $output .= '<div class="clock clock-' . $cids[$i] . '">' . $clock . '</div>';
+    }
+    $this->assertRaw($output, 'Multiple clocks are displayed correctly.');
+    $edit = array();
+    $edit['clocks[' . $cids[0] . '][4]'] = 1;
+    $edit['clocks[' . $cids[1] . '][4]'] = 0;
+    $edit['clocks[' . $cids[2] . '][4]'] = 3;
+    $edit['clocks[' . $cids[3] . '][4]'] = 2;
+    $this->drupalPost('admin/structure/block/manage/clock/clock/configure', $edit, 'Save block');
+    $output = '';
+    foreach (array(1, 0, 3, 2) as $i) {
+      $clock = date_format_date(date_now(clock_get_time_zone($clocks[$cids[$i]])), 'custom', clock_get_date_format($clocks[$cids[$i]]));
+      $output .= '<div class="clock clock-' . $cids[$i] . '">' . $clock . '</div>';
+    }
+    $this->assertRaw($output, 'Reordering the clocks works.');
+
+    // Deleting a clock.
+    $clocks = clock_info();
+    $cids = array_keys($clocks);
+    $cid = $cids[0];
+    $this->drupalPost("admin/structure/block/manage/clock/clock/configure/$cid/delete", NULL, 'Delete');
+    $clocks = clock_info();
+    $this->assertTrue(!isset($clocks[$cid]), 'Deleting a clock works.');
+
+  }
+
+}

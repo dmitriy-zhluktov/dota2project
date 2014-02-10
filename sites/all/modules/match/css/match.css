@@ -1,0 +1,14 @@
+.active-id, .active-time, .active-players, .active-expert {float: left; margin-left: 15px;}
+.finished-id, .finished-date, .finished-players, .finished-expert, .finished-winner, .finished-twitch, .finished-rating,
+.active-time, .active-free, .active-last, .active-ticket {float: left; margin-left: 15px;}
+.clear {clear: both;}
+.active-players h3, .finished-players h3 { margin: 0; padding: 0;}
+.active-players ul, .finished-players ul {display: none;}
+.active-match .active-twitch {display: none;}
+.best-match .active-twitch {display: block;}
+.we-need-a-hero {background-color: #F00 !important;}
+.hidden {display: none;}
+.views-field-field-need-player {display: none;}
+ul.players-list li {display: block;}
+.region-content ul.items-list  { padding: 0;}
+ul.items-list li.items-list-item { list-style: none; float: left;}

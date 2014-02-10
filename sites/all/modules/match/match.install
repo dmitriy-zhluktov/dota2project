@@ -1,0 +1,291 @@
+<?php
+
+function match_schema(){
+	$schema['teams'] = array(
+		'description' => 'Таблица команд',
+		'fields' => array(
+				'id' => array(
+				'type' => 'serial',
+				'not null' => true,
+				'description' => 'ID команды'
+			),
+			'match_id' => array(
+				'type' => 'int',
+				'size' => 'normal',
+				'not null' => true,
+				'description' => 'ID матча'
+			),
+			'winner' => array(
+				'type' => 'int',
+				'size' => 'tiny',
+				'not null' => true,
+				'description' => 'Победа (1) или поражение (0)',
+				'default' => 1
+			)
+		),
+		'primary key' => array('id'),
+		'indexes' => array(
+			'id' => array('id'),
+			'match_id' => array('match_id')
+		)
+    );
+	
+	$schema['players'] = array(
+		'description' => 'Таблица игроков',
+		'fields' => array(
+			'id' => array(
+				'type' => 'serial',
+				'not null' => true,
+				'description' => 'ID записи'
+			),		
+			'team_id' => array(
+				'type' => 'int',
+				'size' => 'normal',
+				'not null' => true,
+				'default' => 0,
+				'description' => 'ID команды'
+			),
+			'uid' => array(
+				'type' => 'int',
+				'size' => 'normal',
+				'not null' => true,
+				'default' => 0,
+				'description' => 'ID пользователя'
+			),			
+			'steam_id' => array(
+				'type' => 'varchar',
+				'length' => '35',
+				'not null' => true,
+				'default' => '',
+				'description' => 'SteamID игрока'
+			),
+			'nickname' => array(
+				'type' => 'varchar',
+				'length' => '255',
+				'not null' => true,
+				'default' => '',
+				'description' => 'Nickname игрока'
+			),			
+			'rating' => array(
+				'type' => 'int',
+				'size' => 'tiny',
+				'not null' => true,
+				'default' => 0,
+				'description' => 'Оценка от профи'
+			),
+			'level' => array(
+				'type' => 'int',
+				'size' => 'tiny',
+				'not null' => true,
+				'default' => 0,
+				'description' => 'Уровень'
+			),
+			'hero' => array(
+				'type' => 'int',
+				'size' => 'normal',
+				'not null' => true,
+				'default' => 0,
+				'description' => 'ID персонажа как в доте'
+			),
+			'kills' => array(
+				'type' => 'int',
+				'size' => 'small',
+				'not null' => true,
+				'default' => 0,
+				'description' => 'Количество килов'
+			),
+			'death' => array(
+				'type' => 'int',
+				'size' => 'small',
+				'not null' => true,
+				'default' => 0,
+				'description' => 'Количество смертей'
+			),
+			'assists' => array(
+				'type' => 'int',
+				'size' => 'small',
+				'not null' => true,
+				'default' => 0,
+				'description' => 'Количество ассистов'
+			),
+			'item1' => array(
+				'type' => 'int',
+				'size' => 'normal',
+				'description' => 'ID первого арта'
+			),
+			'item2' => array(
+				'type' => 'int',
+				'size' => 'normal',
+				'description' => 'ID второго арта'
+			),	
+			'item3' => array(
+				'type' => 'int',
+				'size' => 'normal',
+				'description' => 'ID третьего арта'
+			),	
+			'item4' => array(
+				'type' => 'int',
+				'size' => 'normal',
+				'description' => 'ID четвертого арта'
+			),	
+			'item5' => array(
+				'type' => 'int',
+				'size' => 'normal',
+				'description' => 'ID пятого арта'
+			),	
+			'item6' => array(
+				'type' => 'int',
+				'size' => 'normal',
+				'description' => 'ID шестого арта'
+			),
+			'gold' => array(
+				'type' => 'int',
+				'size' => 'normal',
+				'not null' => true,
+				'description' => 'Количество золота',
+				'default' => 0
+			),	
+			'creeps_killed' => array(
+				'type' => 'int',
+				'size' => 'small',
+				'not null' => true,
+				'description' => 'Крипов добито',
+				'default' => 0
+			),	
+			'creeps_denied' => array(
+				'type' => 'int',
+				'size' => 'small',
+				'not null' => true,
+				'description' => 'Крипов отнято',
+				'default' => 0
+			),
+			'gpm' => array(
+				'type' => 'int',
+				'size' => 'small',
+				'not null' => true,
+				'description' => 'Gold per minute - золота в минуту',
+				'default' => 0
+			),	
+			'epm' => array(
+				'type' => 'int',
+				'size' => 'small',
+				'not null' => true,
+				'description' => 'Experience per minute - опыта в минуту',
+				'default' => 0
+			),
+			'kicked' => array(
+				'type' => 'int',
+				'size' => 'normal',
+				'description' => 'Если кикнут, то тут ID причины кика'
+			)
+		),
+		'primary key' => array('id'),
+		'indexes' => array(
+			'id' => array('id'),
+			'steam_id' => array('steam_id')
+		)		
+    );
+	
+	$schema['match_votes'] = array(
+		'description' => 'Таблица голосов игроков',
+		'fields' => array(
+			'id' => array(
+				'type' => 'serial',
+				'not null' => true,
+				'description' => 'ID записи'
+			),                    
+			'uid' => array(
+				'type' => 'int',
+				'size' => 'normal',
+				'not null' => true,
+				'description' => 'ID игрока'
+			),
+			'match_id' => array(
+				'type' => 'int',
+				'size' => 'medium',
+				'not null' => true,
+				'description' => 'ID матча'
+			),			
+			'rating' => array(
+				'type' => 'int',
+				'size' => 'tiny',
+				'description' => 'Оценка'
+			)			
+		),
+		'primary key' => array('id'),
+		'indexes' => array(
+			'id' => array('id'),
+			'match_id' => array('steam_id')
+		)            
+    );	
+	
+	$schema['artifacts'] = array(
+		'description' => 'Таблица артефактов',
+		'fields' => array(
+			'id' => array(
+				'type' => 'int',
+				'size' => 'normal',
+				'not null' => true,
+				'description' => 'ID артефакта'
+			),
+			'name' => array(
+				'type' => 'varchar',
+				'length' => '255',
+				'not null' => true,
+				'description' => 'Название артефакта'
+			),			
+			'image' => array(
+				'type' => 'varchar',
+				'length' => '255',
+				'not null' => true,
+				'description' => 'Ссылка на картинку'
+			)			
+		)
+    );
+	
+	$schema['heroes'] = array(
+		'description' => 'Таблица геров',
+		'fields' => array(
+			'id' => array(
+				'type' => 'int',
+				'size' => 'normal',
+				'not null' => true,
+				'description' => 'ID героя'
+			),
+			'name' => array(
+				'type' => 'varchar',
+				'length' => '255',
+				'not null' => true,
+				'description' => 'Имя героя'
+			),			
+			'image' => array(
+				'type' => 'varchar',
+				'length' => '255',
+				'not null' => true,
+				'description' => 'Ссылка на картинку'
+			)			
+		)
+    );
+	/*$schema['skills'] = array(
+		'description' => 'Таблица навыков',
+		'fields' => array(
+			'id' => array(
+				'type' => 'int',
+				'length' => '11',
+				'description' => 'ID навыка'
+			),
+			'name' => array(
+				'type' => 'varchar',
+				'length' => '255',
+				'description' => 'Название навыка'
+			),			
+			'image' => array(
+				'type' => 'varchar',
+				'length' => '255',
+				'description' => 'Ссылка на картинка',
+			)			
+		)
+    );*/
+	
+    return $schema;
+}

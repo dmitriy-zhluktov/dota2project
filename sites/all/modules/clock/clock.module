@@ -1,0 +1,582 @@
+<?php
+
+/**
+ * @file
+ * Display clocks on your site.
+ */
+
+// Include the temporary shiv for backporting the 'table' form element from
+// Drupal 7.
+// @see clock_element_info()
+if (
+  !function_exists('form_type_table_value') &&
+  !function_exists('form_process_table') &&
+  !function_exists('form_validate_table') &&
+  !function_exists('drupal_pre_render_table')
+) {
+  require_once dirname(__FILE__) . '/clock.table.inc';
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function clock_block_info() {
+  $blocks['clock'] = array(
+    'info' => t('Clock'),
+    // The clock needs to be updated continuously and should not be cached.
+    'cache' => DRUPAL_NO_CACHE,
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_configure().
+ */
+function clock_block_configure($delta = '') {
+  if ($delta == 'clock') {
+    $form['add_clock'] = array(
+      '#type' => 'links',
+      '#attributes' => array('class' => array('action-links')),
+      'add-clock' => array(
+        '#type' => 'link',
+        '#title' => t('Add clock'),
+        '#href' => 'admin/structure/block/manage/clock/clock/configure/add',
+      ),
+    );
+
+    $form['clocks'] = array(
+      '#type' => 'table',
+      '#header' => array(t('Display'), t('Time zone'), t('Date type'), t('Operations'), t('Weight')),
+      '#tree' => TRUE,
+      '#attributes' => array('id' => 'clock-settings-table'),
+      '#tabledrag' => array(array('order', 'sibling', 'clock-settings-weight')),
+    );
+    $table = &$form['clocks'];
+
+
+    // To save space, the time zone types are displayed in the time zone cell,
+    // but in italics to differentiate them from the actual time zones that are
+    // displayed in case a custom time zone is being used.
+    $time_zone_types = array(
+      'user' => t('User time zone'),
+      'site' => t('Site time zone'),
+      'local' => t('Local time zone'),
+    );
+    $date_types = system_get_date_types();
+    foreach (clock_info() as $cid => $clock) {
+      $row= array();
+
+      $row['#weight'] = $clock->weight;
+      $row['#attributes']['class'][] = 'draggable';
+
+      $row['display'] = array(
+        '#theme' => 'clock',
+        '#clock' => $clock,
+      );
+
+      if ($clock->time_zone_type == 'custom') {
+        $row['time_zone']['#markup'] = '<em>' . $clock->custom_time_zone . '</em>';
+      }
+      else {
+        $row['time_zone']['#markup'] = $time_zone_types[$clock->time_zone_type];
+      }
+
+      $row['date_type'] = array('#markup' => $date_types[$clock->date_type]['title']);
+
+      $row['operations'] = array(
+        '#type' => 'links',
+        '#attributes' => array('class' => array('inline')),
+        'edit' => array(
+          '#type' => 'link',
+          '#title' => t('Edit'),
+          '#href' => "admin/structure/block/manage/clock/clock/configure/$cid/edit",
+        ),
+        'delete' => array(
+          '#type' => 'link',
+          '#title' => t('Delete'),
+          '#href' => "admin/structure/block/manage/clock/clock/configure/$cid/delete",
+        ),
+      );
+
+      $row['weight'] = array(
+        '#type' => 'weight',
+        '#title' => t('Weight'),
+        '#title_display' => 'invisible',
+        '#default_value' => $clock->weight,
+        '#attributes' => array('class' => array('clock-settings-weight')),
+      );
+
+      $table[$cid] = $row;
+    }
+
+    return $form;
+  }
+}
+
+/**
+ * Implements hook_block_save().
+ */
+function clock_block_save($delta = '', $edit = array()) {
+  if ($delta == 'clock') {
+    foreach($edit['clocks'] as $cid => $values) {
+      $old_clock = clock_info($cid);
+      $clock = new StdClass();
+      $clock->time_zone_type = $old_clock->time_zone_type;
+      $clock->custom_time_zone = $old_clock->custom_time_zone;
+      $clock->date_type = $old_clock->date_type;
+      $clock->display = $old_clock->display;
+      $clock->weight = $values['weight'];
+      clock_update($cid, $clock);
+    }
+  }
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function clock_block_view($delta = '') {
+  if ($delta == 'clock') {
+    $clocks = clock_info();
+    $block = array();
+    $block['subject'] = t('Clock');
+    $block['content'] = array(
+      '#theme' => 'clocks',
+      '#clocks' => $clocks,
+    );
+    return $block;
+  }
+}
+
+/**
+* Implements hook_help().
+*/
+function clock_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#clock':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('Clock module allows the display of muliple clocks on your site.') . '</p>';
+      $output .= '<h3>' . t('Uses') . '</h3>';
+      $output .= '<dl>';
+      $output .= '<dt>' . t('Administering the clocks') . '</dt>';
+      $output .= '<dd>' . t('Since the clocks are a block, they can be administered via their <a href="@clock-settings">block settings page</a> which is accessible from the <a href="@block-admin">block administration page</a>. In addition to the usual block configuration options you can add new blocks, edit or delete existing ones and reorder the clocks.', array(
+        '@clock-settings' => url('admin/structure/block/manage/clock/clock/configure'),
+        '@block-admin' => url('admin/structure/block'),
+      )) . '</dd>';
+      $output .= '<dl>';
+      $output .= '<dt>' . t('Adding a clock') . '</dt>';
+      $output .= '<dd>' . t('If you wish to add a new clock, you can choose its time zone type and its date type. Following options are available for the time zone type:');
+      $output .= '<ul>';
+      $output .= '<li>' . t('<em>Site time zone:</em> The time zone that has been set on the <a href="@regional-admin">regional settings page</a>.', array('@regional-admin' => url('admin/config/regional/settings'))) .  '</li>';
+      $output .= '<li>' . t('<em>User time zone:</em> This option will only show up, if user-configurable time zones are enabled (see the <a href="@regional-admin">regional settings page</a>). The time zone the user has selected.', array('@regional-admin' => url('admin/config/regional/settings'))) . '</li>';
+      $output .= '<li>' . t('<em>Local time zone:</em> The local time zone on the computer of the visiting user (anonymous or authenticated). Since JavaScript is used to calculate this time, it falls back to the site time zone if the visitor has JavaScript disabled.') . '</li>';
+      $output .= '<li>' . t('<em>Custom time zone:</em> A custom time zone that can be selected in the select box below.') . '</li>';
+      $output .= '</ul>';
+      $output .= t('For the date type all of the date types that have been set on the <a href="@format-admin">date and time settings page</a> are available.', array('@format-admin' => url('admin/config/regional/date-time'))) . '</dd>';
+      $output .= '</dl>';
+      $output .= '</dl>';
+      return $output;
+  }
+}
+
+/**
+ * Implements hook_menu().
+ */
+function clock_menu() {
+  $items = array();
+  $items['admin/structure/block/manage/clock/clock/configure/add'] = array(
+    'title' => 'Add clock',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('clock_add_form'),
+    'access arguments' => array('administer blocks'),
+    'file' => 'clock.admin.inc',
+  );
+  $items['admin/structure/block/manage/clock/clock/configure/%clock/edit'] = array(
+    'title' => 'Edit clock',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('clock_edit_form', 7),
+    'access arguments' => array('administer blocks'),
+    'file' => 'clock.admin.inc',
+  );
+  $items['admin/structure/block/manage/clock/clock/configure/%clock/delete'] = array(
+    'title' => 'Delete clock',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('clock_delete_form', 7),
+    'access arguments' => array('administer blocks'),
+    'file' => 'clock.admin.inc',
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_theme.
+ */
+function clock_theme() {
+  return array(
+    // @see clock_element_info()
+    'clock_option' => array('render element' => 'element'),
+    // @see clock_element_info_alter()
+    'clock_select' => array('render element' => 'element'),
+    'clocks' => array(
+      'variables' => array(
+        'clocks' => array(),
+      ),
+      'file' => 'clock.theme.inc',
+    ),
+    'clock' => array(
+      'variables' => array(
+        'clock' => new StdClass(),
+      ),
+      'file' => 'clock.theme.inc',
+    ),
+    'clock_daylight_savings_time_marker' => array(
+      'variables' => array(),
+      'file' => 'clock.theme.inc',
+    ),
+  );
+}
+
+/**
+ * Implements hook_element_info().
+ *
+ */
+function clock_element_info() {
+  // @todo Post a core patch and roll this into a module.
+  $types['links'] = array(
+    '#pre_render' => array('clock_links_pre_render'),
+    '#theme' => 'links',
+  );
+  $types['option'] = array(
+    // The parent element (select, radios, checkboxes, ...) handles the input.
+    '#input' => FALSE,
+    '#process' => array('ajax_process_form'),
+    '#theme' => 'clock_option',
+  );
+
+  // @todo This should be part of Drupal 7.
+  // @see https://drupal.org/node/80855
+  $types['table'] = array(
+    '#header' => array(),
+    '#rows' => array(),
+    '#empty' => '',
+    // Properties for tableselect support.
+    '#input' => TRUE,
+    '#tree' => TRUE,
+    '#tableselect' => FALSE,
+    '#multiple' => TRUE,
+    '#js_select' => TRUE,
+    '#value_callback' => 'form_type_table_value',
+    '#process' => array('form_process_table'),
+    '#element_validate' => array('form_validate_table'),
+    // Properties for tabledrag support.
+    // The value is a list of arrays that are passed to drupal_add_tabledrag().
+    // drupal_pre_render_table() prepends the HTML ID of the table to each set
+    // of arguments.
+    // @see drupal_add_tabledrag()
+    '#tabledrag' => array(),
+    // Render properties.
+    '#pre_render' => array('drupal_pre_render_table'),
+    '#theme' => 'table',
+  );
+
+  return $types;
+}
+
+/**
+ * Implements hook_element_info_alter().
+ */
+function clock_element_info_alter(&$type) {
+  // @see theme_clock_select()
+  $type['select']['#theme'] = 'clock_select';
+}
+
+
+/**
+ * Populates an element's #links property with child elements that are links.
+ */
+function clock_links_pre_render($elements) {
+  // Support setting '#links' manually.
+  $elements['#links'] = (isset($elements['#links']) ? $elements['#links'] : array());
+  foreach (element_children($elements, TRUE) as $child) {
+    if (isset($elements[$child]['#type']) && ($elements[$child]['#type'] == 'link')) {
+      $elements['#links'][$child] = array(
+        'title' => $elements[$child]['#title'],
+        'href' => $elements[$child]['#href'],
+        'html' => (isset($elements[$child]['#html']) ? $elements[$child]['#html'] : FALSE),
+        'attributes' => (isset($elements[$child]['#attributes']) ? $elements[$child]['#attributes'] : array()),
+      );
+    }
+  }
+  return $elements;
+}
+
+/**
+ * Returns HTML for a select form element.
+ *
+ * Allows to use dedicated #option elements as options.
+ *
+ * @see theme_select()
+ * @see form_select_options()
+ * @see http://drupal.org/node/342316
+ */
+function theme_clock_select(&$variables) {
+  $element = $variables['element'];
+  element_set_attributes($element, array('id', 'name', 'size'));
+  _form_set_class($element, array('form-select'));
+
+  // form_select_options() assumes #options to be set.
+  $element += array('#options' => array());
+  $options = form_select_options($element);
+  foreach (element_children($element, TRUE) as $child) {
+    if (($element[$child]['#type']) && (($element[$child]['#type'] == 'option') || ($element[$child]['#type'] == 'optgroup'))) {
+      if (isset($element[$child]['#description'])) {
+        $element['#child_descriptions'][$child] = array('#description' => $element[$child]['#description']);
+      }
+      // We need to pass the parent value in order to determine whether an
+      // option is selected or not.
+      // @see form_select_options()
+      if (isset($element['#value']) || array_key_exists('#value', $element)) {
+        $element[$child]['#parent_value'] = $element['#value'];
+      }
+      $options .= drupal_render($element[$child]);
+    }
+  }
+
+  $output = '<select' . drupal_attributes($element['#attributes']) . '>' . $options . '</select>';
+
+  if (!empty($element['#child_descriptions'])) {
+    $element['#child_descriptions']['#attributes']['class'][] = 'child-descriptions';
+    $output .= '<span' . drupal_attributes($element['#child_descriptions']['#attributes']) . '>';
+    foreach (element_children($element['#child_descriptions']) as $child) {
+      $child_element = $element['#child_descriptions'][$child];
+      $child_element['#attributes']['class'][] = 'description';
+      $child_element['#attributes']['class'][] = 'child-description';
+      $child_element['#attributes']['class'][] = "child-description-$child";
+      $output .='<span' . drupal_attributes($child_element['#attributes']) . '>' . $child_element['#description'] . '</span>';
+    }
+    $output .= '</span>';
+  }
+
+  return $output;
+}
+
+/**
+ * Returns HTML for a form option.
+ */
+function theme_clock_option($variables) {
+  $element = $variables['element'];
+  if (!empty($element['#value'])) {
+    $value = $element['#value'];
+  }
+  else {
+    // We use the element's key as a value. It is the last value in #parents.
+    $parents = array_reverse($element['#parents']);
+    $value = reset($parents);
+  }
+  $value = (string) $value;
+
+  $attributes = (!empty($element['#attributes']) ? $element['#attributes'] : array());
+
+  // drupal_attributes() takes care of check_plain() for us.
+  $attributes['value'] = $value;
+
+  $value_valid = isset($element['#parent_value']) || array_key_exists('#parent_value', $element);
+  $value_is_array = $value_valid && is_array($element['#parent_value']);
+  if ($value_valid && ((!$value_is_array && (string) $element['#parent_value'] === $value) || ($value_is_array && in_array($key, $element['#value'])))) {
+    $attributes['selected'] = 'selected';
+  }
+
+  $title = (!empty($element['#title']) ? $element['#title'] : $value);
+
+  return '<option' . drupal_attributes($attributes) . '>' . check_plain($title) . '</option>';
+}
+
+/**
+ * Adds a clock.
+ * 
+ * @param $clock
+ *   A clock object as returned by clock_info().
+ */
+function clock_add($clock) {
+  $info = array(
+    'time_zone_type' => $clock->time_zone_type,
+    'custom_time_zone' => $clock->custom_time_zone,
+    'date_type' => $clock->date_type,
+    'display' => $clock->display,
+    'weight' => $clock->weight,
+  );
+  drupal_write_record('clock_settings', $info);
+}
+
+/**
+ * Updates a clock.
+ *
+ * @param $cid
+ *   The clock ID.
+ * @param $clock
+ *   A clock object as returned by clock_info() with new settings.
+ */
+function clock_update($cid, $clock) {
+  $info = array(
+    'cid' => $cid,
+    'time_zone_type' => $clock->time_zone_type,
+    'custom_time_zone' => $clock->custom_time_zone,
+    'date_type' => $clock->date_type,
+    'display' => $clock->display,
+    'weight' => $clock->weight,
+  );
+  drupal_write_record('clock_settings', $info, 'cid');
+}
+
+/**
+ * Deletes a clock.
+ *
+ * @param $cid
+ *   The clock ID.
+ */
+function clock_delete($cid) {
+  db_delete('clock_settings')->condition('cid', $cid)->execute(); 
+}
+
+/**
+ * Returns information about all clocks or a single clock.
+ *
+ * @param $cid
+ *   (optional) The clock ID.
+ *
+ * @return
+ *   An associative array keyed by clock id containing clock objects. Each clock
+ *   object has the following properties:
+ *   - cid: The clock id.
+ *   - display: A string that defines the display of the clock. Can contain
+ *     tokens, most importantly:
+ *     - [clock:date]: The correctly formatted date of the clock.
+ *     - [clock:time-zone]: The time zone of the clock.
+ *     - [clock:date-type]: The date type of the clock.
+ *   - time_zone_type: The time zone type of the clock. Can be 'user', 'site',
+ *     'local', or 'custom'.
+ *   - custom_time_zone: The custom time zone of the clock. This will only be
+ *     displayed if the time zone type is 'custom'.
+ *   - date_type: The date type of the clock. Can be any of the date types
+ *     provided by core ('long', 'medium' and 'short') any date types provided
+ *     by contributed modules via hook_date_format_types() or any date types
+ *     added through the administrative interface at
+ *     admin/config/regional/date-time.
+ *   - weight: The weight of the clock. Clocks with higher weights sink to the
+ *     bottom.
+ *   If $cid was specified, only a single clock object.
+ */
+function clock_info($cid = NULL) {
+  $result = db_query("SELECT cid, time_zone_type, custom_time_zone, date_type, display, weight FROM {clock_settings} ORDER BY weight ASC");
+  $info = array();
+  foreach ($result as $row) {
+    $info[$row->cid] = $row;
+  }
+  
+  if (!empty($cid)) {
+    $info = $info[$cid];
+  }
+  return $info;
+}
+
+/**
+ * Load function for clock menu callbacks.
+ *
+ * @param $cid
+ *   The clock id.
+ */
+function clock_load($cid) {
+  $clocks = clock_info();
+  if (isset($clocks[$cid])) {
+    return $clocks[$cid];
+  }
+  return FALSE;
+}
+
+/**
+ * Gets a clock object populated with default values.
+ *
+ * @return
+ *   A clock object with the default values.
+ */
+function clock_default_clock() {
+  $clock = array(
+    'time_zone_type' => 'site',
+    'custom_time_zone' => 'UTC',
+    'date_type' => 'short',
+    'display' => '[clock:date]',
+  );
+  return (object) $clock;
+}
+
+/**
+ * Gets the correct timezone to display.
+ *
+ * @param $clock
+ *   A clock object as returned from clock_info().
+ *
+ * @return
+ *   The name of the timezone of the clock.
+ */
+function clock_get_time_zone($clock) {
+  switch ($clock->time_zone_type) {
+    case 'user':
+      $time_zone = drupal_get_user_timezone();
+      break;
+    case 'site':
+    case 'local':
+      $time_zone = variable_get('date_default_timezone', 'UTC');
+      break;
+    case 'custom':
+      $time_zone = $clock->custom_time_zone;
+      break;
+  }
+  return $time_zone;
+}
+
+/**
+ * Gets the correct date format.
+ *
+ * @param $clock
+ *   A clock object as returned from clock_info().
+ *
+ * @return
+ *   The date format of the date type used for the clock.
+ */
+function clock_get_date_format($clock) {
+  $format = variable_get('date_format_' . $clock->date_type, NULL);
+  // Each date format type has a corresponding variable. If it is not set, get
+  // the list of date formats for that type and use the first one.
+  if (empty($format)) {
+    $formats = system_get_date_formats($clock->date_type);
+    if (!empty($formats)) {
+      $format = key($formats);
+    }
+  } 
+  // If no formats were found, fallback to the medium date type.
+  if (empty($format)) {
+    $format = variable_get('date_format_medium', 'D, m/d/Y - H:i');
+  }
+  return $format;
+}
+
+/**
+ * Calculates the weight of a new clock.
+ *
+ * Newly added clocks are assumed to be added to the bottom of the list of
+ * clocks. This function always returns a weight, that is one greater than the
+ * highest weight already in use.
+ *
+ * @return
+ *   An integer containing the weight of the new clock.
+ */
+function clock_get_weight() {
+  $info = clock_info();
+  $weight = 0;
+  foreach ($info as $clock) {
+    if ($clock->weight >= $weight) {
+      $weight = $clock->weight + 1;
+    }
+  }
+  return $weight;
+}

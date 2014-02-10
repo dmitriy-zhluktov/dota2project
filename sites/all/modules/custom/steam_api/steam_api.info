@@ -1,0 +1,5 @@
+name = Steam api wrapper
+description = Steam Api Wrapper
+package = Customization
+
+core = 7.x

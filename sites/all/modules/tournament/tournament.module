@@ -1,0 +1,525 @@
+<?php
+
+function tournament_get_images() {
+    global $user;
+    $node = tournament_get_top_block_match();
+    if($node == null)
+        return null;
+    $image1 = file_create_url($node->field_team1_image['und'][0]['uri']);
+    $image2 = file_create_url($node->field_team2_image['und'][0]['uri']);
+    $button1 = tournament_get_buttons($node->nid, $user->uid, 1, $node->field_get_players['und'][0]['value']);
+    $button2 = tournament_get_buttons($node->nid, $user->uid, 2, $node->field_get_players['und'][0]['value']);
+
+    $request1 = db_select('tournament_requests', 't')
+            ->fields('t', array('id'))
+            ->condition('t.tournament_id', $node->nid, '=')
+            ->condition('t.team', 1, '=')
+            ->execute()
+            ->rowCount();  
+    $request2 = db_select('tournament_requests', 't')
+            ->fields('t', array('id'))
+            ->condition('t.tournament_id', $node->nid, '=')
+            ->condition('t.team', 2, '=')
+            ->execute()
+            ->rowCount();
+    $args = array(
+        'nid' => $node->nid,
+    );
+    if ($node->field_get_players['und'][0]['value'] == 1) {
+        $form =  drupal_get_form('tournament_countdown_form', $args);
+        $form = drupal_render($form);
+    } else
+        $form = '';
+
+    $html = '<div class="left-block"><div class="tournament-actions">'.$button1.'</div>'.
+            '<div class="requests-amount">'.$request1.'</div></div>'.
+            '<div class="command-images command-left"><img src="'.$image1.'" /></div>'.
+            '<div class="before-start"><span>'.t('to start').'</span><span id="timetostart" class="hidden">'.$node->field_start_tournament['und'][0]['value'].'</span>'.tournament_get_timing($node->field_start_tournament['und'][0]['value']).'</div>'.
+            $form.
+            '<div class="command-images command-right"><img src="'.$image2.'" /></div>'.
+            '<div class="left-block"><div class="tournament-actions">'.$button2.'</div>'.
+            '<div class="requests-amount">'.$request2.'</div></div>';
+    return $html;
+}
+
+function tournament_get_top_block_match() {
+    $query = db_select('node','n')
+            ->fields('n', array('nid'));
+    $query->innerJoin('field_data_field_get_players', 's', 'n.nid=s.entity_id');
+    $result = $query->condition('n.type', "tournament")
+        ->condition('s.field_get_players_value', 3, '<')
+        ->orderBy('n.nid', 'ASC')
+        ->range(0, 1)
+        ->execute();
+
+    $result = $result->fetchObject();
+
+    if(!$result)
+        return null;
+    else {
+        $node = node_load($result->nid);
+        return $node;
+    }
+}
+
+function tournament_get_active_match() {
+    $query = db_select('node','n')
+        ->fields('n', array('nid'));
+    $query->innerJoin('field_data_field_get_players', 's', 'n.nid=s.entity_id');
+    $result = $query->condition('n.type', "tournament")
+        ->condition('s.field_get_players_value', 3)
+        ->orderBy('n.nid', 'DESC')
+        ->range(0, 1)
+        ->execute();
+
+    $result = $result->fetchObject();
+
+    if(!$result)
+        return null;
+    else {
+        $node = node_load($result->nid);
+        return $node;
+    }
+}
+
+function tournament_get_buttons($nid = 0, $uid = 0, $team = 0, $state = 0) {
+    if ($team == 0)
+        return null;
+    if ($state != 1)
+        return null;
+    $args = array(
+        'nid' => $nid,
+        'uid' => $uid,
+        'team' => $team,
+    );
+    $out = '';
+    $form =  drupal_get_form('tournament_get_buttons_form', $args);
+    $out .= drupal_render($form);
+    
+    return $out;
+}
+
+function tournament_get_buttons_form($form, &$form_state, $args) {
+    $registered = db_select('tournament_requests', 't')
+            ->fields('t', array('id'))
+            ->condition('t.uid', $args['uid'])
+            ->condition('t.tournament_id', $args['nid'])
+            ->execute()
+            ->fetchObject();
+    if (!$registered) {
+        global $language;
+        if ($language->language == 'ru')
+            $text = t('Вступить в команду');
+        else
+            $text = t('Join the team');
+        $form['nid'] = array(
+                '#type' => 'hidden',
+                '#default_value' => $args['nid'],
+        );
+        $form['uid'] = array(
+                '#type' => 'hidden',
+                '#default_value' => $args['uid'],
+        );
+        $form['team'] = array(
+                '#type' => 'hidden',
+                '#default_value' => $args['team'],
+        );	
+        $form['action'] = array(
+                '#type' => 'actions',
+                'submit' => array(
+                        '#type' => 'submit',
+                        '#value' => $text,
+                ),
+        );    
+        $form['button'] = array(
+            '#prefix' => '<button type="submit" class="tournament-button" id="command-'.$args['team'].'">',
+            '#suffix' => '</button>',
+            '#markup' => '<span>'.$text.'</span>',
+        );
+
+        $form['#submit'] = array(
+                '0' => 'tournament_get_buttons_form_submit',
+        );	
+
+        return $form;
+    } else {
+        return null;
+    }
+}
+
+function tournament_get_buttons_form_submit($form, &$form_state) {
+    global $language;
+    $nid = $form_state['values']['nid'];
+    $uid = $form_state['values']['uid'];
+    $team = $form_state['values']['team'];
+
+    if ($uid == 0) {
+        if ($language->language == 'ru')
+            $text = t('Сначала Вы должны авторизоваться');
+        else
+            $text = t('You need to login first');
+        drupal_set_message($text, 'error');
+    } else {
+        $steam = db_select('hybridauth_identity', 'h')
+                ->fields('h', array('data'))
+                ->condition('h.uid', $uid)
+                ->condition('h.provider', 'Steam')
+                ->execute()
+                ->fetchObject();
+
+        if (isset($steam) && $steam) {
+            $profile = unserialize($steam->data);
+
+            $steamId = explode('/', $profile['identifier']);
+            $steamId = end($steamId);
+        }
+        if (!isset($steamId) || !$steam) {
+            if ($language->language == 'ru')
+                $text = t('Сначала укажите Ваш Steam профиль');
+            else
+                $text = t('Please, specify your steam account first');
+            drupal_set_message($text, 'error');
+        } else {
+            $fields = array(
+                'tournament_id' => $nid,
+                'uid' => $uid,
+                'team' => $team
+            );
+            db_insert('tournament_requests')->fields($fields)->execute();
+            if ($language->language == 'ru')
+                $text = t('Ваша заявка принята');
+            else
+                $text = t('Thanks for request');
+            drupal_set_message($text);
+        }
+    }
+}
+
+function tournament_get_lucky_players() {
+    $out = '<div class="players-left">'.tournament_get_lucky_table(1).'</div>';
+    $out .= '<div class="players-right">'.tournament_get_lucky_table(2).'</div>';
+    return $out;
+}
+
+function tournament_get_lucky_table($command) {
+    $node = tournament_get_top_block_match();
+    if ($node == null)
+        return null;
+    $attributes = array(
+            'class' => array('lucky-table-'.$command)
+    );
+    $query = db_select('tournament_requests', 't')
+            ->fields('t', array('uid', 'ready'))
+            ->fields('u', array('name'));
+    $query->leftJoin('users','u', 't.uid=u.uid');
+    $query->condition('t.accepted', 1)
+            ->condition('t.tournament_id', $node->nid)
+            ->condition('t.team', $command);
+    $results = $query->execute();
+
+    if ($command == 1) {
+        $header = array(
+            'empty',
+            'button',
+            'name'
+        );
+        $rows = array();
+        while($row = $results->fetchObject()) {
+            if($row->ready == 0)
+                $class = array('ready-row');
+            else
+                $class = array('ready-row', 'ready');
+            $rows[] = array(
+                array('data' => '', 'class' => array('empty-row')),
+                array('data' => tournament_get_ready($node->nid, $row->ready, $row->uid), 'class' => $class),
+                array('data' => $row->name, 'class' => array('nickname-row'))
+            );
+        }        
+    } elseif ($command == 2) {
+         $header = array(
+            'name',
+            'button',
+            'empty'
+        );
+        $rows = array();
+        while($row = $results->fetchObject()) {
+            if($row->ready == 0)
+                $class = array('ready-row');
+            else
+                $class = array('ready-row', 'ready');
+            $rows[] = array(
+                array('data' => $row->name, 'class' => array('nickname-row')),
+                array('data' => tournament_get_ready($node->nid, $row->ready, $row->uid), 'class' => $class),
+                array('data' => '', 'class' => array('empty-row')),
+            );
+        }         
+    }
+
+    $html = theme('table', array(
+        'header' => $header,
+        'rows' => $rows,
+        'attributes' => $attributes
+    ));
+    
+    return $html;
+}
+
+function tournament_get_list() {
+    global $language;
+    $count1 = db_select('field_data_field_tournament_winner')
+        ->condition('field_tournament_winner_value', 1)
+        ->countQuery()
+        ->execute()
+        ->fetchField();
+    $count2 = db_select('field_data_field_tournament_winner')
+        ->condition('field_tournament_winner_value', 2)
+        ->countQuery()
+        ->execute()
+        ->fetchField();
+    $html = '<div id="tournament-score" class="'.$language->language.'">
+            <div id="scores-wrap">
+                <span class="scores">'.$count1.'</span><span class="scores">'.$count2.'</span>
+            </div>
+            </div>';
+    $attributes = array(
+            'class' => array('tournament-table')
+    );
+    $header = array(
+        'logo1',
+        'name1',
+        'middle',
+        'name2',
+        'logo2'
+    );
+    $rows = array();
+    $query = db_select('node','n')
+        ->fields('n', array('nid'))
+        ->condition('n.type', "tournament")
+        ->orderBy('n.nid', 'ASC');
+    $result = $query->execute();
+
+
+    while ($row = $result->fetchObject()) {
+        $node = node_load($row->nid);
+        $icon1 = file_create_url($node->field_icon1_image['und'][0]['uri']);
+        $name1 = $node->field_team1_name['und'][0]['value'];
+        
+        $icon2 = file_create_url($node->field_icon2_image['und'][0]['uri']);
+        $name2 = $node->field_team2_name['und'][0]['value'];
+
+        $state = $node->field_get_players['und'][0]['value'];
+
+        switch ($state) {
+            case 0:
+            case 1:
+            case 2:
+                $start = $node->field_start_tournament['und'][0]['value'];
+                $date = date('d.m.y', $start);
+                $time = date('H:i', $start);
+                $middle = '<div class="start-date-time"><span class="start-date"> - '.$date.' - </span><span class="start-time">'.$time.'</span></div>';
+                break;
+            case 3:
+                $middle = '<div class="live">'.t('LIVE!').'</div>';
+                break;
+            case 4:
+                $winner = $node->field_tournament_winner['und'][0]['value'];
+                if ($language->language == 'ru')
+                    $text = t('ПОКАЗАТЬ РЕЗУЛЬТАТЫ');
+                else
+                    $text = t('SHOW RESULTS');
+                if ($winner == 1)
+                    $middle = '<div class="show-results"><span class="result-title">'.$text.'</span><div class="results"><span class="score-1 score-span">1</span>:<span class="score-2 score-span">0</span></div></div>';
+                elseif ($winner == 2)
+                    $middle = '<div class="show-results"><span class="result-title">'.$text.'</span><div class="results"><span class="score-1 score-span">0</span>:<span class="score-2 score-span">1</span></div></div>';
+                break;
+            default:
+                $middle = '';
+                break;
+        }
+
+        $rows[] = array(
+            array('data' => '<img src="'.$icon1.'" class="command-icons" />', 'class' => array('icon-row', 'left-icon')),
+            array('data' => $name1, 'class' => array('name-row')),
+            array('data' => $middle, 'class' => array('score-row')),
+            array('data' => $name2, 'class' => array('name-row')),
+            array('data' => '<img src="'.$icon2.'" class="command-icons" />', 'class' => array('icon-row', 'right-icon'))
+        );
+    }
+    $html .= theme('table', array(
+        'header' => $header,
+        'rows' => $rows,
+        'attributes' => $attributes
+    ));
+    return $html;
+}
+
+function tournament_get_streamer_name() {
+    $node = tournament_get_active_match();
+    if($node == null)
+        return null;
+    else {
+        global $language;
+        if ($language->language == 'ru')
+            $streamer = $node->field_streamer_name['und'][0]['value'];
+        elseif ($language->language == 'en')
+            $streamer = $node->field_streamer_name_en['und'][0]['value'];
+        return $streamer;
+    }
+}
+
+function tournament_get_stream() {
+    $node = tournament_get_active_match();
+    if($node == null)
+        return null;
+    else {
+        global $language;
+        if ($language->language == 'ru')
+            $vod = $node->field_tournament_stream['und'][0]['value'];
+        elseif ($language->language == 'en')
+            $vod = $node->field_tournament_stream_en['und'][0]['value'];
+        $vod = $node->field_tournament_stream['und'][0]['value'];
+        if(preg_match('|^http(s)?://[a-z0-9-]+(.[a-z0-9-]+)*(:[0-9]+)?(/.*)?$|i', $vod)) {
+                $stream = substr(parse_url($vod, PHP_URL_PATH), 1);
+                $twitch = '<object type="application/x-shockwave-flash" height="660" width="1020" id="live_embed_player_flash'.$stream.'" data="http://www.twitch.tv/widgets/live_embed_player.swf?channel='.$stream.'" bgcolor="#000000"><param name="allowFullScreen" value="true" /><param name="allowScriptAccess" value="always" /><param name="allowNetworking" value="all" /><param name="movie" value="http://www.twitch.tv/widgets/live_embed_player.swf" /><param name="flashvars" value="hostname=www.twitch.tv&channel='.$stream.'&auto_play=false&start_volume=25" /></object>';
+        } else	{
+            $twitch = '';
+        }
+        return $twitch;
+    }
+}
+
+function tournament_get_timing($time) {
+    global $language;
+    if ($language->language == 'ru')
+        $text = t('Подготовка...');
+    else
+        $text = t('Prepating...');
+    $toStart = $time - time();
+    $html = '';
+    if($toStart > 86400)
+        $html = '<div id="time-to-srart">'.floor($toStart/86400).' '.t('day(s)').'</div>';
+    elseif ($toStart >=0 )
+        $html = '<div id="countdown"></div>';
+    else
+        $html = '<div id="time-to-srart">'.$text.'</div>';
+    return $html;
+}
+
+function tournament_countdown_form($form, &$form_state, $args) {
+    $form['nid'] = array(
+            '#type' => 'hidden',
+            '#default_value' => $args['nid'],
+    );
+    
+    $form['#attributes']['class'][] = 'hidden';
+    $form['action'] = array(
+            '#type' => 'actions',
+            'submit' => array(
+                    '#type' => 'submit',
+                    '#value' => t('Get lucky'),
+            ),
+    );    
+
+    $form['#submit'] = array(
+            '0' => 'tournament_countdown_form_submit',
+    );	
+
+    return $form;    
+}
+
+function tournament_countdown_form_submit($form, &$form_state) {
+    $nid = $form_state['values']['nid'];
+    $node = node_load($nid);
+    $node->field_get_players['und'][0]['value'] = 2;
+    node_save($node);
+
+    $query = db_select('tournament_requests', 't')
+        ->fields('t', array('id'))
+        ->condition('t.accepted', 0)
+        ->condition('t.tournament_id', $nid)
+        ->condition('t.team', 1)
+        ->range(0,4)
+        ->orderRandom();
+    $results = $query->execute();
+    $or = db_or();
+    while($row = $results->fetchObject()) {
+        $or->condition('id', $row->id);
+    }
+    $query = db_select('tournament_requests', 't')
+        ->fields('t', array('id', 'uid'))
+        ->condition('t.accepted', 0)
+        ->condition('t.tournament_id', $nid)
+        ->condition('t.team', 2)
+        ->range(0,4)
+        ->orderRandom();
+    $results = $query->execute();
+    while($row = $results->fetchObject()) {
+        $or->condition('id', $row->id);
+    }
+    if ($or->__toString() != null) {
+        db_update('tournament_requests')
+            ->fields(array('accepted' => 1,))
+            ->condition($or)
+            ->execute();
+    }
+}
+
+function tournament_get_ready($nid = 0, $ready = 0, $uid = 0) {
+    global $user;
+    global $language;
+    if ($nid == 0)
+        return;
+
+    if ($language->language == 'ru')
+        $text = t('Готов!');
+    else
+        $text = t('Ready!');
+    if ($ready == 1)
+        return $text;
+    elseif ($ready == 0 && $user->uid != $uid)
+        return $text;
+    elseif ($ready == 0 && $user->uid == $uid) {
+        $args = array(
+            'nid' => $nid,
+            'uid' => $uid
+        );
+        $form = drupal_get_form('tournament_ready_form', $args);
+        return drupal_render($form);
+    }
+}
+
+function tournament_ready_form($form, &$form_state, $args) {
+    $form['nid'] = array(
+        '#type' => 'hidden',
+        '#default_value' => $args['nid'],
+    );
+    $form['uid'] = array(
+        '#type' => 'hidden',
+        '#default_value' => $args['uid'],
+    );
+
+    $form['action'] = array(
+        '#type' => 'actions',
+        'submit' => array(
+            '#type' => 'submit',
+            '#value' => t('Ready'),
+        ),
+    );
+
+    $form['#submit'] = array(
+        '0' => 'tournament_ready_form_submit',
+    );
+
+    return $form;
+}
+
+function tournament_ready_form_submit($form, &$form_state) {
+    $nid = $form_state['values']['nid'];
+    $uid = $form_state['values']['uid'];
+
+    db_update('tournament_requests')
+        ->fields(array('ready' => 1,))
+        ->condition('uid', $uid)
+        ->condition('tournament_id', $nid)
+        ->execute();
+}

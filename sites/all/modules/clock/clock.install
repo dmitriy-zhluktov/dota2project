@@ -1,0 +1,83 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the clock module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function clock_schema() {
+  $schema = array();
+  $schema['clock_settings'] = array(
+    'fields' => array(
+      'cid' => array(
+        'description' => 'The unique ID of the clock.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'time_zone_type' => array(
+        'description' => 'The time zone type this clock uses.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => 'site',
+      ),
+      'custom_time_zone' => array(
+        'description' => 'The time zone this clock uses, in case of custom time zone type.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => 'UTC',
+      ),
+      'date_type' => array(
+        'description' => 'The date type this clock uses.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => 'long',
+      ),
+      'display' => array(
+        'description' => 'The display this clock uses.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '[clock:date]',
+      ),
+      'weight' => array(
+        'description' => 'The weight of the clock.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('cid'),
+  );
+  return $schema;
+}
+
+/**
+ * Remove legacy variables from the database.
+ */
+function clock_update_7100(&$sandbox) {
+  variable_del('clock_timezone_type');
+  variable_del('clock_custom_timezone');
+  variable_del('clock_date_format_type');
+  variable_del('clock_custom_date_format');
+  variable_del('clock_js');
+  return 'Legacy variables removed.';
+}
+
+/**
+ * Install the clock_settings table and remove legacy variables.
+ */
+function clock_update_7101(&$sandbox) {
+  drupal_install_schema('clock');
+  // Delete all clock variables.
+  variable_del('clock_time_zone');
+  variable_del('clock_date_type');
+  variable_del('clock_update');
+  return 'Clock settings table created.';
+}

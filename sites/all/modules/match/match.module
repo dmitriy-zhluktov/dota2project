@@ -1,0 +1,388 @@
+<?php
+/**
+ * Implements hook_block_info().
+ */
+
+ function match_block_info() {
+	$blocks[0] = array(
+		'info' => t('Планируемые матчи'),
+	);
+	$blocks[1] = array(
+		'info' => t('Активные матчи'),
+	);
+	$blocks[2] = array(
+		'info' => t('Завершенные матчи'),
+	);
+	$blocks[3] = array(
+		'info' => t('Дополнительные данные'),
+	);
+	$blocks[4] = array(
+		'info' => t('Создать матч'),
+	);	
+	return $blocks;
+}
+
+function match_block_view($delta='') {
+	$block = array();
+	switch($delta) {
+		case 0:
+			$block['subject'] = t('Planned matches');
+			$block['content'] = match_planned_block_markup();
+			break;
+		case 1:
+			$block['subject'] = t('Active matches');
+			$block['content'] = match_active_block_markup();
+			break;
+		case 2:
+			$block['subject'] = t('Finished matches');
+			$block['content'] = match_finished_block_markup();
+			break;
+		case 3:
+			module_load_include('inc', 'match', 'node/node.blocks');
+			$block['subject'] = t('');
+			$block['content'] = match_get_node_data();
+			break;
+		case 4:
+			module_load_include('inc', 'match', 'node/node.blocks');
+			$block['subject'] = t('Create match');
+			$block['content'] = match_create_node();		
+			break;
+	}
+	
+	return $block;
+}
+
+function match_planned_block_markup() {
+	global $user;
+	
+	$steam = db_select('hybridauth_identity', 'h')
+			->fields('h', array('data'))
+			->condition('h.uid', $user->uid)
+			->condition('h.provider', 'Steam')
+			->execute()
+			->fetchObject();
+
+	if (isset($steam) && $steam) {
+		$profile = unserialize($steam->data);
+
+		$steamId = explode('/', $profile['identifier']);
+		$steamId = end($steamId);
+		$nickname = explode('/', rtrim($profile['profileURL'], '/'));
+		$nickname = end($nickname);
+		
+	}
+	//krumo($steamId, $nickname);
+	
+	$perpage = 10;
+	$rows = array();
+
+	$query = db_select('node', 'n')
+		->fields('n', array('nid', 'uid'))
+		->fields('u', array('name'))
+		->fields('l', array('field_last_value'))
+		->fields('f', array('field_free_place_value'))
+		->fields('p', array('field_need_player_value'))
+		->fields('d', array('field_date_value'))
+		->fields('c', array('field_profi_command_value'));
+	$query->leftJoin('field_data_field_state','s', 'n.nid=s.entity_id');
+	$query->leftJoin('users','u', 'n.uid=u.uid');
+	$query->leftJoin('field_data_field_last','l', 'n.nid=l.entity_id');
+	$query->leftJoin('field_data_field_free_place','f', 'n.nid=f.entity_id');
+	$query->leftJoin('field_data_field_need_player','p', 'n.nid=p.entity_id');
+	$query->leftJoin('field_data_field_date','d', 'n.nid=d.entity_id');
+	$query->leftJoin('field_data_field_profi_command','c', 'n.nid=c.entity_id');
+
+	$query->condition('s.field_state_value', 0);
+	$query = $query->extend('PagerDefault')->limit($perpage);
+
+	$result = $query->execute();
+
+	$output = '';
+	while($row = $result->fetchObject())
+	{
+		$addClass = ($row->field_need_player_value == 1)? 'we-need-a-hero': '';
+		$last = ($row->field_last_value == 1)? t('Yes'): t('No');
+		
+		$in_game = false;
+		if (isset($steamId)) {
+			$in_game = db_select('players', 'p')->fields('p', array('id'))->condition('team_id', $row->field_profi_command_value)->condition('steam_id', $steamId)->execute()->fetchObject();
+		}
+		
+		$ticket = ($row->field_free_place_value >= 1 && isset($steamId) && !$in_game)? match_call_ticket_form($row->nid, $steamId, $nickname): '';
+		$output .= '<div class="planned-match '.$addClass.'">
+						<div class="active-id"><a href="'.url('node/'.$row->nid, array('absolute' => true)).'">'.$row->nid.'</a></div>
+						<div class="active-time">'.match_get_planned_timing(strtotime($row->field_date_value), $row->uid).'</div>
+						<div class="active-free">'.$row->field_free_place_value.'</div>
+						<div class="active-expert"><a href="'.url('user/'.$row->uid, array('absolute' => true)).'">'.$row->name.'</a></div>
+						<div class="active-last">'.$last.'</div>
+						<div class="active-ticket" >'.$ticket.'</div>
+						<div class="clear"></div>
+					</div>';
+	}
+
+	
+	$output .= theme('pager', array('element' => 1, 'tags' => array('0' => t('в нач.'), '1' => t('пред.'), '2' => t('t2'), '3' => t('след.'), '4' => t('посл.'))));    // Получаем html код таблицы
+
+	return $output;		
+}
+
+function match_active_block_markup() {
+	$perpage = 10;
+	$rows = array();
+
+	$query = db_select('node', 'n')
+		->fields('n', array('nid', 'uid'))
+		->fields('u', array('name'))
+		->fields('v', array('field_vod_value'))
+		->fields('st', array('field_started_value'))
+		->fields('p', array('field_profi_command_value'));
+
+	$query->leftJoin('field_data_field_state','s', 'n.nid=s.entity_id');
+	$query->leftJoin('users','u', 'n.uid=u.uid');
+	$query->leftJoin('field_data_field_vod','v', 'n.nid=v.entity_id');
+	$query->leftJoin('field_data_field_started','st', 'n.nid=st.entity_id');
+	$query->leftJoin('field_data_field_profi_command','p', 'n.nid=p.entity_id');
+
+
+	$query->condition('s.field_state_value', 1);
+	$query = $query->extend('PagerDefault')->limit($perpage);
+
+	$result = $query->execute();
+
+	$output = '';
+	$i = 0;
+	$rows = $result->fetchAll();
+	
+	/* creating an array of active matches twitch viewers*/
+	$viewers = array();
+	foreach ($rows as $key => $row) {
+		$stream = parse_url($row->field_vod_value, PHP_URL_PATH);
+		$res = drupal_http_request('https://api.twitch.tv/kraken/streams'.$stream);
+
+		if ($res->code == 200 && $res->status_message == 'OK' && json_decode($res->data)->stream !== null)
+			$viewers[] = array('id' => $key, 'views' => json_decode($res->data)->stream->viewers);
+		else
+			$viewers[] = array('id' => $key, 'views' => 0);
+	}
+	/* sort criteria*/
+	foreach ($viewers as $viewer) {
+		$sortByViewers[] = $viewer['views'];
+	}
+	/* sorting*/
+	array_multisort($sortByViewers, SORT_DESC, $viewers);
+
+	foreach($viewers as $view) {
+		$addClass = '';
+		if ($i == 0)
+			$addClass .= 'best-match';
+		$output .= '<div class="active-match '.$addClass.'">
+						<div class="active-id">'.$rows[$view['id']]->nid.'</div>
+						<div class="active-time">'.match_get_timing($rows[$view['id']]->field_started_value).'</div>
+						<div class="active-players">'.match_get_players_html($rows[$view['id']]->field_profi_command_value).'</div>
+						<div class="active-expert"><a href="'.url('user/'.$rows[$view['id']]->uid, array('absolute' => true)).'">'.$rows[$view['id']]->name.'</a></div>
+						<div class="clear"></div>
+						<div class="active-twitch">'.match_get_twitch_html($rows[$view['id']]->field_vod_value).'</div>
+					</div>';
+		$i++;
+	}
+
+	$output .= theme('pager', array('element' => 1, 'tags' => array('0' => t('в нач.'), '1' => t('пред.'), '2' => t('t2'), '3' => t('след.'), '4' => t('посл.'))));    // Получаем html код таблицы
+
+	return $output;		
+}
+
+
+function match_finished_block_markup() {
+	$perpage = 10;
+	$rows = array();
+	
+	$query = db_select('node', 'n')
+		->fields('n', array('nid', 'uid'))
+		->fields('u', array('name'))
+		->fields('v', array('field_vod_value'))
+		->fields('d', array('field_date_value'))
+		->fields('p', array('field_profi_command_value'))
+		->fields('r', array('field_rating_value'))
+		->fields('res', array('field_result_value'));
+	$query->leftJoin('field_data_field_state','s', 'n.nid=s.entity_id');
+	$query->leftJoin('users','u', 'n.uid=u.uid');
+	$query->leftJoin('field_data_field_vod','v', 'n.nid=v.entity_id');
+	$query->leftJoin('field_data_field_date','d', 'n.nid=d.entity_id');
+	$query->leftJoin('field_data_field_profi_command','p', 'n.nid=p.entity_id');	
+	$query->leftJoin('field_data_field_rating','r', 'n.nid=r.entity_id');	
+	$query->leftJoin('field_data_field_result','res', 'n.nid=res.entity_id');	
+
+	$query->condition('s.field_state_value', 2);
+	$query = $query->extend('PagerDefault')->limit($perpage);
+
+	$result = $query->execute();
+	
+	$output = '';
+	while($row = $result->fetchObject())
+	{
+		$output .= '<div class="finished-match">
+				<div class="finished-id"><a href="'.url('node/'.$row->nid, array('absolute' => true)).'">'.$row->nid.'</a></div>
+				<div class="finished-date"><a href="'.url('node/'.$row->nid, array('absolute' => true)).'">'.$row->field_date_value.'</a></div>
+				<div class="finished-players">'.match_get_players_html($row->field_profi_command_value).'</div>
+				<div class="finished-winner">'.match_get_winner_html($row->field_result_value).'</div>
+				<div class="active-expert"><a href="'.url('user/'.$row->uid, array('absolute' => true)).'">'.$row->name.'</a></div>
+				<div class="finished-twitch">'.$row->field_vod_value.'</div>
+				<div class="finished-rating"><a href="'.url('node/'.$row->nid, array('absolute' => true)).'">'.$row->field_rating_value.'</a></div>
+				<div class="clear"></div>
+			</div>';
+	}
+
+	$output .= theme('pager', array('element' => 2, 'tags' => array('0' => t('в нач.'), '1' => t('пред.'), '2' => t('t2'), '3' => t('след.'), '4' => t('посл.'))));    // Получаем html код таблицы
+
+	return $output;		
+}
+
+function match_get_twitch_html ($vod) {
+	if(preg_match('|^http(s)?://[a-z0-9-]+(.[a-z0-9-]+)*(:[0-9]+)?(/.*)?$|i', $vod)) {
+		$stream = substr(parse_url($vod, PHP_URL_PATH), 1);
+		$twitch = '<object type="application/x-shockwave-flash" height="378" width="620" id="live_embed_player_flash'.$stream.'" data="http://www.twitch.tv/widgets/live_embed_player.swf?channel='.$stream.'" bgcolor="#000000"><param name="allowFullScreen" value="true" /><param name="allowScriptAccess" value="always" /><param name="allowNetworking" value="all" /><param name="movie" value="http://www.twitch.tv/widgets/live_embed_player.swf" /><param name="flashvars" value="hostname=www.twitch.tv&channel='.$stream.'&auto_play=false&start_volume=25" /></object>';
+	} else	{
+	  $twitch = '';
+	}	
+	return $twitch;
+}
+
+function match_get_players_html ($team) {
+	$query = db_select('players', 'p')
+		->fields('p', array('nickname', 'hero'));
+		
+	$query->condition('p.team_id', $team);
+	$result = $query->execute();
+	$i = 0;
+	
+	$title = t('Portal command');
+	
+	$type = 'ul';
+	$attributes = array(
+		'class' => 'players-list'
+	);
+	$itemsExpert = array();
+	$itemsRival = array();
+
+	while($row = $result->fetchObject()) {
+		$items[] = array(
+			'data' => $row->nickname.' '.t('hero: ').$row->hero,
+			'class' => array(t('players-list-item')),
+		);
+	}
+	$html = theme('item_list', array('items' => $items, 'title' => $title, 'type' => $type, 'attributes' => $attributes));
+	return $html;
+}
+
+function match_get_timing($timestamp) {
+	$start = new DateTime('@'.$timestamp);
+	$now = new DateTime('@'.strtotime('now'));
+	$interval = $now->diff($start);
+
+	$hours = $interval->format('%h');
+	$minutes = $interval->format('%i');
+	$seconds = $interval->format('%s');
+	
+	if ($interval->i < 1)
+		$out = t($seconds.' sec');
+	elseif ($interval->h < 1 && $interval->i >= 1)
+		$out = t($minutes.' min '.$seconds. 'sec');
+	else
+		$out = t($hours.' hours '.$minutes.' min '.$seconds. 'sec');
+	return $out;
+}
+
+function match_get_planned_timing($timestamp, $uid) {
+	$start = new DateTime('@'.$timestamp);
+	$now = new DateTime('@'.strtotime('now'));
+	$interval = $start->diff($now);
+
+	$hours = $interval->format('%h');
+	$minutes = $interval->format('%i');
+	$seconds = $interval->format('%s');
+	
+	$query = db_select('node', 'n')	
+		->fields('n', array('nid'));
+	$query->leftJoin('field_data_field_state','s', 'n.nid=s.entity_id');
+	$query->condition('s.field_state_value', 1)
+		->condition('n.uid', $uid)
+		->orderBy('n.nid', 'DESC');
+	$res = $query->execute();
+	$result = $res->fetchObject();
+	if (isset($result) && $result && $result->nid)
+		$out = t('After !match match', array('!match' => '<a href="'.url('node/'.$result->nid, array('absolute' => true)).'">this</a>'));
+	else {
+		if ($interval->i < 1)
+			$out = t($seconds.' sec');
+		elseif ($interval->h < 1 && $interval->i >= 1)
+			$out = t($minutes.' min '.$seconds. 'sec');
+		else
+			$out = t($hours.' hours '.$minutes.' min '.$seconds. 'sec');
+	}
+	return $out;
+}
+
+function match_get_winner_html($flag) {
+	$winner = ($flag == 1)? t('Portal command'): t('Rival command');
+	$html = '<div class="winner">'.t('Winner').'<div class="hidden">'.$winner.'</div></div>';
+	
+	return $html;
+}
+
+
+function match_call_ticket_form($nid, $steam, $nick) {
+        $args = array(
+            'nid' => $nid,
+            'steam' => $steam,
+            'nick' => $nick,
+        );
+	$out = '';
+	$form =  drupal_get_form('match_get_ticket_form', $args);
+	$out .= drupal_render($form);
+	return $out;
+}
+function match_get_ticket_form($form, &$form_state, $args) {
+
+	$form['node'] = array(
+		'#type' => 'hidden',
+		'#default_value' => $args['nid'],
+	);
+	$form['steam_id'] = array(
+		'#type' => 'hidden',
+		'#default_value' => $args['steam'],
+	);
+	$form['nickname'] = array(
+		'#type' => 'hidden',
+		'#default_value' => $args['nick'],
+	);	
+	
+	$form['buy'] = array(
+		'#type' => 'actions',
+		'submit' => array(
+			'#type' => 'submit',
+			'#value' => t('Buy a ticket'),
+		),
+	);
+	
+	$form['#submit'] = array(
+		'0' => 'match_get_ticket_form_submit',
+	);	
+	
+	return $form;
+}
+
+function match_get_ticket_form_submit($form, &$form_state) {
+	$node = node_load($form_state['values']['node']);
+	if ($node->field_free_place['und'][0]['value'] < 1)
+		drupal_set_message(t('No more free places on this match'), 'error');
+	else {
+		global $user;
+		$command = $node->field_profi_command['und'][0]['value'];
+		$steam_id = $form_state['values']['steam_id'];
+		$nickname = $form_state['values']['nickname'];
+		db_insert('players')->fields(array('uid' => $user->uid, 'team_id' => $command, 'steam_id' => "$steam_id", 'nickname' => "$nickname",))->execute();
+		$node->field_free_place['und'][0]['value']--;
+		node_save($node);
+		drupal_set_message(t('Thanks for register'));
+	}
+}

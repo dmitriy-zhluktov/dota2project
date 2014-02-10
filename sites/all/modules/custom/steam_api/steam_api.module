@@ -1,0 +1,52 @@
+<?php
+
+require_once drupal_get_path('module', 'steam_api') . "/steam-condenser/lib/steam-condenser.php";
+require_once drupal_get_path('module', 'steam_api') . "/steam-condenser/lib/steam/community/WebApi.php";
+
+require_once drupal_get_path('module', 'steam_api') . "/steam_api.inc";
+
+define("API_KEY", "FCCCF409F8ABCF875212A32AB03D9395");
+define("DOTA2_GAME_ID", 570);
+
+function steam_api_hybridauth_user_insert($account, $data) {
+  if ($data['provider'] == 'Steam' )
+  {
+    WebApi::setApiKey(API_KEY);
+    $name = $data['identifier'];
+    
+    $pattern = '/d+/';
+    $splittedId = preg_split($pattern, $name, -1, PREG_SPLIT_NO_EMPTY);
+    $m_a = explode("/",$splittedId[2]);
+    array_shift($m_a);
+    $name = implode("",$m_a);
+    
+    $id = SteamId::create($name);
+    $nick = $id->getNickname();
+    $account->name = $nick;
+    }
+}
+
+function steam_api_permission()
+{
+   $permissions = array(
+    'use steam api wrapper' => array(
+      'title' => t('Use steam api wrapper'),
+      'description' => t('Use steam api wrapper.'),
+    ),
+  );
+  return $permissions;
+}
+
+function steam_api_menu()
+{
+  $items = array(
+    'steam-interfaces' => array(
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('steam_api_test_form'),
+      'access arguments' => array('use steam api'),
+      'type' => MENU_CALLBACK 
+    )
+  );
+  return $items;
+  
+}

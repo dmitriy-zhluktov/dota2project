@@ -1,0 +1,121 @@
+#header-cb { position: absolute; top: 0;}
+#header div.section,
+#featured div.section,
+#main,
+#triptych,
+#footer-columns,
+#footer { width: 1020px !important;}
+#header-image {max-width: 100%;}
+#page-wrapper,
+#footer-wrapper {
+  background: none !important;
+}
+#page-wrapper { background: url('../images/bg-new1.gif') 50% 0% no-repeat transparent !important; }
+#cb-wrap { position: relative; width: 1px; margin: 0 auto;}
+#cb { position: absolute; width: 250px; height: 234px; left: -125px; background: url('../images/cb.png') 50% 0% no-repeat transparent; }
+#page,
+#main-wrapper,
+#main-menu-links li a.active,
+#main-menu-links li.active-trail a { background: none !important; }
+#main-wrapper { }
+.not-front #main {width: 950px !important; margin-top: 370px;}
+#messages { width: 950px !important;}
+
+div.messages { width: 860px !important;}
+
+
+#header { background: none !important; margin-bottom: 345px; }
+#logo {display: block; position: relative; z-index: 1; width: 180px; margin-left: 60%; padding: 30px 15px 15px 10px !important;}
+#partner {float: left; color: #fff; display: block; position: relative; z-index: 1; margin-left: 25%; padding: 15px 15px 15px 10px; width: 180px; line-height: 40px;}
+#header-red-bird {position: absolute; top: 0;}
+
+body {background: url('../images/bg-texture.png');}
+#commands { position: absolute; top: 148px;}
+.command-images { float: left; height: 150px; margin-top: 60px; position: relative; width: 370px; z-index: -1;}
+.command-images img { width: 370px; height: 150px;}
+
+.clear { clear: both; }
+.hidden { display: none; }
+
+.before-start {float: left; margin-top: 160px; width: 68px; text-align: center; font-size: 16px; position: relative;}
+.tournament-actions { width: 105px; margin-top: 80px; height: 60px;}
+.requests-amount { margin-top: 35px; margin-left: 2px; font-size: 20px; background: #401a25; text-align: center; color: #fff;}
+button.tournament-button { cursor: pointer; margin-left: 3px; width: 100px; height: 60px; background: url('../images/button.png') no-repeat; font-size: 17px; color: #fff; }
+.tournament-actions .form-actions {display: none;}
+#lucky-lists table { width: 50%; float: left; margin: 0; border-collapse: separate;}
+#lucky-lists table tr th { display: none !important;}
+#lucky-lists table thead {display: none;}
+#lucky-lists table tr { border: none; background: none; height: 27px;}
+#lucky-lists table tr td { border: none; text-align: center; padding: 0; font-size: 17px;}
+.players-left .empty-row { width: 108px;}
+.players-right .empty-row { width: 106px;}
+.ready-row { width: 14%; text-transform: uppercase; color: #ddd;}
+.ready { background: #f00; background: url('../images/ready-bg.png') no-repeat;}
+.ready-row .form-actions { padding: 0; margin: 0;}
+.ready-row input.form-submit { margin: 0; padding: 0 10px; background: url('../images/button.png') no-repeat; font-size: 16px; color: #fff; }
+.nickname-row { color: #f00; font-size: 1.45em; font-weight: 700;}
+#tournaments { padding-top: 20px;}
+#tournaments table tr th {display: none !important;}
+#tournament-score { background: url('../images/scores-bg-new.png') 32px 0px no-repeat transparent; height: 81px; margin-top: 5px; }
+#tournament-score.ru {background-position: 32px -87px;}
+#scores-wrap { width: 116px; margin: 0 auto; text-align: center; font-size: 75px; line-height: 80px; color: #fff; font-weight: 100; font-family: sans-serif;}
+.scores { width: 58px; display: inline-block;}
+.tournament-table { width: 960px; margin: 0 auto; border-collapse: separate; background: #fff;}
+.tournament-table thead {display: none;}
+.tournament-table tr, .tournament-table tr td { border: none; text-align: center; padding: 0;}
+.icon-row { width: 10%; }
+.name-row { width: 35%; font-size: 30px; color: #f00;}
+.tournament-table tr td.score-row { width: 10%; font-size: 20px; color: #fff; background: url('../images/middle-bg.png') 50% repeat-y transparent; border-bottom: 1px solid #000; }
+.score-1 { background: #888;}
+.score-2 { background: #a2a2a2;}
+.score-span { width: 56px; height: 54px; line-height: 54px; display:inline-block; }
+.show-results { width: 117px; font-size: 18px; background: #444; height: 54px; overflow: hidden;}
+.result-title { display: block; cursor: pointer;}
+.results {background: url('../images/middle-bg.png') 50% repeat-y transparent;}
+.start-date-time { background: #6b6b6b; height: 54px; line-height: 24px; width: 117px;}
+.start-time, .start-date { display: block;}
+.start-date { font-size: 10px;}
+.live { height: 54px; line-height: 54px; background: #f00; cursor: pointer;}
+.command-icons { width: 95px; height: 55px; float: left;}
+.tournament-table tr td.left-icon { text-align: left; padding-left: 2px;}
+.tournament-table tr td.right-icon { text-align: right;}
+.regions { display: inline-block;  width: 85px; padding: 5px 10px 5px 20px; color: #fff; font-size: 20px;}
+.rus {background: url('../images/rus.png') 85% 10px no-repeat rgba(79, 79, 79, 0.655); border-bottom-left-radius: 5px; }
+.eng {background: url('../images/eng.png') 90% 10px no-repeat rgba(163, 163, 163, 0.655); border-bottom-right-radius: 5px; }
+a.regions:hover, a.regions:focus { color: #fff; }
+#region { width: 235px; margin: 0 auto;}
+#stream-header { background: url('../images/stream-bg.png') 50% 0 no-repeat transparent; margin-bottom: 0; height: 55px; }
+#stream-header h1 { color: #7d7d7d; font-size: 30px; text-align: center; text-transform: uppercase; padding-top: 15px; margin: 0;}
+#stream-body { background: #fff;}
+.red-square { height: 30px; width: 30px; background: #e94254; margin: 20px; float: left;}
+.streamer-name { font-size: 35px; text-transform: uppercase; display: block; line-height: 70px; }
+.left-block { float: left;}
+
+#control-panel {background: #461c27; height: 35px;}
+#control-panel .section { width: 1095px; margin: 0 auto; position: relative;}
+#control-panel a {color: #fff;}
+h2#control { color: #fff; text-align: left; width: 160px; float: right; margin: 5px; font-size: 20px;}
+.i18n-ru h2#control { width: 217px;}
+#block-ajax-register-ajax-register-block { background: #461c27; width: 170px; font-size: 14px; position: absolute; right: 0; top: 35px; display: none; z-index: 1;}
+#block-ajax-register-ajax-register-block .content { margin: 0;}
+.block ul.ajax-register-links { display: block;}
+.block ul.ajax-register-links li {float: none; display: block;}
+div.ctools-modal-content .modal-header { background: #461c27;}
+#modal-content form input.form-submit { border-radius: 0; background: url('../images/button.png') 50% 50% transparent; font-size: 17px; color: #fff; margin: 0;}
+#modal-content .messages { width: auto !important; }
+#modal-content .messages a { display: none;}
+#block-system-user-menu { background: #461c27; width: 170px; position: absolute; right: 0; top: 35px; display: none; z-index: 1;}
+.i18n-ru #block-system-user-menu,
+.i18n-ru #block-ajax-register-ajax-register-block { width: 190px; right: 35px;}
+#block-system-user-menu h2 { display: none; }
+#block-system-user-menu .content { margin: 0;}
+#block-system-user-menu ul li { list-style: none;}
+
+#countdown { position: absolute; bottom: -32px; left: 3px;}
+#countdown span { color: #f00; font-weight: 700; font-size: 16px;}
+#time-to-srart {color: #f00; position: absolute; top: 34px; left: -10px; width: 95px;}
+.page-user-hybridauth div.vertical-tabs { display: none;}
+#block-clock-clock { color: #fff; font-size: 24px; margin-left: 35px; }
+#block-clock-clock h2 { float: left; font-size: 20px; margin: 0 15px 0 0; line-height: 35px; }
+#block-clock-clock .content { margin: 0;}
+div.ctools-modal-content .form-item .description { display: none;}

@@ -1,0 +1,8 @@
+name = Tournaments
+description = Турниры
+core=7.x
+version=7.x-1.0
+files[] = tournament.module
+files[] = tournament.install
+scripts[] = js/jquery.countdown.min.js
+scripts[] = js/tournament.js

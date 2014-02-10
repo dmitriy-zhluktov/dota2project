@@ -1,0 +1,9 @@
+name = Match extender
+description = Полная информация для матчей
+core=7.x
+version=7.x-1.0
+files[] = match.module
+files[] = match.install
+files[] = node/node.blocks.inc
+scripts[] = js/match.js
+stylesheets[all][] = css/match.css
