@@ -10,7 +10,7 @@
 #footer-wrapper {
   background: none !important;
 }
-#page-wrapper { background: url('../images/bg-new1.gif') 50% 0% no-repeat transparent !important; }
+#page-wrapper { background: url('../images/bg-new1.gif') 50% 0% no-repeat transparent !important; margin: 0 auto; min-width: 1020px !important;}
 #cb-wrap { position: relative; width: 1px; margin: 0 auto;}
 #cb { position: absolute; width: 250px; height: 234px; left: -125px; background: url('../images/cb.png') 50% 0% no-repeat transparent; }
 #page,
