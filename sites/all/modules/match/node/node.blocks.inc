@@ -9,7 +9,7 @@ function match_get_node_data() {
 	$html = '';
 	switch ($type) {
 		case 0:
-			$html = match_get_node_planned_markup($node, $user);
+			$html = match_get_node_planned_markup($node);
 			break;
 		case 1:
 			$html = match_get_node_active_markup($node, $user);
@@ -22,38 +22,82 @@ function match_get_node_data() {
 	return $html;
  }
 
-function match_get_node_planned_markup($node, $user) {
+function match_get_node_planned_markup($node) {
 	//krumo($node);
-	$html = match_get_planned_players_html($node->field_profi_command['und'][0]['value']);
+    $author = user_load($node->uid);
+    $state = $node->field_state['und'][0]['value'];
+    switch($state) {
+        case 0:
+            $stateText = t('Planned');
+            break;
+        case 1:
+            $stateText = t('Active');
+            break;
+        case 2:
+            $stateText = t('Finished');
+            break;
+    }
+    $last = ($node->field_last['und'][0]['value'] == 1)? t('Last match'): t('');
+    $mod = (!isset($node->field_mod['und'][0]['value']) || $node->field_mod['und'][0]['value'] == '')? '' : '<h3>'.t('Mod:').'</h3>'.t($node->field_mod['und'][0]['value']);
+    $html = '<div class="node-match-planned-info">
+                <div class="plain-text"><h3>'.t('PRO:').'</h3>'.l($author->name, 'user/'.$author->uid, array('attributes' => array('class' => array('pro-user')))).'</div>
+                <div class="plain-text"><h3>'.t('Match status:').'</h3>'.$stateText.'</div>
+                <div class="plain-text">'.$mod.'</div>
+                <div class="plain-text"><h3>'.t('Match starts in:').'</h3>'.match_get_planned_timing(strtotime($node->field_date['und'][0]['value']), $node->uid).'</div>
+                <div class="plain-text"><h3>'.$last.'</h3></div>
+            </div>';
+	$html .= match_get_planned_players_html($node->field_profi_command['und'][0]['value']);
 	$form = drupal_get_form('match_node_planned_form');
 
-        if($node->field_free_place['und'][0]['value'] > 0) {
-            $ticketform = drupal_get_form('match_node_planned_ticket_form');            
-            $html .= drupal_render($ticketform);
-        }
+    if($node->field_free_place['und'][0]['value'] > 0) {
+        $ticketform = drupal_get_form('match_node_planned_ticket_form');
+        $html .= drupal_render($ticketform);
+    }
 	$html .= drupal_render($form);
-        module_load_include('module', 'match', '../match');
-        $html .= '<div class="active-time">'.match_get_planned_timing(strtotime($node->field_date['und'][0]['value']), $node->uid).'</div>';
+    module_load_include('module', 'match', '../match');
+
 	return $html;
 }
  
 function match_get_node_active_markup($node, $user) {
 	//krumo($node);
-	$html = match_get_planned_players_html($node->field_profi_command['und'][0]['value']);
-	$time = '<div class="timing">'.t('Продолжительность матча: ').match_get_timing($node->field_started['und'][0]['value']).'</div>';
-	$form = drupal_get_form('match_node_active_form');
-	$html .= $time.drupal_render($form);
+
+    $last = ($node->field_last['und'][0]['value'] == 1)? t('Last match'): t('');
+    $mod = (!isset($node->field_mod['und'][0]['value']) || $node->field_mod['und'][0]['value'] == '')? '' : '<h3>'.t('Mod:').'</h3>'.t($node->field_mod['und'][0]['value']);
+    $html = '<div class="node-match-planned-info">
+                <div class="plain-text"><h3>'.t('PRO:').'</h3>'.l($user->name, 'user/'.$user->uid, array('attributes' => array('class' => array('pro-user')))).'</div>
+                <div class="plain-text">'.$mod.'</div>
+                <div class="plain-text"><h3>'.t('Timing:').'</h3>'.match_get_timing($node->field_started['und'][0]['value']).'</div>
+                <div class="plain-text"><h3>'.$last.'</h3></div>
+            </div>';
+
+	$html .= match_get_planned_players_html($node->field_profi_command['und'][0]['value'], $node->uid);
+
+    $stream = '<div class="display active-twitch">'.match_get_twitch_html($node->field_vod['und'][0]['value']).'</div>';
+
+	$form = '';
+    if($node->uid == $user->uid) {
+        $form = drupal_get_form('match_node_active_form');
+        $form = drupal_render($form);
+    }
+	$html .= $stream.$form;
 	return $html;
 }
 
 function match_get_node_finished_markup($node, $user) {
 	//krumo($node);
-	$html = match_get_finished_players_html($node->field_profi_command['und'][0]['value'], $node->field_rival_command['und'][0]['value']);
-	$time = '<div class="timing">'.t('Продолжительность матча: ').match_get_timing($node->field_started['und'][0]['value']).'</div>';
-	$form = drupal_get_form('match_node_finished_form');
-        $like = drupal_get_form('match_node_like_form');
-	$html .= $time.drupal_render($form).drupal_render($like);
-        $html .= '<div class="vod">'.t('VOD: ').$node->field_vod['und'][0]['value'].'</div>';
+    $html = '<div class="timing">'.t('Продолжительность матча: ').match_get_timing($node->field_started['und'][0]['value']).'</div>';
+    $html .= match_get_finished_players_html($node->field_profi_command['und'][0]['value'], $node->field_rival_command['und'][0]['value'], $node->uid);
+    if($node->field_result['und'][0]['value'] == 0) {
+        $html .= '<div class="winner"><span class="dire">'.t('The Dire').'</span> '.t('wins').'</div><div>';
+    } else {
+        $html .= '<div class="winner"><span class="radiant">'.t('The Radiant').'</span> '.t('wins').'</div><div>';
+    }
+    $html .= '';
+    $html .= '<div class="vod"><a class="check-vod" href="'.$node->field_vod['und'][0]['value'].'" alt="'.t('Check the VOD').'" title="'.t('Check the VOD').'">'.t('Check the VOD').'</a></div>';
+    $form = drupal_get_form('match_node_finished_form');
+    $like = drupal_get_form('match_node_like_form');
+    $html .= drupal_render($form).drupal_render($like);
 	return $html;
 }
 
@@ -61,17 +105,91 @@ function match_create_node() {
 	return drupal_get_form('match_create_match_form');
 }
 
-function match_get_finished_players_html($expert, $rival) {
-	$or = db_or()
-		->condition('team_id', $expert)
-		->condition('team_id', $rival);
-	$players = db_select('players', 'p')
-		->fields('p')
-		->condition($or)
-		->execute()
-		->fetchAll();
+function match_get_finished_players_html($expert, $rival, $proId) {
+	$query = db_select('players', 'p')
+		->fields('p');
+    $query->addField('h', 'name', 'hero_name');
+    $query->leftJoin('heroes','h', 'p.hero=h.id');
+    $query->condition('p.team_id', $expert)
+        ->condition('p.uid', $proId, '!=');
+    $portal = $query->execute()->fetchAll();
+
+    $query = db_select('players', 'p')
+        ->fields('p');
+    $query->addField('h', 'name', 'hero_name');
+    $query->leftJoin('heroes','h', 'p.hero=h.id');
+    $query->condition('p.team_id', $rival);
+    $other = $query->execute()->fetchAll();
+
+    $query = db_select('players', 'p')
+        ->fields('p');
+    $query->addField('h', 'name', 'hero_name');
+    $query->leftJoin('heroes','h', 'p.hero=h.id');
+    $query->condition('p.uid', $proId);
+    $pro = $query->execute()->fetchAssoc();
+
+    $title = t('');
+
+    $type = 'ul';
+    $attributes = array(
+        'class' => 'items-list'
+    );
+
+    $items = array();
+
+    $or = db_or();
+
+    for ($i = 1; $i <= 6; $i++) {
+        $help = 'item'.$i;
+        $or->condition('id', $pro[$help]);
+    }
+
+    $itemNames = db_select('artifacts', 'a')
+        ->fields('a', array('name'))
+        ->condition($or)
+        ->condition('id', 0, '!=')
+        ->execute()
+        ->fetchAll();
+
+    foreach($itemNames as $iName) {
+
+        $items[] = array(
+            'data' => theme('image', array(
+                'path' => file_create_url('public://').'/artifacts/'.str_replace(" ", "_", strtolower($iName->name)).'.png',
+                'alt' => $iName->name,
+                'title' => $iName->name,
+                'width' => 40,
+                'height' => 30
+            )),
+            'class' => array(t('items-list-item')),
+        );
+    }
+
+    $image = theme('image', array(
+        'path' => file_create_url('public://').'/heroes/'.str_replace(" ", "_", strtolower($pro['hero_name'])).'.png',
+        'alt' => $pro['hero_name'],
+        'title' => $pro['hero_name'],
+        'width' => 90,
+        'height' => 60
+    ));
+
+    $rows[] = array(
+        l($pro['nickname'], 'user/'.$pro['uid'], array('attributes' => array('class' => array('pro-user')))),
+        $pro['level'],
+        $image,
+        $pro['kills'],
+        $pro['death'],
+        $pro['assists'],
+        theme('item_list', array('items' => $items, 'title' => $title, 'type' => $type, 'attributes' => $attributes)),
+        $pro['gold'],
+        $pro['creeps_killed'],
+        $pro['creeps_denied'],
+        $pro['gpm'],
+        $pro['epm'],
+        //''
+    );
 	$header = array(
-		t('Player'),
+		t('The Radiant'),
 		t('Level'),
 		t('Hero'),
 		t('K'),
@@ -83,94 +201,165 @@ function match_get_finished_players_html($expert, $rival) {
 		t('Denied'),
 		t('Gpm'),
 		t('Epm'),
-        t('Rating')
+        //t('Rating')
 	);
-	$rows = array();
-	foreach ($players as $k =>$player) {
-		if ($k < 5) {
-			$title = t('');
-			
-			$type = 'ul';
-			$attributes = array(
-				'class' => 'items-list'
-			);
+	foreach ($portal as $player) {
+        $items = array();
+        $or = db_or();
+        for ($i = 1; $i <= 6; $i++) {
+            $help = 'item'.$i;
+            $or->condition('id', $player->$help);
+        }
+        $itemNames = db_select('artifacts', 'a')
+            ->fields('a', array('name'))
+            ->condition($or)
+            ->condition('id', 0, '!=')
+            ->execute()
+            ->fetchAll();
 
-			$items = array();
-			for ($i = 1; $i <= 6; $i++) {
-				$help = 'item'.$i;
-				$items[] = array(
-					'data' => $player->$help,
-					'class' => array(t('items-list-item')),
-				);
-			}
+        foreach($itemNames as $iName) {
 
-					
-			$rows[] = array(
-				'<a href="'.url('user/'.$player->uid, array('absolute' => true)).'">'.$player->nickname.'</a>',
-				$player->level,
-				$player->hero,
-				$player->kills,
-				$player->death,
-				$player->assists,
-				theme('item_list', array('items' => $items, 'title' => $title, 'type' => $type, 'attributes' => $attributes)),
-				$player->gold,
-				$player->creeps_killed,
-				$player->creeps_denied,
-				$player->gpm,
-				$player->epm,
-                match_get_player_rating_form($player->id, $player->rating)
-			);
-		} else {
-			$rows[] = array(
-				$player->nickname,
-				$player->level,
-				$player->hero,
-				$player->kills,
-				$player->death,
-				$player->assists,
-				theme('item_list', array('items' => $items, 'title' => $title, 'type' => $type, 'attributes' => $attributes)),
-				$player->gold,
-				$player->creeps_killed,
-				$player->creeps_denied,
-				$player->gpm,
-				$player->epm,
-                ''
-			);		
-		}
-		
-		$k++;
+            $items[] = array(
+                'data' => theme('image', array(
+                    'path' => file_create_url('public://').'/artifacts/'.str_replace(" ", "_", strtolower($iName->name)).'.png',
+                    'alt' => $iName->name,
+                    'title' => $iName->name,
+                    'width' => 40,
+                    'height' => 30
+                )),
+                'class' => array(t('items-list-item')),
+            );
+        }
+
+        $image = theme('image', array(
+            'path' => file_create_url('public://').'/heroes/'.str_replace(" ", "_", strtolower($player->hero_name)).'.png',
+            'alt' => $player->hero_name,
+            'title' => $player->hero_name,
+            'width' => 90,
+            'height' => 60
+        ));
+
+        $rows[] = array(
+            l($player->nickname, 'user/'.$player->uid, array('attributes' => array('class' => array('regular-user')))),
+            $player->level,
+            $image,
+            $player->kills,
+            $player->death,
+            $player->assists,
+            theme('item_list', array('items' => $items, 'title' => $title, 'type' => $type, 'attributes' => $attributes)),
+            $player->gold,
+            $player->creeps_killed,
+            $player->creeps_denied,
+            $player->gpm,
+            $player->epm,
+            //match_get_player_rating_form($player->uid, $player->rating)
+        );
 	}
-	
-	return theme('table', array('header' => $header, 'rows' => $rows));
+    $out = theme('table', array('header' => $header, 'rows' => $rows));
+
+    $rows = array();
+    $header = array(
+        t('The Dire'),
+        t('Level'),
+        t('Hero'),
+        t('K'),
+        t('D'),
+        t('A'),
+        t('Items'),
+        t('Gold'),
+        t('Killed'),
+        t('Denied'),
+        t('Gpm'),
+        t('Epm'),
+        //t('Rating')
+    );
+
+    foreach ($other as $player) {
+        $items = array();
+        $or = db_or();
+        for ($i = 1; $i <= 6; $i++) {
+            $help = 'item'.$i;
+            $or->condition('id', $player->$help);
+        }
+        $itemNames = db_select('artifacts', 'a')
+            ->fields('a', array('name'))
+            ->condition($or)
+            ->condition('id', 0, '!=')
+            ->execute()
+            ->fetchAll();
+
+        foreach($itemNames as $iName) {
+
+            $items[] = array(
+                'data' => theme('image', array(
+                    'path' => file_create_url('public://').'/artifacts/'.str_replace(" ", "_", strtolower($iName->name)).'.png',
+                    'alt' => $iName->name,
+                    'title' => $iName->name,
+                    'width' => 40,
+                    'height' => 30
+                )),
+                'class' => array(t('items-list-item')),
+            );
+        }
+
+        $image = theme('image', array(
+            'path' => file_create_url('public://').'/heroes/'.str_replace(" ", "_", strtolower($player->hero_name)).'.png',
+            'alt' => $player->hero_name,
+            'title' => $player->hero_name,
+            'width' => 90,
+            'height' => 60
+        ));
+
+        $rows[] = array(
+            '<a href="#" class="regular-user">'.$player->nickname.'</a>',
+            $player->level,
+            $image,
+            $player->kills,
+            $player->death,
+            $player->assists,
+            theme('item_list', array('items' => $items, 'title' => $title, 'type' => $type, 'attributes' => $attributes)),
+            $player->gold,
+            $player->creeps_killed,
+            $player->creeps_denied,
+            $player->gpm,
+            $player->epm,
+            //''
+        );
+    }
+    $out .= '<div class="vs-separator">'.t('VS').'</div>'.theme('table', array('header' => $header, 'rows' => $rows));
+	return $out;
 }
 
-function match_get_planned_players_html ($team) {
+function match_get_planned_players_html ($team, $proId = false) {
 	$query = db_select('players', 'p')
 		->fields('p', array('nickname', 'uid'));
 		
 	$query->condition('p.team_id', $team);
-	$result = $query->execute();
+	if($proId)
+        $query->condition('p.uid', $proId, '!=');
+
+    $result = $query->execute();
 	$i = 0;
 	
-	$title = t('Portal command');
+	$title = t('Accepted players');
 	
 	$type = 'ul';
 	$attributes = array(
 		'class' => 'players-list'
 	);
-	$itemsExpert = array();
-	$itemsRival = array();
 
 	while($row = $result->fetchObject()) {
 		$items[] = array(
-			'data' => '<a href="'.url('user/'.$row->uid, array('absolute' => true)).'">'.$row->nickname.'</a>',
+			'data' => l($row->nickname, 'user/'.$row->uid, array('attributes' => array('class' => array('regular-user')))),
 			'class' => array(t('players-list-item')),
 		);
 	}
+    $html = '<div class="accepted-users">';
 	if(isset($items))
-		$html = theme('item_list', array('items' => $items, 'title' => $title, 'type' => $type, 'attributes' => $attributes));
+		$html .= theme('item_list', array('items' => $items, 'title' => $title, 'type' => $type, 'attributes' => $attributes));
 	else
-		$html = t('No players accepted this match yet');
+		$html .= t('No players accepted this match yet');
+    $html .= '</div>';
 	return $html;
 }
 function match_node_active_form($form, &$form_state) {
@@ -240,17 +429,18 @@ function match_node_planned_form($form, &$form_state) {
 		),
 		'#weight' => 4,
         '#suffix' => '</div></div>'
-	);	
+	);
+    $needHero = ($node->field_need_player['und'][0]['value'] == 1)? 'Stop fast recruit':'Start fast recruit';
 	$form['needahero'] = array(
 		'#type' => 'actions',
 		'submit' => array(
 			'#type' => 'submit',
-			'#value' => t('We need a hero!'),
+			'#value' => t($needHero),
 			'#name' => 'needahero',
 		),
 		'#weight' => 5,
         '#prefix' => '<div class="controls-updater"><h2>'.t('Controls').'</h2><div class="controls-wrapper">'
-	);	
+	);
 	$form['fiveminutes'] = array(
 		'#type' => 'actions',
 		'submit' => array(
@@ -295,23 +485,43 @@ function match_controll_form_submit($form, &$form_state) {
 			drupal_set_message(t('Updated'));
 		break;
 		case 'fiveminutes':
-			dsm(t('Sending 5 mins. notifications. Not working at this moment'));
+            drupal_set_message(t('Sending 5 mins. notifications. Not working at this moment'), 'error');
 		break;
 		case 'start':
 			$node->field_started['und'][0]['value'] = time();
 			$node->field_state['und'][0]['value'] = 1;
 			//create new planned match if not exists
 			if($node->field_next['und'][0]['value'] == 0 && $node->field_last['und'][0]['value'] == 0) {
+
+                /* add PRO to list of players*/
+                $steam = db_select('hybridauth_identity', 'h')
+                    ->fields('h', array('data'))
+                    ->condition('h.uid', $user->uid)
+                    ->condition('h.provider', 'Steam')
+                    ->execute()
+                    ->fetchObject();
+
+                $profile = unserialize($steam->data);
+
+                $steam_id = explode('/', $profile['identifier']);
+                $steam_id = end($steam_id);
+
+
+                $command = $node->field_profi_command['und'][0]['value'];
+
+                db_insert('players')->fields(array('uid' => $user->uid, 'team_id' => $command, 'steam_id' => "$steam_id", 'nickname' => "$user->name"))->execute();
+                /* end of add PRO to list of players*/
+
 				$newnode = new stdClass();
 				$newnode->type = 'match';
+                $newnode->uid = $user->uid;
 				node_object_prepare($newnode);
-				
-				
-				
-				$newnode->title    = 'Match after ' . $node->nid;
+
+				$newnode->title = 'Match №';
 				$newnode->language = LANGUAGE_NONE;
 				
 				node_save($newnode);
+
 				$newnode->field_date[$node->language][0]['value'] = date('Y-m-d H:i:s', time());
 				
 				db_insert('teams')->fields(array('match_id' => $newnode->nid))->execute();
@@ -321,6 +531,8 @@ function match_controll_form_submit($form, &$form_state) {
 				db_insert('teams')->fields(array('match_id' => $newnode->nid))->execute();
 				$rivalCommand = Database::getConnection()->lastInsertId();
 				$newnode->field_rival_command[$newnode->language][0]['value'] = $rivalCommand;
+                $newnode->title = $newnode->title.$newnode->nid;
+
 				node_save($newnode);
 				
 				$node->field_next['und'][0]['value'] = $newnode->nid;
@@ -330,9 +542,14 @@ function match_controll_form_submit($form, &$form_state) {
             drupal_set_message(t('Match started'));
 		break;	
 		case 'needahero':
-			$node->field_need_player['und'][0]['value'] = 1;
-			node_save($node);
-            drupal_set_message(t('Match marked as fast recruit'));
+			if($node->field_need_player['und'][0]['value'] == 1) {
+                $node->field_need_player['und'][0]['value'] = 0;
+                drupal_set_message(t('Match unmarked as fast recruit'));
+            } else {
+                $node->field_need_player['und'][0]['value'] = 1;
+                drupal_set_message(t('Match marked as fast recruit'));
+            }
+            node_save($node);
 		break;
 		case 'restart':
 			$node->field_state['und'][0]['value'] = 0;
@@ -349,22 +566,65 @@ function match_controll_form_submit($form, &$form_state) {
                 if($info == null) {
                     drupal_set_message(t('Unable to get match info'), 'error');
                 } else {
-                    krumo($info);exit;
-                    $node->field_state['und'][0]['value'] = 2;
+                    if(isset($info->result->error)) {
+                        drupal_set_message(t($info->result->error), 'error');
+                    } else {
+                        /*krumo($info);
+                        krumo($node);exit;*/
+                        $result = $info->result;
+                        $players = $info->result->players;
+                        if($result->radiant_win)
+                            $node->field_result['und'][0]['value'] = 1;
+                        else
+                            $node->field_result['und'][0]['value'] = 0;
+                        foreach ($players as $k => $player) {
+                            $data = array(
+                                'level' => $player->level,
+                                'hero' => $player->hero_id,
+                                'kills' => $player->kills,
+                                'death' => $player->deaths,
+                                'assists' => $player->assists,
+                                'item1' => $player->item_0,
+                                'item2' => $player->item_1,
+                                'item3' => $player->item_2,
+                                'item4' => $player->item_3,
+                                'item5' => $player->item_4,
+                                'item6' => $player->item_5,
+                                'gold' => $player->gold,
+                                'creeps_killed' => $player->last_hits,
+                                'creeps_denied' => $player->denies,
+                                'gpm' => $player->gold_per_min,
+                                'epm' => $player->xp_per_min,
+                            );
+                            if($k < 5) {
+                                db_update('players')
+                                    ->fields($data)
+                                    ->condition('players.steam_id', $player->account_id)
+                                    ->execute();
+                            } else {
+                                $data['nickname'] = 'Test name '.$k;
+                                $data['steam_id'] = $player->account_id;
+                                $data['team_id'] = $node->field_rival_command['und'][0]['value'];
+                                db_insert('players')->fields($data)->execute();
+                            }
+                        }
+                        //exit;
+                        $node->field_state['und'][0]['value'] = 2;
 
-                    $time = time() - $node->field_started['und'][0]['value'];
+                        $time = time() - $node->field_started['und'][0]['value'];
 
-                    if ($time < 60)
-                        $time = date('s', $time).t(' secs;');
-                    elseif ($time < 3600)
-                        $time = date('i:s', $time);
-                    elseif ($time >= 3600)
-                        $time = date('H:i:s', $time);
+                        if ($time < 60)
+                            $time = date('s', $time).t(' secs;');
+                        elseif ($time < 3600)
+                            $time = date('i:s', $time);
+                        elseif ($time >= 3600)
+                            $time = date('H:i:s', $time);
 
-                    $node->field_duration['und'][0]['value'] = $time;
-                    node_save($node);
+                        $node->field_duration['und'][0]['value'] = $time;
+                        node_save($node);
 
-                    drupal_set_message(t('Match finished'));
+                        drupal_set_message(t('Match finished'));
+                    }
                 }
             }
 		break;
@@ -493,8 +753,10 @@ function match_create_match_form($form, &$form_state) {
 }
  
 function match_create_match_form_submit($form, &$form_state) {
+    global $user;
 	$node = new stdClass();
 	$node->type = 'match';
+    $node->uid = $user->uid;
 	node_object_prepare($node);
 	
 	$date = $form_state['values']['date']['year'].'-'.$form_state['values']['date']['month'].'-'.$form_state['values']['date']['day'].' '.$form_state['values']['time'].':00';
@@ -591,8 +853,9 @@ function match_element_validate_number($form, &$form_state) {
 }
 
 function match_node_finished_form($form, &$form_state) {
-	$node = menu_get_object();
-	$form['archived'] = array(
+    global $user;
+    $node = menu_get_object();
+    $form['archived'] = array(
 		'#type' => 'checkbox',
 		'#title' => t('Archive'),
 		'#default_value' => $node->field_archived['und'][0]['value'],
@@ -606,11 +869,14 @@ function match_node_finished_form($form, &$form_state) {
 		),
 		'#weight' => 0,
 	);
-        
+
 	$form['#submit'] = array(
 		'0' => 'match_controll_form_submit',
 	);
-	return $form;
+    if($node->uid == $user->uid)
+	    return $form;
+    else
+        return false;
 }
 
 function match_node_planned_ticket_form($form, &$form_state) {

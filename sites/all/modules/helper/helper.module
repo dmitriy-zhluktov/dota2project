@@ -117,8 +117,8 @@ function helper_news_image() {
 function helper_menu() {
     $items = array(
         'get-heroes' => array(
-            'page callback' => 'helper_get_heroes',
-            'page arguments' => array(API_KEY),
+            'page callback' => 'helper_get_match_statistics',
+            'page arguments' => array(27110133),
             'access arguments' => array('use steam api'),
             'type' => MENU_CALLBACK
         )
@@ -193,9 +193,11 @@ function helper_get_hero_images($name) {
 }
 
 function helper_get_match_statistics($match_id) {
+    //$match_id = 27110133;
     $url = 'https://api.steampowered.com/IDOTA2Match_570/GetMatchDetails/V001/?match_id='.$match_id.'&key='.API_KEY.'&format=json';
     $result = helper_curl($url);
 
+    //krumo($result);
     return $result;
 }
 function helper_grab_image($url,$saveto){

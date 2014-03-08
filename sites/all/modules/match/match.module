@@ -79,6 +79,7 @@ function match_planned_block_markup() {
 	$query = db_select('node', 'n')
 		->fields('n', array('nid', 'uid'))
 		->fields('u', array('name'))
+		->fields('m', array('field_mod_value'))
 		->fields('l', array('field_last_value'))
 		->fields('f', array('field_free_place_value'))
 		->fields('p', array('field_need_player_value'))
@@ -86,6 +87,7 @@ function match_planned_block_markup() {
 		->fields('c', array('field_profi_command_value'));
 	$query->leftJoin('field_data_field_state','s', 'n.nid=s.entity_id');
 	$query->leftJoin('users','u', 'n.uid=u.uid');
+	$query->leftJoin('field_data_field_mod','m', 'n.nid=m.entity_id');
 	$query->leftJoin('field_data_field_last','l', 'n.nid=l.entity_id');
 	$query->leftJoin('field_data_field_free_place','f', 'n.nid=f.entity_id');
 	$query->leftJoin('field_data_field_need_player','p', 'n.nid=p.entity_id');
@@ -100,16 +102,50 @@ function match_planned_block_markup() {
 	$output = '';
 	while($row = $result->fetchObject())
 	{
-		$addClass = ($row->field_need_player_value == 1)? 'we-need-a-hero': '';
-		$last = ($row->field_last_value == 1)? t('Yes'): t('No');
+		$addClass = ($row->field_need_player_value == 1)? 'we-need-a-hero': false;
+        $leftHero = '';
+        $rightHero = '';
+        if($addClass) {
+            $leftImage = theme('image', array(
+                'path' => drupal_get_path('theme', 'pwp').'/images/hero-left.GIF',
+                'alt' => t('We need a hero!'),
+                'title' => t('We need a hero!'),
+                'width' => 60,
+                'height' => 9
+            ));
+            $rightImage = theme('image', array(
+                'path' => drupal_get_path('theme', 'pwp').'/images/hero-right.GIF',
+                'alt' => t('We need a hero!'),
+                'title' => t('We need a hero!'),
+                'width' => 60,
+                'height' => 9
+            ));
+            $leftHero = '<span class="hero-span hero-left">'.$leftImage.'</span>';
+            $rightHero = '<span class="hero-span hero-right">'.$rightImage.'</span>';
+        }
+        $yesImage = theme('image', array(
+            'path' => drupal_get_path('theme', 'pwp').'/images/checked.png',
+            'alt' => t('Last match'),
+            'title' => t('Last match'),
+            'width' => 24,
+            'height' => 24
+        ));
+        $noImage = theme('image', array(
+            'path' => drupal_get_path('theme', 'pwp').'/images/unchecked.png',
+            'alt' => t('Not last match'),
+            'title' => t('Not last match'),
+            'width' => 24,
+            'height' => 24
+        ));
+		$last = ($row->field_last_value == 1)? '<span class="yesno">'.$yesImage.'</span>': '<span class="yesno">'.$noImage.'</span>';
 		
 		$in_game = false;
-		if (isset($steamId)) {
+		/*if (isset($steamId)) {
 			$in_game = db_select('players', 'p')->fields('p', array('id'))->condition('team_id', $row->field_profi_command_value)->condition('steam_id', $steamId)->execute()->fetchObject();
-		}
+		}*/
 		
 		$ticket = ($row->field_free_place_value >= 1 && isset($steamId) && !$in_game)? match_call_ticket_form($row->nid, $steamId, $nickname): '';
-		$output .= '<div class="planned-match '.$addClass.'">
+		/*$output .= '<div class="planned-match '.$addClass.'">
 						<div class="active-id"><a href="'.url('node/'.$row->nid, array('absolute' => true)).'">'.$row->nid.'</a></div>
 						<div class="active-time">'.match_get_planned_timing(strtotime($row->field_date_value), $row->uid).'</div>
 						<div class="active-free">'.$row->field_free_place_value.'</div>
@@ -117,29 +153,51 @@ function match_planned_block_markup() {
 						<div class="active-last">'.$last.'</div>
 						<div class="active-ticket" >'.$ticket.'</div>
 						<div class="clear"></div>
-					</div>';
+					</div>';*/
+        $rows[] = array(
+            'data' => array(
+                $leftHero.l(t('Match №'.$row->nid), 'match/'.$row->nid),
+                match_get_planned_timing(strtotime($row->field_date_value), $row->uid),
+                $row->field_mod_value,
+                l($row->name, 'user/'.$row->uid, array('attributes' => array('class' => array('pro-user')))),
+                $row->field_free_place_value,
+                $last.$rightHero
+            ),
+            'class' => array($addClass)
+        );
 	}
+    $header = array(
+        'ID',
+        t('Time to start'),
+        t('Mod'),
+        t('PRO-player'),
+        t('Free slots'),
+        t('Last match')
+    );
 
-	
-	$output .= theme('pager', array('element' => 1, 'tags' => array('0' => t('в нач.'), '1' => t('пред.'), '2' => t('t2'), '3' => t('след.'), '4' => t('посл.'))));    // Получаем html код таблицы
-    if($output == '')
+    if(isset($rows)) {
+        $output .= theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('class' => array('planned-matches'))));
+        $output .= theme('pager', array('element' => 1, 'tags' => array('0' => t('в нач.'), '1' => t('пред.'), '2' => t('t2'), '3' => t('след.'), '4' => t('посл.'))));    // Получаем html код таблицы
+    } else {
         $output = '<div class="center">'.t('No planned matches at this moment').'</div>';
+    }
 	return $output;		
 }
 
 function match_active_block_markup() {
 	$perpage = 10;
-	$rows = array();
 
 	$query = db_select('node', 'n')
 		->fields('n', array('nid', 'uid'))
 		->fields('u', array('name'))
+		->fields('m', array('field_mod_value'))
 		->fields('v', array('field_vod_value'))
 		->fields('st', array('field_started_value'))
 		->fields('p', array('field_profi_command_value'));
 
 	$query->leftJoin('field_data_field_state','s', 'n.nid=s.entity_id');
 	$query->leftJoin('users','u', 'n.uid=u.uid');
+	$query->leftJoin('field_data_field_mod','m', 'n.nid=m.entity_id');
 	$query->leftJoin('field_data_field_vod','v', 'n.nid=v.entity_id');
 	$query->leftJoin('field_data_field_started','st', 'n.nid=st.entity_id');
 	$query->leftJoin('field_data_field_profi_command','p', 'n.nid=p.entity_id');
@@ -177,17 +235,25 @@ function match_active_block_markup() {
             $addClass = '';
             if ($i == 0)
                 $addClass .= 'best-match';
-            $output .= '<div class="active-match '.$addClass.'">
-                            <div class="active-id">'.$rows[$view['id']]->nid.'</div>
-                            <div class="active-time">'.match_get_timing($rows[$view['id']]->field_started_value).'</div>
-                            <div class="active-players">'.match_get_players_html($rows[$view['id']]->field_profi_command_value).'</div>
-                            <div class="active-expert"><a href="'.url('user/'.$rows[$view['id']]->uid, array('absolute' => true)).'">'.$rows[$view['id']]->name.'</a></div>
-                            <div class="clear"></div>
-                            <div class="active-twitch">'.match_get_twitch_html($rows[$view['id']]->field_vod_value).'</div>
-                        </div>';
+
+            $body[] = array(
+                'data' => array(
+                    array( 'data' => l(t('Match №').$rows[$view['id']]->nid, 'match/'.$rows[$view['id']]->nid), 'class' => 'row-id'),
+                    array( 'data' => $rows[$view['id']]->field_mod_value, 'class' => 'row-mod'),
+                    array( 'data' => match_get_players_html($rows[$view['id']]->field_profi_command_value, $rows[$view['id']]->uid, $rows[$view['id']]->name).match_get_twitch_html($rows[$view['id']]->field_vod_value), 'class' => 'row-players'),
+                    array( 'data' => match_get_timing($rows[$view['id']]->field_started_value), 'class' => 'row-timing'),
+                ),
+                'class' => array($addClass)
+            );
             $i++;
         }
-
+        $header = array(
+            'ID',
+            t('Mod'),
+            t('Players'),
+            t('Timing'),
+        );
+        $output .= theme('table', array('header' => $header, 'rows' => $body, 'attributes' => array('class' => array('active-matches'))));
 	    $output .= theme('pager', array('element' => 1, 'tags' => array('0' => t('в нач.'), '1' => t('пред.'), '2' => t('t2'), '3' => t('след.'), '4' => t('посл.'))));    // Получаем html код таблицы
     } else {
         $output .= '<div class="center">'.t('No active matches at this moment').'</div>';
@@ -227,7 +293,7 @@ function match_finished_block_markup() {
 		$output .= '<div class="finished-match">
 				<div class="finished-id"><a href="'.url('node/'.$row->nid, array('absolute' => true)).'">'.$row->nid.'</a></div>
 				<div class="finished-date"><a href="'.url('node/'.$row->nid, array('absolute' => true)).'">'.$row->field_date_value.'</a></div>
-				<div class="finished-players">'.match_get_players_html($row->field_profi_command_value).'</div>
+				<div class="finished-players">'.match_get_players_html($row->field_profi_command_value, $row->uid, $row->name).'</div>
 				<div class="finished-winner">'.match_get_winner_html($row->field_result_value).'</div>
 				<div class="active-expert"><a href="'.url('user/'.$row->uid, array('absolute' => true)).'">'.$row->name.'</a></div>
 				<div class="finished-twitch">'.$row->field_vod_value.'</div>
@@ -253,26 +319,27 @@ function match_get_twitch_html ($vod) {
 	return $twitch;
 }
 
-function match_get_players_html ($team) {
+function match_get_players_html ($team, $proId, $proName) {
 	$query = db_select('players', 'p')
-		->fields('p', array('nickname', 'hero'));
+		->fields('p', array('nickname', 'uid'));
 		
 	$query->condition('p.team_id', $team);
+	$query->condition('p.uid', $proId, '!=');
 	$result = $query->execute();
 	$i = 0;
 	
-	$title = t('Portal command');
-	
+	$title = '';
 	$type = 'ul';
 	$attributes = array(
 		'class' => 'players-list'
 	);
-	$itemsExpert = array();
-	$itemsRival = array();
-
+    $items[] = array(
+        'data' => l($proName, 'user/'.$proId, array('attributes' => array('class' => array('pro-user')))),
+        'class' => array(t('players-list-item')),
+    );
 	while($row = $result->fetchObject()) {
 		$items[] = array(
-			'data' => $row->nickname.' '.t('hero: ').$row->hero,
+			'data' => l($row->nickname, 'user/'.$row->uid, array('attributes' => array('class' => array('regular-user')))),
 			'class' => array(t('players-list-item')),
 		);
 	}

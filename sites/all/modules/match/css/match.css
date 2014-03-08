@@ -4,11 +4,76 @@
 .clear {clear: both;}
 .active-players h3, .finished-players h3 { margin: 0; padding: 0;}
 .active-players ul, .finished-players ul {display: none;}
-.active-match .active-twitch {display: none; width: 620px; margin: 0 auto;}
-.best-match .active-twitch {display: block;}
-.we-need-a-hero {background-color: #F00 !important;}
+.active-twitch { display: none; width: 620px; margin: 0 auto; }
+.best-match .active-twitch,
+.display.active-twitch { display: block; }
+.display.active-twitch { margin-top: 15px; }
+table.planned-matches tr.we-need-a-hero {background-color: #0F1; }
+table.planned-matches tr.we-need-a-hero td { position: relative; }
+.hero-span {
+    position: absolute;
+    top: 4px;
+}
+.hero-left {
+    left: -60px;
+}
+.hero-right {
+    right: -60px;
+}
 .hidden {display: none;}
 .views-field-field-need-player {display: none;}
 ul.players-list li {display: block;}
 .region-content ul.items-list  { padding: 0;}
 ul.items-list li.items-list-item { list-style: none; float: left;}
+span.yesno {
+    display: block;
+    width: 24px;
+    height: 24px;
+    margin: 0 auto;
+}
+.header-id,
+.header-time,
+.header-mod,
+.header-players {
+    text-align: center;
+    float: left;
+    border: 1px solid #bababa;
+}
+.header-id {
+    width: 100px;
+}
+.header-time,
+.header-mod {
+    width: 200px;
+}
+.header-players {
+    width: 300px;
+}
+.vs-separator {
+    text-align: center;
+    font-size: 35px;
+}
+.vod {
+    text-align: center;
+}
+a.check-vod {
+    display: block;
+    border: 1px solid #bababa;
+    font-size: 20px;
+    width: 150px;
+    padding: 10px;
+    margin: 0 auto;
+    border-radius: 5px;
+    background: #f4f4f4;
+}
+.radiant {
+    color: #82c261;
+}
+.dire {
+    color: #d66150;
+}
+.winner {
+    font-size: 20px;
+    padding: 10px;
+    text-align: center;
+}

@@ -73,6 +73,9 @@ h1#page-title {
     background: url('../images/dota2.png') 99% 10px no-repeat #ee2d42;
     color: #fff;
 }
+.node-type-match h1#page-title {
+    text-align: center;
+}
 .news-image {
     border: 1px solid #bababa;
 }
@@ -192,4 +195,65 @@ h2#control {
 }
 .controls-wrapper .form-actions input.form-submit {
     width: 150px;
+}
+table.planned-matches {
+    margin: 0px;
+
+}
+table.planned-matches tr td,
+table.planned-matches tr th {
+    text-align: center;
+    border: 1px solid #000;
+    font-size: 15px;
+}
+table.planned-matches tr th {
+    background: #fff;
+    color: #000;
+    font-size: 17px;
+}
+.node-match-planned-info {
+    text-align: center;
+}
+a.pro-user {
+     background: url('../images/pro-user.png') 0 50% no-repeat transparent;
+     padding-left: 27px;
+}
+a.regular-user {
+    background: url('../images/regular-user.png') 0 50% no-repeat transparent;
+    padding-left: 27px;
+}
+.accepted-users {
+    text-align: center;
+}
+form#match-node-planned-ticket-form {
+    text-align: center;
+}
+table.planned-matches {
+    margin: 0px;
+
+}
+table.active-matches tr td,
+table.active-matches tr th {
+    text-align: center;
+    border: none;
+    font-size: 15px;
+    vertical-align: top;
+}
+table.active-matches tr th {
+    background: #fff;
+    color: #000;
+    font-size: 17px;
+}
+table.active-matches tr td.row-id {
+    width: 10%;
+}
+table.active-matches tr td.row-mod {
+    width: 15%;
+}
+table.active-matches tr td.row-timing {
+    width: 25%;
+    font-size: 15px;
+}
+table.active-matches tr td.row-players {
+    width: 50%;
 }
