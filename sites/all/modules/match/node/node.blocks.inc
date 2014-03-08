@@ -83,7 +83,7 @@ function match_get_finished_players_html($expert, $rival) {
 		t('Denied'),
 		t('Gpm'),
 		t('Epm'),
-                t('Rating')
+        t('Rating')
 	);
 	$rows = array();
 	foreach ($players as $k =>$player) {
@@ -118,7 +118,7 @@ function match_get_finished_players_html($expert, $rival) {
 				$player->creeps_denied,
 				$player->gpm,
 				$player->epm,
-                                match_get_player_rating_form($player->id, $player->rating)
+                match_get_player_rating_form($player->id, $player->rating)
 			);
 		} else {
 			$rows[] = array(
@@ -134,7 +134,7 @@ function match_get_finished_players_html($expert, $rival) {
 				$player->creeps_denied,
 				$player->gpm,
 				$player->epm,
-                                ''
+                ''
 			);		
 		}
 		
@@ -170,7 +170,7 @@ function match_get_planned_players_html ($team) {
 	if(isset($items))
 		$html = theme('item_list', array('items' => $items, 'title' => $title, 'type' => $type, 'attributes' => $attributes));
 	else
-		$html = t('No players yet');
+		$html = t('No players accepted this match yet');
 	return $html;
 }
 function match_node_active_form($form, &$form_state) {
@@ -182,7 +182,11 @@ function match_node_active_form($form, &$form_state) {
 			'#name' => 'restart',
 		),
 		'#weight' => 0,
-	);	
+	);
+    $form['dota_id'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Match id')
+    );
 	$form['finish'] = array(
 		'#type' => 'actions',
 		'submit' => array(
@@ -199,17 +203,33 @@ function match_node_active_form($form, &$form_state) {
 	return $form;	
 }
 function match_node_planned_form($form, &$form_state) {
+    global $user;
 	$node = menu_get_object();
 	$vod = (isset($node->field_vod['und'][0]['value']))? $node->field_vod['und'][0]['value'] : '';
+	$mod = (isset($node->field_mod['und'][0]['value']))? $node->field_mod['und'][0]['value'] : '';
+
 	$form['vod'] = array(
 		'#type' => 'textfield',
 		'#title' => t('Stream'),
 		'#default_value' => $vod,
-	);	
+        '#weight' => 1,
+        //'#theme_wrappers' => array(),
+        '#prefix' => '<div class="info-updater"><div class="info-wrapper">'
+
+	);
+    $form['mod'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Mod'),
+        '#default_value' => $mod,
+        '#size' => 3,
+        '#weight' => 1
+    );
 	$form['last'] = array(
 		'#type' => 'checkbox',
 		'#title' => t('Last match'),
 		'#default_value' => $node->field_last['und'][0]['value'],
+        '#weight' => 3,
+        '#prefix' => '<div class="clear"></div>',
 	);
 	$form['update'] = array(
 		'#type' => 'actions',
@@ -218,7 +238,8 @@ function match_node_planned_form($form, &$form_state) {
 			'#value' => t('Update match info'),
 			'#name' => 'update',
 		),
-		'#weight' => 0,
+		'#weight' => 4,
+        '#suffix' => '</div></div>'
 	);	
 	$form['needahero'] = array(
 		'#type' => 'actions',
@@ -227,7 +248,8 @@ function match_node_planned_form($form, &$form_state) {
 			'#value' => t('We need a hero!'),
 			'#name' => 'needahero',
 		),
-		'#weight' => 1,
+		'#weight' => 5,
+        '#prefix' => '<div class="controls-updater"><h2>'.t('Controls').'</h2><div class="controls-wrapper">'
 	);	
 	$form['fiveminutes'] = array(
 		'#type' => 'actions',
@@ -236,7 +258,7 @@ function match_node_planned_form($form, &$form_state) {
 			'#value' => t('5 minutes'),
 			'#name' => 'fiveminutes',
 		),
-		'#weight' => 2,
+		'#weight' => 6,
 		
 	);
 	$form['start'] = array(
@@ -246,26 +268,31 @@ function match_node_planned_form($form, &$form_state) {
 			'#value' => t('Start match'),
 			'#name' => 'start',
 		),
-		'#weight' => 3,
+		'#weight' => 7,
+        '#suffix' => '<div class="clear"></div></div></div>'
 		
 	);	
 	$form['#submit'] = array(
 		'0' => 'match_controll_form_submit',
 	);
-	return $form;
+    if($node->uid == $user->uid)
+	    return $form;
+    else
+        return false;
 }
  
 function match_controll_form_submit($form, &$form_state) {
 	global $user;
-        $action = $form_state['clicked_button']['#name'];
+    $action = $form_state['clicked_button']['#name'];
 	$node = menu_get_object();
 	//krumo($node);exit;
 	switch ($action) {
 		case 'update':
 			$node->field_last['und'][0]['value'] = $form_state['values']['last'];
 			$node->field_vod['und'][0]['value'] = $form_state['values']['vod'];
+			$node->field_mod['und'][0]['value'] = $form_state['values']['mod'];
 			node_save($node);
-			dsm(t('Updated'));
+			drupal_set_message(t('Updated'));
 		break;
 		case 'fiveminutes':
 			dsm(t('Sending 5 mins. notifications. Not working at this moment'));
@@ -300,113 +327,132 @@ function match_controll_form_submit($form, &$form_state) {
 			}
 			
 			node_save($node);
-			dsm(t('Match started'));
+            drupal_set_message(t('Match started'));
 		break;	
 		case 'needahero':
 			$node->field_need_player['und'][0]['value'] = 1;
 			node_save($node);
-			dsm(t('Match marked as fast recruit'));			
+            drupal_set_message(t('Match marked as fast recruit'));
 		break;
 		case 'restart':
 			$node->field_state['und'][0]['value'] = 0;
 			node_save($node);
-			dsm(t('Match marked as planned'));			
+            drupal_set_message(t('Match marked as planned'));
 		break;
 		case 'finish':
-			$node->field_state['und'][0]['value'] = 2;
-			
-			$time = time() - $node->field_started['und'][0]['value'];
-			
-			if ($time < 60)
-				$time = date('s', $time).t(' secs;');
-			elseif ($time < 3600)
-				$time = date('i:s', $time);
-			elseif ($time >= 3600)
-				$time = date('H:i:s', $time);
-				
-			$node->field_duration['und'][0]['value'] = $time;
-			node_save($node);
-			
-			dsm(t('Match finished'));				
+            $match_id = $form_state['values']['dota_id'];
+            if($match_id == '') {
+                drupal_set_message(t('Set match id!'), 'error');
+
+            } else {
+                $info = helper_get_match_statistics($match_id);
+                if($info == null) {
+                    drupal_set_message(t('Unable to get match info'), 'error');
+                } else {
+                    krumo($info);exit;
+                    $node->field_state['und'][0]['value'] = 2;
+
+                    $time = time() - $node->field_started['und'][0]['value'];
+
+                    if ($time < 60)
+                        $time = date('s', $time).t(' secs;');
+                    elseif ($time < 3600)
+                        $time = date('i:s', $time);
+                    elseif ($time >= 3600)
+                        $time = date('H:i:s', $time);
+
+                    $node->field_duration['und'][0]['value'] = $time;
+                    node_save($node);
+
+                    drupal_set_message(t('Match finished'));
+                }
+            }
 		break;
-                case 'archive':
-                    $node->field_archived['und'][0]['value'] = $form_state['values']['archived'];
-                    node_save($node);
-                    dsm(t('Match updated'));
-                break;
-                case 'leave':
-                    $node->field_free_place['und'][0]['value']++;
-                    node_save($node);
-                    db_delete('players')
-                        ->condition('team_id', $node->field_profi_command['und'][0]['value'])
-                        ->condition('uid', $user->uid)
-                        ->execute();
-                    drupal_set_message(t('You have left the match'));
-                break;
-                case 'buy':
-                    if ($node->field_free_place['und'][0]['value'] < 1)
-                            drupal_set_message(t('No more free places on this match'), 'error');
-                    else {
-                            $steam = db_select('hybridauth_identity', 'h')
-                                            ->fields('h', array('data'))
-                                            ->condition('h.uid', $user->uid)
-                                            ->condition('h.provider', 'Steam')
-                                            ->execute()
-                                            ->fetchObject();
+        case 'archive':
+            $node->field_archived['und'][0]['value'] = $form_state['values']['archived'];
+            node_save($node);
+            drupal_set_message(t('Match updated'));
+        break;
+        case 'leave':
+            $node->field_free_place['und'][0]['value']++;
+            node_save($node);
+            db_delete('players')
+                ->condition('team_id', $node->field_profi_command['und'][0]['value'])
+                ->condition('uid', $user->uid)
+                ->execute();
+            drupal_set_message(t('You have left the match'));
+        break;
+        case 'buy':
+            if ($node->field_free_place['und'][0]['value'] < 1)
+                drupal_set_message(t('No more free places on this match'), 'error');
+            else {
+                if($user->uid == 0)
+                    drupal_set_message(t('You need to login first'), 'error');
+                else {
+                    $steam = db_select('hybridauth_identity', 'h')
+                                    ->fields('h', array('data'))
+                                    ->condition('h.uid', $user->uid)
+                                    ->condition('h.provider', 'Steam')
+                                    ->execute()
+                                    ->fetchObject();
 
-                            if (isset($steam) && $steam) {
-                                    $profile = unserialize($steam->data);
+                    if (isset($steam) && $steam) {
+                        $profile = unserialize($steam->data);
 
-                                    $steam_id = explode('/', $profile['identifier']);
-                                    $steam_id = end($steam_id);
-                                    $nickname = explode('/', rtrim($profile['profileURL'], '/'));
-                                    $nickname = end($nickname);
+                        $steam_id = explode('/', $profile['identifier']);
+                        $steam_id = end($steam_id);
+                        $nickname = explode('/', rtrim($profile['profileURL'], '/'));
+                        $nickname = end($nickname);
 
-                            }                        
-                            $command = $node->field_profi_command['und'][0]['value'];
-  
-                            db_insert('players')->fields(array('uid' => $user->uid, 'team_id' => $command, 'steam_id' => "$steam_id", 'nickname' => "$nickname",))->execute();
-                            $node->field_free_place['und'][0]['value']--;
-                            node_save($node);
-                            drupal_set_message(t('Thanks for register'));
+
+                        $command = $node->field_profi_command['und'][0]['value'];
+
+                        db_insert('players')->fields(array('uid' => $user->uid, 'team_id' => $command, 'steam_id' => "$steam_id", 'nickname' => "$nickname",))->execute();
+                        $node->field_free_place['und'][0]['value']--;
+                        node_save($node);
+                        drupal_set_message(t('Thanks for register'));
+                    } else {
+                        drupal_set_message(t('Specify your steam account first'), 'error');
                     }
-                break;
-                case 'like':
-                    db_insert('match_votes')->fields(array('uid' => $user->uid, 'match_id' => $node->nid, 'rating' => 1))->execute();
-                    $query = db_select('match_votes', 'm')
-                            ->fields('m', array('rating'))
-                            ->condition('m.match_id', $node->nid)
-                            ->execute();
-                    $votes = $query->fetchAll();
-                    $i = 0;
-                    $sum = 0;
-                    foreach ($votes as $vote) {
-                        $sum += $vote->rating;
-                        $i++;
-                    }
-                    $match_rating = 5*($sum/$i);
-                    $node->field_rating['und'][0]['value'] = $match_rating;
-                    node_save($node);
-                    drupal_set_message(t('Thanks for you voice'));
-                break;
-                case 'dislike':
-                    db_insert('match_votes')->fields(array('uid' => $user->uid, 'match_id' => $node->nid, 'rating' => 0))->execute();
-                    $query = db_select('match_votes', 'm')
-                            ->fields('m', array('rating'))
-                            ->condition('m.match_id', $node->nid)
-                            ->execute();
-                    $votes = $query->fetchAll();
-                    $i = 0;
-                    $sum = 0;
-                    foreach ($votes as $vote) {
-                        $sum += $vote->rating;
-                        $i++;
-                    }
-                    $match_rating = 5*($sum/$i);
-                    $node->field_rating['und'][0]['value'] = $match_rating;
-                    node_save($node);
-                    drupal_set_message(t('Thanks for you voice'));                    
-                break;
+                }
+            }
+        break;
+        case 'like':
+            db_insert('match_votes')->fields(array('uid' => $user->uid, 'match_id' => $node->nid, 'rating' => 1))->execute();
+            $query = db_select('match_votes', 'm')
+                    ->fields('m', array('rating'))
+                    ->condition('m.match_id', $node->nid)
+                    ->execute();
+            $votes = $query->fetchAll();
+            $i = 0;
+            $sum = 0;
+            foreach ($votes as $vote) {
+                $sum += $vote->rating;
+                $i++;
+            }
+            $match_rating = 5*($sum/$i);
+            $node->field_rating['und'][0]['value'] = $match_rating;
+            node_save($node);
+            drupal_set_message(t('Thanks for you voice'));
+        break;
+        case 'dislike':
+            db_insert('match_votes')->fields(array('uid' => $user->uid, 'match_id' => $node->nid, 'rating' => 0))->execute();
+            $query = db_select('match_votes', 'm')
+                    ->fields('m', array('rating'))
+                    ->condition('m.match_id', $node->nid)
+                    ->execute();
+            $votes = $query->fetchAll();
+            $i = 0;
+            $sum = 0;
+            foreach ($votes as $vote) {
+                $sum += $vote->rating;
+                $i++;
+            }
+            $match_rating = 5*($sum/$i);
+            $node->field_rating['und'][0]['value'] = $match_rating;
+            node_save($node);
+            drupal_set_message(t('Thanks for you voice'));
+        break;
 	}
 }
 
@@ -434,7 +480,7 @@ function match_create_match_form($form, &$form_state) {
 		'#type' => 'actions',
 		'submit' => array(
 			'#type' => 'submit',
-			'#value' => t('Create'),
+			'#value' => t('Create match'),
 		),
 	);
 	
@@ -453,7 +499,7 @@ function match_create_match_form_submit($form, &$form_state) {
 	
 	$date = $form_state['values']['date']['year'].'-'.$form_state['values']['date']['month'].'-'.$form_state['values']['date']['day'].' '.$form_state['values']['time'].':00';
 	
-	$node->title    = 'Match at ' . $date;
+	$node->title = 'Match';
 	$node->language = LANGUAGE_NONE;
 	
 	$node->field_date[$node->language][0]['value'] = $date;
@@ -468,7 +514,8 @@ function match_create_match_form_submit($form, &$form_state) {
 	db_insert('teams')->fields(array('match_id' => $node->nid))->execute();
 	$rivalCommand = Database::getConnection()->lastInsertId();
 	$node->field_rival_command[$node->language][0]['value'] = $rivalCommand;
-	
+
+    $node->title = $node->title.' №'.$node->nid;
 	node_save($node);
 
 	drupal_set_message(t('Match created'));
@@ -568,80 +615,80 @@ function match_node_finished_form($form, &$form_state) {
 
 function match_node_planned_ticket_form($form, &$form_state) {
 	global $user;
-        $node = menu_get_object();
-        $query = db_select('players', 'p')	
-		->fields('p', array('uid'))
-                ->condition('p.team_id', $node->field_profi_command['und'][0]['value'])
-                ->execute();
-        $uids = $query->fetchAll();
-        $in_match = false;
-        foreach ($uids as $puid) {
-            if ($puid->uid == $user->uid)
-                $in_match = true;
-        }
+    $node = menu_get_object();
+    $query = db_select('players', 'p')
+        ->fields('p', array('uid'))
+        ->condition('p.team_id', $node->field_profi_command['und'][0]['value'])
+        ->execute();
+    $uids = $query->fetchAll();
+    $in_match = false;
+    foreach ($uids as $puid) {
+        if ($puid->uid == $user->uid)
+            $in_match = true;
+    }
 
-        if ($in_match) {
-            $form['leave_match'] = array(
-                    '#type' => 'actions',
-                    'submit' => array(
-                            '#type' => 'submit',
-                            '#value' => t('Leave match'),
-                            '#name' => 'leave',
-                    ),
-                    '#weight' => 0,
-            );
-        } else {
-            $form['get_ticket'] = array(
-                    '#type' => 'actions',
-                    'submit' => array(
-                            '#type' => 'submit',
-                            '#value' => t('Buy ticket'),
-                            '#name' => 'buy',
-                    ),
-                    '#weight' => 0,
-            );            
-        }
+    if ($in_match) {
+        $form['leave_match'] = array(
+            '#type' => 'actions',
+            'submit' => array(
+                '#type' => 'submit',
+                '#value' => t('Leave match'),
+                '#name' => 'leave',
+            ),
+            '#weight' => 0,
+        );
+    } else {
+        $form['get_ticket'] = array(
+            '#type' => 'actions',
+            'submit' => array(
+                '#type' => 'submit',
+                '#value' => t('Buy ticket'),
+                '#name' => 'buy',
+            ),
+            '#weight' => 0,
+        );
+    }
         
 	$form['#submit'] = array(
 		'0' => 'match_controll_form_submit',
 	);     
-        
+    if($node->uid != $user->uid)
         return $form;
+    else
+        return false;
 }
 
 function match_node_like_form($form, &$form_state) {
 	global $user;
-        $node = menu_get_object();
-        $query = db_select('match_votes', 'm')	
-		->fields('m', array('uid'))
-                ->condition('m.match_id', $node->nid)
-                ->condition('m.uid', $user->uid)
-                ->execute();
-        $res = $query->fetchObject();
-        if (!$res) {
-            $form['like'] = array(
-                    '#type' => 'actions',
-                    'submit' => array(
-                            '#type' => 'submit',
-                            '#value' => t('Like'),
-                            '#name' => 'like',
-                    ),
-                    '#weight' => 0,
-
-            );
-            $form['dislike'] = array(
-                    '#type' => 'actions',
-                    'submit' => array(
-                            '#type' => 'submit',
-                            '#value' => t('Dislike'),
-                            '#name' => 'dislike',
-                    ),
-                    '#weight' => 1,
-
-            );	
-            $form['#submit'] = array(
-                    '0' => 'match_controll_form_submit',
-            );
-            return $form;
-        }
+    $node = menu_get_object();
+    $query = db_select('match_votes', 'm')
+        ->fields('m', array('uid'))
+        ->condition('m.match_id', $node->nid)
+        ->condition('m.uid', $user->uid)
+        ->execute();
+    $res = $query->fetchObject();
+    if (!$res) {
+        $form['like'] = array(
+            '#type' => 'actions',
+            'submit' => array(
+                '#type' => 'submit',
+                '#value' => t('Like'),
+                '#name' => 'like',
+            ),
+            '#weight' => 0,
+        );
+        $form['dislike'] = array(
+            '#type' => 'actions',
+            'submit' => array(
+                '#type' => 'submit',
+                '#value' => t('Dislike'),
+                '#name' => 'dislike',
+            ),
+            '#weight' => 1,
+        );
+        $form['#submit'] = array(
+                '0' => 'match_controll_form_submit',
+        );
+        return $form;
+    }
 }

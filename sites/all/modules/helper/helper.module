@@ -1,0 +1,210 @@
+<?php
+define("API_KEY", "FCCCF409F8ABCF875212A32AB03D9395");
+
+function helper_node_insert($node) {
+    if($node->type == 'news') {
+        $path = array (
+            'source' => 'node/'.$node->nid,
+            'alias' => 'news/'.$node->nid,
+        );
+        path_save($path);
+    } elseif($node->type == 'match') {
+        $path = array (
+            'source' => 'node/'.$node->nid,
+            'alias' => 'match/'.$node->nid,
+        );
+        path_save($path);
+        //$node->title = $node->title.' '.$node->nid;
+        //node_save($node);
+    }
+}
+/**
+ * Implements hook_block_info().
+ */
+
+function helper_block_info() {
+    $blocks[0] = array(
+        'info' => t('Последние новости'),
+    );
+    $blocks[1] = array(
+        'info' => t('Картинка для новости'),
+    );
+
+    return $blocks;
+}
+
+function helper_block_view($delta='') {
+    $block = array();
+    switch($delta) {
+        case 0:
+            $block['subject'] = t('');
+            $block['content'] = helper_get_last_news(4, 650, 251);
+            break;
+        case 1:
+            $block['subject'] = t('');
+            $block['content'] = helper_news_image();
+            break;
+    }
+
+    return $block;
+}
+
+function helper_get_last_news($limit, $width, $height) {
+    $query = db_select('node', 'n')
+        ->fields('n', array('nid'))
+        ->condition('type', 'news','=')
+        ->condition('status', 0,'>')
+        ->orderBy('created', 'DESC')
+        ->range(0, $limit);
+    $result = $query->execute();
+    $html = '<div id="slider">';
+    $sidebar = '<ul id="pagination">';
+    $first = true;
+    $showImage = 0;
+    while ($nid = $result->fetchField()) {
+        $node = node_load($nid);
+        $attributes = array(
+            'class' => 'slider-image',
+            'nav-id' => $nid
+        );
+        $image = theme('image', array(
+            'path' => file_create_url($node->field_image['und'][0]['uri']),
+            'alt' => t($node->title),
+            'title' => t($node->title),
+            'width' => $width,
+            'height' => $height,
+            'attributes' => $attributes,
+        ));
+        $html .= $image;
+        if($first) {
+            $sidebar .= '<li class="item active first" show-image="'.$showImage.'" id="nav-index-'.$nid.'"><div class="pagination-arrow"></div>'.l(t($node->title), 'news/'.$nid).'</li>';
+            $first = false;
+        } else {
+            $sidebar .= '<li class="item" show-image="'.$showImage.'" id="nav-index-'.$nid.'"><div class="pagination-arrow hidden"></div>'.l(t($node->title), 'news/'.$nid).'</li>';
+        }
+        $showImage++;
+        //krumo($node);
+    }
+    $sidebar .= '</ul>';
+    $html .= '</div>';
+    $html .= $sidebar;
+    $html .= '<div class="clear"></div>';
+    if($sidebar != '') {
+        drupal_add_css(drupal_get_path('module', 'helper').'/css/slider.css');
+        drupal_add_js(drupal_get_path('module', 'helper').'/js/flux.js');
+        drupal_add_js(drupal_get_path('module', 'helper').'/js/helper.js');
+    }
+    return $html;
+}
+
+function helper_news_image() {
+    $node = menu_get_object();
+    $attributes = array(
+        'class' => 'image'
+    );
+    $image = theme('image', array(
+        'path' => file_create_url($node->field_image['und'][0]['uri']),
+        'alt' => t($node->title),
+        'title' => t($node->title),
+        'width' => 988,
+        'height' => 253,
+        'attributes' => $attributes,
+    ));
+
+    return '<div class="news-image">'.$image.'</div>';
+}
+
+function helper_menu() {
+    $items = array(
+        'get-heroes' => array(
+            'page callback' => 'helper_get_heroes',
+            'page arguments' => array(API_KEY),
+            'access arguments' => array('use steam api'),
+            'type' => MENU_CALLBACK
+        )
+    );
+
+    return $items;
+}
+
+function helper_get_heroes($api_key) {
+    /*$url = 'http://api.steampowered.com/IEconDOTA2_570/GetHeroes/v1?key='.$api_key;
+    $data = helper_curl($url);
+    if($data != null) {
+        $heroes = $data->result->heroes;
+        $values = array();
+        foreach ($heroes as $hero) {
+            $id = $hero->id;
+            $name = str_replace("npc_dota_hero_", "", $hero->name);
+
+            $values[] = array(
+                'id' => $id,
+                'name' => $name,//ucwords(str_replace("_", " ", $name)),
+                'image' => ''
+            );
+            helper_get_hero_images($name);
+        }
+        $query = db_insert('heroes')->fields(array('id', 'name', 'image'));
+        foreach ($values as $value) {
+            $query->values($value);
+        }
+        $query->execute();
+        echo 'finished';
+
+    } else {
+        echo t('No data recieved');
+    }
+
+    $xml = json_decode(file_get_contents(drupal_get_path('module','helper').'/items.json'), true);
+    $data = array();
+    foreach ($xml['result']['items'] as $item) {
+        $data[] = array(
+            'id' => $item['id'],
+            'name' => ucwords(str_replace("_", " ", $item['name'])),
+            'image' => ''
+        );
+        //helper_get_hero_images($item['name']);
+    }
+    $query = db_insert('artifacts')->fields(array('id', 'name', 'image'));
+    foreach ($data as $value) {
+        $query->values($value);
+    }
+    $query->execute();*/
+    echo 'qq';
+
+}
+
+function helper_curl($url) {
+    $curl = curl_init();
+
+    curl_setopt($curl, CURLOPT_URL, $url);
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER,true);
+    curl_setopt($curl, CURLOPT_POST, false);
+    curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+
+    $out = curl_exec($curl);
+    curl_close($curl);
+
+    return json_decode($out);
+}
+function helper_get_hero_images($name) {
+    $url = 'http://media.steampowered.com/apps/dota2/images/items/'.$name.'_lg.png';
+    helper_grab_image($url, file_stream_wrapper_get_instance_by_uri('public://')->getDirectoryPath().'/artifacts/'.$name.'.png');
+}
+
+function helper_get_match_statistics($match_id) {
+    $url = 'https://api.steampowered.com/IDOTA2Match_570/GetMatchDetails/V001/?match_id='.$match_id.'&key='.API_KEY.'&format=json';
+    $result = helper_curl($url);
+
+    return $result;
+}
+function helper_grab_image($url,$saveto){
+    $in = fopen($url, "rb");
+    $out = fopen($saveto, "wb");
+    while ($chunk = fread($in,8192))
+    {
+        fwrite($out, $chunk, 8192);
+    }
+    fclose($in);
+    fclose($out);
+}

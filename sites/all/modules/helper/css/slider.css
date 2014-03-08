@@ -1,0 +1,9 @@
+#slider { height: 251px; width: 650px; overflow: hidden; float: left; border: 1px solid #d2d2d2; }
+#pagination { float: left; list-style-type: none; padding: 0;}
+#pagination .item { position: relative; width: 335px; height: 62px; line-height: 62px; display: block; border: 1px solid #d2d2d2; border-top: none; background: url('../images/btn-big.png') 50% 50% transparent; }
+#pagination .first {  border-top: 1px solid #d2d2d2; }
+#pagination .active { background: url('../images/btn-big-active.png') 50% 50% transparent; }
+#pagination .active a {color: #fff; }
+#pagination a { display: block; }
+.pagination-arrow { position: absolute; width: 9px; height: 62px; left: -5px; top: 0px; background: url('../images/active-arrow.png') 0 50% no-repeat transparent; z-index: 999; }
+.clear { clear: both; }

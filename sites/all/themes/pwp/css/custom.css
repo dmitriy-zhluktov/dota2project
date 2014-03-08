@@ -1,0 +1,195 @@
+#block-ajax-register-ajax-register-block { background: #ee2d42; width: 170px; font-size: 14px; position: absolute; right: 0; top: 35px; display: none; z-index: 1;}
+#block-ajax-register-ajax-register-block a { color: #fff; }
+#block-ajax-register-ajax-register-block .content { margin: 0;}
+.block ul.ajax-register-links { display: block;}
+.block ul.ajax-register-links li {float: none; display: block;}
+div.ctools-modal-content .modal-header { background: #ee2d42;}
+#modal-content form input.form-submit, .button { border-radius: 0; background: url('../images/button.png') 50% 50% transparent; font-size: 17px; color: #fff; margin: 0;}
+#modal-content .messages { width: auto !important; }
+#modal-content .messages a { display: none;}
+#block-system-user-menu { background: #ee2d42; width: 170px; position: absolute; right: 0; top: 35px; display: none; z-index: 1;}
+.i18n-ru #block-system-user-menu,
+.i18n-ru #block-ajax-register-ajax-register-block { width: 190px; right: 35px;}
+#block-system-user-menu h2 { display: none; }
+#block-system-user-menu .content { margin: 0;}
+#block-system-user-menu ul li { list-style: none;}
+div.ctools-modal-content .form-item .description { display: none;}
+#block-quicktabs-front-mathces h2 { display: none; }
+#control-panel {
+    box-shadow: 0px 3px 10px rgba(0,0,0,0.5);
+    z-index: 2;
+    position: relative;
+}
+ul.quicktabs-tabs {
+    height: 43px;
+}
+.item-list ul.quicktabs-tabs  li {
+    display: block;
+    float: left;
+    width: 330px;
+    text-align: center;
+    background: url('../images/tab-li-big.png') 50% 50% transparent;
+    height: 45px;
+    line-height: 45px;
+    font-size: 25px;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+
+}
+.block-quicktabs .content {
+    margin: 0;
+}
+#quicktabs-container-front_mathces {
+    border: 1px solid #bababa;
+}
+.active-match {
+    border-bottom: 1px dashed #bababa;
+}
+.item-list ul.quicktabs-tabs li.active,
+.item-list ul.quicktabs-tabs li:hover {
+    background: url('../images/tab-li-active-big.png') 50% 50% transparent;
+}
+.item-list ul.quicktabs-tabs li.last:after {
+    clear: both;
+}
+ul.quicktabs-tabs  li a {
+    display: block;
+}
+ul.quicktabs-tabs  li.active a,
+.item-list ul.quicktabs-tabs  li:hover a {
+    color: #fff;
+    display: block;
+}
+
+h1#page-title {
+    margin: 5px 0 0;
+    padding: 15px;
+}
+.page-news h1#page-title {
+    border-bottom: 1px solid #000;
+}
+.node-type-news h1#page-title {
+    background: url('../images/dota2.png') 99% 10px no-repeat #ee2d42;
+    color: #fff;
+}
+.news-image {
+    border: 1px solid #bababa;
+}
+.news-image img {
+    display: block;
+}
+.region-content {
+    position: relative;
+}
+.view-id-news .views-row {
+    border-bottom: 2px solid #ee2d42;
+    margin-top: 5px;
+}
+.views-field-field-image {
+    float: left;
+    padding: 10px;
+}
+.views-field-title {
+    font-size: 18px;
+    font-weight: 700;
+    padding: 5px 0 0;
+}
+.views-field-body {
+    height: 80px;
+    overflow: hidden;
+}
+.views-field-created,
+.views-field-name {
+    float: left;
+    padding: 5px 10px;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+.views-field-view-node {
+    float: right;
+    padding: 5px 10px;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+.separator {
+    clear: both;
+    border-bottom: 1px dashed #bababa;
+}
+h2#control {
+    float: right;
+    margin: 0;
+}
+
+.page-user-hybridauth div.vertical-tabs {
+    display: none;
+}
+#match-create-match-form {
+    width: 440px;
+    margin: 0 auto;
+}
+#match-create-match-form input.form-submit {
+    border: none;
+}
+#match-create-match-form .form-item {
+    float: left;
+    margin: 0;
+    height: 75px;
+}
+#match-create-match-form .form-item.form-item-last,
+#match-create-match-form .form-item.form-item-time {
+    margin-left: 25px;
+}
+#match-create-match-form .form-item.form-item-time input {
+    font-size: 15px;
+}
+#match-create-match-form .form-item.form-item-last {
+    line-height: 75px;
+}
+#match-create-match-form .form-item label {
+    font-size: 15px;
+}
+#match-create-match-form .form-item .description {
+    font-size: 10px;
+}
+.center {
+    text-align: center;
+}
+
+.page-news #block-search-form {
+    position: absolute;
+    top: -50px;
+    right: 15px;
+    font-size: 15px;
+}
+.admin-menu.page-news #block-search-form {
+    top: -65px;
+}
+.info-updater {
+    border-top: 1px dashed #bababa;
+    border-bottom: 1px dashed #bababa;
+}
+.info-wrapper .form-item.form-type-textfield {
+    float: left;
+}
+.info-wrapper .form-item.form-item-mod {
+    margin-left: 25px;
+}
+.info-wrapper .form-item.form-item-last {
+    line-height: 25px;
+}
+.controls-updater h2 {
+    text-align: center;
+}
+.controls-wrapper {
+    width: 480px;
+    margin: 0 auto;
+}
+.controls-wrapper .form-actions {
+    width: 150px;
+    float: left;
+    padding: 5px;
+}
+.controls-wrapper .form-actions input.form-submit {
+    width: 150px;
+}

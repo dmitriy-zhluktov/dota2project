@@ -44,7 +44,7 @@ function match_block_view($delta='') {
 			break;
 		case 4:
 			module_load_include('inc', 'match', 'node/node.blocks');
-			$block['subject'] = t('Create match');
+			$block['subject'] = t('Quick start');
 			$block['content'] = match_create_node();		
 			break;
 	}
@@ -122,7 +122,8 @@ function match_planned_block_markup() {
 
 	
 	$output .= theme('pager', array('element' => 1, 'tags' => array('0' => t('в нач.'), '1' => t('пред.'), '2' => t('t2'), '3' => t('след.'), '4' => t('посл.'))));    // Получаем html код таблицы
-
+    if($output == '')
+        $output = '<div class="center">'.t('No planned matches at this moment').'</div>';
 	return $output;		
 }
 
@@ -169,25 +170,28 @@ function match_active_block_markup() {
 		$sortByViewers[] = $viewer['views'];
 	}
 	/* sorting*/
-	array_multisort($sortByViewers, SORT_DESC, $viewers);
+    if(isset($sortByViewers) && $sortByViewers != null) {
+	    array_multisort($sortByViewers, SORT_DESC, $viewers);
 
-	foreach($viewers as $view) {
-		$addClass = '';
-		if ($i == 0)
-			$addClass .= 'best-match';
-		$output .= '<div class="active-match '.$addClass.'">
-						<div class="active-id">'.$rows[$view['id']]->nid.'</div>
-						<div class="active-time">'.match_get_timing($rows[$view['id']]->field_started_value).'</div>
-						<div class="active-players">'.match_get_players_html($rows[$view['id']]->field_profi_command_value).'</div>
-						<div class="active-expert"><a href="'.url('user/'.$rows[$view['id']]->uid, array('absolute' => true)).'">'.$rows[$view['id']]->name.'</a></div>
-						<div class="clear"></div>
-						<div class="active-twitch">'.match_get_twitch_html($rows[$view['id']]->field_vod_value).'</div>
-					</div>';
-		$i++;
-	}
+        foreach($viewers as $view) {
+            $addClass = '';
+            if ($i == 0)
+                $addClass .= 'best-match';
+            $output .= '<div class="active-match '.$addClass.'">
+                            <div class="active-id">'.$rows[$view['id']]->nid.'</div>
+                            <div class="active-time">'.match_get_timing($rows[$view['id']]->field_started_value).'</div>
+                            <div class="active-players">'.match_get_players_html($rows[$view['id']]->field_profi_command_value).'</div>
+                            <div class="active-expert"><a href="'.url('user/'.$rows[$view['id']]->uid, array('absolute' => true)).'">'.$rows[$view['id']]->name.'</a></div>
+                            <div class="clear"></div>
+                            <div class="active-twitch">'.match_get_twitch_html($rows[$view['id']]->field_vod_value).'</div>
+                        </div>';
+            $i++;
+        }
 
-	$output .= theme('pager', array('element' => 1, 'tags' => array('0' => t('в нач.'), '1' => t('пред.'), '2' => t('t2'), '3' => t('след.'), '4' => t('посл.'))));    // Получаем html код таблицы
-
+	    $output .= theme('pager', array('element' => 1, 'tags' => array('0' => t('в нач.'), '1' => t('пред.'), '2' => t('t2'), '3' => t('след.'), '4' => t('посл.'))));    // Получаем html код таблицы
+    } else {
+        $output .= '<div class="center">'.t('No active matches at this moment').'</div>';
+    }
 	return $output;		
 }
 
@@ -233,6 +237,8 @@ function match_finished_block_markup() {
 	}
 
 	$output .= theme('pager', array('element' => 2, 'tags' => array('0' => t('в нач.'), '1' => t('пред.'), '2' => t('t2'), '3' => t('след.'), '4' => t('посл.'))));    // Получаем html код таблицы
+    if($output == '')
+        $output = '<div class="center">'.t('No finished matches at this moment').'</div>';
 
 	return $output;		
 }

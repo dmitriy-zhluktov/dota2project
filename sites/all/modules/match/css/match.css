@@ -4,7 +4,7 @@
 .clear {clear: both;}
 .active-players h3, .finished-players h3 { margin: 0; padding: 0;}
 .active-players ul, .finished-players ul {display: none;}
-.active-match .active-twitch {display: none;}
+.active-match .active-twitch {display: none; width: 620px; margin: 0 auto;}
 .best-match .active-twitch {display: block;}
 .we-need-a-hero {background-color: #F00 !important;}
 .hidden {display: none;}

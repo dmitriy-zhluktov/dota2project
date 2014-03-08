@@ -2,7 +2,6 @@
 
 require_once drupal_get_path('module', 'steam_api') . "/steam-condenser/lib/steam-condenser.php";
 require_once drupal_get_path('module', 'steam_api') . "/steam-condenser/lib/steam/community/WebApi.php";
-
 require_once drupal_get_path('module', 'steam_api') . "/steam_api.inc";
 
 define("API_KEY", "FCCCF409F8ABCF875212A32AB03D9395");

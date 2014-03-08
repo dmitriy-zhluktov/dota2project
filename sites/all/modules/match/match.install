@@ -233,13 +233,7 @@ function match_schema(){
 				'length' => '255',
 				'not null' => true,
 				'description' => 'Название артефакта'
-			),			
-			'image' => array(
-				'type' => 'varchar',
-				'length' => '255',
-				'not null' => true,
-				'description' => 'Ссылка на картинку'
-			)			
+			)
 		)
     );
 	
@@ -257,13 +251,7 @@ function match_schema(){
 				'length' => '255',
 				'not null' => true,
 				'description' => 'Имя героя'
-			),			
-			'image' => array(
-				'type' => 'varchar',
-				'length' => '255',
-				'not null' => true,
-				'description' => 'Ссылка на картинку'
-			)			
+			)
 		)
     );
 	/*$schema['skills'] = array(
