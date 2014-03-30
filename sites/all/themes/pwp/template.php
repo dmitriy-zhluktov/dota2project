@@ -161,3 +161,27 @@ function pwp_field__taxonomy_term_reference($variables) {
 
   return $output;
 }
+
+function pwp_preprocess_comment(&$vars) {
+    $vars['created'] = format_interval(time() - $vars['elements']['#comment']->created);
+    $vars['changed'] = format_interval(time() - $vars['elements']['#comment']->changed);
+}
+
+function pwp_username(&$vars) {
+    $uid = $vars['uid'];
+    $user = user_load($uid);
+    $roles = $user->roles;
+    if(in_array('pro', $roles)) {
+        $vars['link_options']['attributes']['class'][] = 'pro-user';
+    } else {
+        $vars['link_options']['attributes']['class'][] = 'regular-user';
+    }
+
+    if (isset($vars['link_path'])) {
+        $output = l($vars['name'] . $vars['extra'], $vars['link_path'], $vars['link_options']);
+    } else {
+        $output = '<span' . drupal_attributes($vars['attributes_array']) . '>' . $vars['name'] . $vars['extra'] . '</span>';
+    }
+
+    return $output;
+}

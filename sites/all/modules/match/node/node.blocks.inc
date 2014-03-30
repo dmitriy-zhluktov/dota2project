@@ -86,7 +86,7 @@ function match_get_node_active_markup($node, $user) {
 
 function match_get_node_finished_markup($node, $user) {
 	//krumo($node);
-    $html = '<div class="timing">'.t('Продолжительность матча: ').match_get_timing($node->field_started['und'][0]['value']).'</div>';
+    $html = '<div class="timing">'.t('Продолжительность матча: ').$node->field_duration['und'][0]['value'].'</div>';
     $html .= match_get_finished_players_html($node->field_profi_command['und'][0]['value'], $node->field_rival_command['und'][0]['value'], $node->uid);
     if($node->field_result['und'][0]['value'] == 0) {
         $html .= '<div class="winner"><span class="dire">'.t('The Dire').'</span> '.t('wins').'</div><div>';
@@ -94,7 +94,8 @@ function match_get_node_finished_markup($node, $user) {
         $html .= '<div class="winner"><span class="radiant">'.t('The Radiant').'</span> '.t('wins').'</div><div>';
     }
     $html .= '';
-    $html .= '<div class="vod"><a class="check-vod" href="'.$node->field_vod['und'][0]['value'].'" alt="'.t('Check the VOD').'" title="'.t('Check the VOD').'">'.t('Check the VOD').'</a></div>';
+    if($node->field_vod['und'][0]['value'] != '')
+        $html .= '<div class="vod"><a class="check-vod" href="'.$node->field_vod['und'][0]['value'].'" target="_blank" alt="'.t('Check the VOD').'" title="'.t('Check the VOD').'">'.t('Check the VOD').'</a></div>';
     $form = drupal_get_form('match_node_finished_form');
     $like = drupal_get_form('match_node_like_form');
     $html .= drupal_render($form).drupal_render($like);
@@ -126,6 +127,7 @@ function match_get_finished_players_html($expert, $rival, $proId) {
     $query->addField('h', 'name', 'hero_name');
     $query->leftJoin('heroes','h', 'p.hero=h.id');
     $query->condition('p.uid', $proId);
+    $query->condition('p.team_id', $expert);
     $pro = $query->execute()->fetchAssoc();
 
     $title = t('');
@@ -169,38 +171,110 @@ function match_get_finished_players_html($expert, $rival, $proId) {
         'path' => file_create_url('public://').'/heroes/'.str_replace(" ", "_", strtolower($pro['hero_name'])).'.png',
         'alt' => $pro['hero_name'],
         'title' => $pro['hero_name'],
-        'width' => 90,
-        'height' => 60
+        'width' => 40,
+        'height' => 30
     ));
 
-    $rows[] = array(
-        l($pro['nickname'], 'user/'.$pro['uid'], array('attributes' => array('class' => array('pro-user')))),
-        $pro['level'],
-        $image,
-        $pro['kills'],
-        $pro['death'],
-        $pro['assists'],
-        theme('item_list', array('items' => $items, 'title' => $title, 'type' => $type, 'attributes' => $attributes)),
-        $pro['gold'],
-        $pro['creeps_killed'],
-        $pro['creeps_denied'],
-        $pro['gpm'],
-        $pro['epm'],
+    $rows_radiant[] = array(
+        array(
+            'data' => l($pro['nickname'], 'user/'.$pro['uid'], array('attributes' => array('class' => array('pro-user')))),
+            'class' => array('nicknames')
+        ),
+        array(
+            'data' => $pro['level'],
+            'class' => array('levels')
+        ),
+        array(
+            'data' => $image,
+            'class' => array('heroes')
+        ),
+        array(
+            'data' => $pro['kills'],
+            'class' => array('kda')
+        ),
+        array(
+            'data' => $pro['death'],
+            'class' => array('kda')
+        ),
+        array(
+            'data' => $pro['assists'],
+            'class' => array('kda')
+        ),
+        array(
+            'data' => theme('item_list', array('items' => $items, 'title' => $title, 'type' => $type, 'attributes' => $attributes)),
+            'class' => array('items')
+        ),
+        array(
+            'data' => $pro['gold'],
+            'class' => array('digits')
+        ),
+        array(
+            'data' => $pro['creeps_killed'],
+            'class' => array('digits')
+        ),
+        array(
+            'data' => $pro['creeps_denied'],
+            'class' => array('digits')
+        ),
+        array(
+            'data' => $pro['gpm'],
+            'class' => array('digits')
+        ),
+        array(
+            'data' => $pro['epm'],
+            'class' => array('digits')
+        ),
         //''
     );
-	$header = array(
-		t('The Radiant'),
-		t('Level'),
-		t('Hero'),
-		t('K'),
-		t('D'),
-		t('A'),
-		t('Items'),
-		t('Gold'),
-		t('Killed'),
-		t('Denied'),
-		t('Gpm'),
-		t('Epm'),
+	$header_radiant = array(
+		array(
+            'data' => t('The Radiant'),
+            'class' => array('radiant', 'nicknames')
+        ),
+        array(
+            'data' => t('Level'),
+            'class' => array('levels')
+        ),
+        array(
+            'data' => t('Hero'),
+            'class' => array('heroes')
+        ),
+        array(
+            'data' => t('K'),
+            'class' => array('kda')
+        ),
+        array(
+            'data' => t('D'),
+            'class' => array('kda')
+        ),
+        array(
+            'data' => t('A'),
+            'class' => array('kda')
+        ),
+        array(
+            'data' => t('Items'),
+            'class' => array('items')
+        ),
+        array(
+            'data' => t('Gold'),
+            'class' => array('digits')
+        ),
+        array(
+            'data' => t('Killed'),
+            'class' => array('digits')
+        ),
+        array(
+            'data' => t('Denied'),
+            'class' => array('digits')
+        ),
+        array(
+            'data' => t('Gpm'),
+            'class' => array('digits')
+        ),
+        array(
+            'data' => t('Epm'),
+            'class' => array('digits')
+        ),
         //t('Rating')
 	);
 	foreach ($portal as $player) {
@@ -235,42 +309,114 @@ function match_get_finished_players_html($expert, $rival, $proId) {
             'path' => file_create_url('public://').'/heroes/'.str_replace(" ", "_", strtolower($player->hero_name)).'.png',
             'alt' => $player->hero_name,
             'title' => $player->hero_name,
-            'width' => 90,
-            'height' => 60
+            'width' => 40,
+            'height' => 30
         ));
 
-        $rows[] = array(
-            l($player->nickname, 'user/'.$player->uid, array('attributes' => array('class' => array('regular-user')))),
-            $player->level,
-            $image,
-            $player->kills,
-            $player->death,
-            $player->assists,
-            theme('item_list', array('items' => $items, 'title' => $title, 'type' => $type, 'attributes' => $attributes)),
-            $player->gold,
-            $player->creeps_killed,
-            $player->creeps_denied,
-            $player->gpm,
-            $player->epm,
+        $rows_radiant[] = array(
+            array(
+                'data' => l($player->nickname, 'user/'.$player->uid, array('attributes' => array('class' => array('regular-user')))),
+                'class' => array('nicknames')
+            ),
+            array(
+                'data' => $player->level,
+                'class' => array('levels')
+            ),
+            array(
+                'data' => $image,
+                'class' => array('heroes')
+            ),
+            array(
+                'data' => $player->kills,
+                'class' => array('kda')
+            ),
+            array(
+                'data' => $player->death,
+                'class' => array('kda')
+            ),
+            array(
+                'data' => $player->assists,
+                'class' => array('kda')
+            ),
+            array(
+                'data' => theme('item_list', array('items' => $items, 'title' => $title, 'type' => $type, 'attributes' => $attributes)),
+                'class' => array('items')
+            ),
+            array(
+                'data' => $player->gold,
+                'class' => array('digits')
+            ),
+            array(
+                'data' => $player->creeps_killed,
+                'class' => array('digits')
+            ),
+            array(
+                'data' => $player->creeps_denied,
+                'class' => array('digits')
+            ),
+            array(
+                'data' => $player->gpm,
+                'class' => array('digits')
+            ),
+            array(
+                'data' => $player->epm,
+                'class' => array('digits')
+            ),
             //match_get_player_rating_form($player->uid, $player->rating)
         );
 	}
-    $out = theme('table', array('header' => $header, 'rows' => $rows));
 
-    $rows = array();
-    $header = array(
-        t('The Dire'),
-        t('Level'),
-        t('Hero'),
-        t('K'),
-        t('D'),
-        t('A'),
-        t('Items'),
-        t('Gold'),
-        t('Killed'),
-        t('Denied'),
-        t('Gpm'),
-        t('Epm'),
+
+    $rows_dire = array();
+    $header_dire = array(
+        array(
+            'data' => t('The Dire'),
+            'class' => array('dire', 'nicknames')
+        ),
+        array(
+            'data' => t('Level'),
+            'class' => array('levels')
+        ),
+        array(
+            'data' => t('Hero'),
+            'class' => array('heroes')
+        ),
+        array(
+            'data' => t('K'),
+            'class' => array('kda')
+        ),
+        array(
+            'data' => t('D'),
+            'class' => array('kda')
+        ),
+        array(
+            'data' => t('A'),
+            'class' => array('kda')
+        ),
+        array(
+            'data' => t('Items'),
+            'class' => array('items')
+        ),
+        array(
+            'data' => t('Gold'),
+            'class' => array('digits')
+        ),
+        array(
+            'data' => t('Killed'),
+            'class' => array('digits')
+        ),
+        array(
+            'data' => t('Denied'),
+            'class' => array('digits')
+        ),
+        array(
+            'data' => t('Gpm'),
+            'class' => array('digits')
+        ),
+        array(
+            'data' => t('Epm'),
+            'class' => array('digits')
+        ),
         //t('Rating')
     );
 
@@ -306,27 +452,71 @@ function match_get_finished_players_html($expert, $rival, $proId) {
             'path' => file_create_url('public://').'/heroes/'.str_replace(" ", "_", strtolower($player->hero_name)).'.png',
             'alt' => $player->hero_name,
             'title' => $player->hero_name,
-            'width' => 90,
-            'height' => 60
+            'width' => 40,
+            'height' => 30
         ));
 
-        $rows[] = array(
-            '<a href="#" class="regular-user">'.$player->nickname.'</a>',
-            $player->level,
-            $image,
-            $player->kills,
-            $player->death,
-            $player->assists,
-            theme('item_list', array('items' => $items, 'title' => $title, 'type' => $type, 'attributes' => $attributes)),
-            $player->gold,
-            $player->creeps_killed,
-            $player->creeps_denied,
-            $player->gpm,
-            $player->epm,
+        $rows_dire[] = array(
+            array(
+                'data' => '<a href="#" class="regular-user">'.$player->nickname.'</a>',
+                'class' => array('nicknames')
+            ),
+            array(
+                'data' => $player->level,
+                'class' => array('levels')
+            ),
+            array(
+                'data' => $image,
+                'class' => array('heroes')
+            ),
+            array(
+                'data' => $player->kills,
+                'class' => array('kda')
+            ),
+            array(
+                'data' => $player->death,
+                'class' => array('kda')
+            ),
+            array(
+                'data' => $player->assists,
+                'class' => array('kda')
+            ),
+            array(
+                'data' => theme('item_list', array('items' => $items, 'title' => $title, 'type' => $type, 'attributes' => $attributes)),
+                'class' => array('items')
+            ),
+            array(
+                'data' => $player->gold,
+                'class' => array('digits')
+            ),
+            array(
+                'data' => $player->creeps_killed,
+                'class' => array('digits')
+            ),
+            array(
+                'data' => $player->creeps_denied,
+                'class' => array('digits')
+            ),
+            array(
+                'data' => $player->gpm,
+                'class' => array('digits')
+            ),
+            array(
+                'data' => $player->epm,
+                'class' => array('digits')
+            ),
+
             //''
         );
     }
-    $out .= '<div class="vs-separator">'.t('VS').'</div>'.theme('table', array('header' => $header, 'rows' => $rows));
+    if($pro['side'] == 1) {
+        $radiant = theme('table', array('header' => $header_radiant, 'rows' => $rows_radiant, 'attributes' => array('class' => array('match-statistics'))));
+        $dire = theme('table', array('header' => $header_dire, 'rows' => $rows_dire, 'attributes' => array('class' => array('match-statistics'))));
+    } else {
+        $radiant = theme('table', array('header' => $header_radiant, 'rows' => $rows_dire, 'attributes' => array('class' => array('match-statistics'))));
+        $dire = theme('table', array('header' => $header_dire, 'rows' => $rows_radiant, 'attributes' => array('class' => array('match-statistics'))));
+    }
+    $out = $radiant.'<div class="vs-separator">'.t('VS').'</div>'.$dire;
 	return $out;
 }
 
@@ -577,8 +767,19 @@ function match_controll_form_submit($form, &$form_state) {
                             $node->field_result['und'][0]['value'] = 1;
                         else
                             $node->field_result['und'][0]['value'] = 0;
+                        $proSteamId = helper_get_steam_id($user->uid);
+                        $side = 0;
                         foreach ($players as $k => $player) {
+                            if($player->account_id == $proSteamId) {
+                                if($k < 5) {
+                                    $side = 1;
+                                }
+                            }
+                        }
+                        foreach ($players as $k => $player) {
+
                             $data = array(
+                                'side' => $side,
                                 'level' => $player->level,
                                 'hero' => $player->hero_id,
                                 'kills' => $player->kills,
@@ -596,17 +797,32 @@ function match_controll_form_submit($form, &$form_state) {
                                 'gpm' => $player->gold_per_min,
                                 'epm' => $player->xp_per_min,
                             );
-                            if($k < 5) {
-                                db_update('players')
-                                    ->fields($data)
-                                    ->condition('players.steam_id', $player->account_id)
-                                    ->execute();
+                            if($side == 1) {
+                                if($k < 5) {
+                                    db_update('players')
+                                        ->fields($data)
+                                        ->condition('players.steam_id', $player->account_id)
+                                        ->execute();
+                                } else {
+                                    $data['nickname'] = 'Test name '.$k;
+                                    $data['steam_id'] = $player->account_id;
+                                    $data['team_id'] = $node->field_rival_command['und'][0]['value'];
+                                    db_insert('players')->fields($data)->execute();
+                                }
                             } else {
-                                $data['nickname'] = 'Test name '.$k;
-                                $data['steam_id'] = $player->account_id;
-                                $data['team_id'] = $node->field_rival_command['und'][0]['value'];
-                                db_insert('players')->fields($data)->execute();
+                                if($k >= 5) {
+                                    db_update('players')
+                                        ->fields($data)
+                                        ->condition('players.steam_id', $player->account_id)
+                                        ->execute();
+                                } else {
+                                    $data['nickname'] = 'Test name '.$k;
+                                    $data['steam_id'] = $player->account_id;
+                                    $data['team_id'] = $node->field_rival_command['und'][0]['value'];
+                                    db_insert('players')->fields($data)->execute();
+                                }
                             }
+
                         }
                         //exit;
                         $node->field_state['und'][0]['value'] = 2;
@@ -621,6 +837,7 @@ function match_controll_form_submit($form, &$form_state) {
                             $time = date('H:i:s', $time);
 
                         $node->field_duration['und'][0]['value'] = $time;
+                        $node->field_vod['und'][0]['value'] = '';
                         node_save($node);
 
                         drupal_set_message(t('Match finished'));
@@ -630,6 +847,7 @@ function match_controll_form_submit($form, &$form_state) {
 		break;
         case 'archive':
             $node->field_archived['und'][0]['value'] = $form_state['values']['archived'];
+            $node->field_vod['und'][0]['value'] = $form_state['values']['vod'];
             node_save($node);
             drupal_set_message(t('Match updated'));
         break;
@@ -855,6 +1073,12 @@ function match_element_validate_number($form, &$form_state) {
 function match_node_finished_form($form, &$form_state) {
     global $user;
     $node = menu_get_object();
+    $form['vod'] = array(
+        '#type' => 'textfield',
+        '#title' => t('VOD'),
+        '#default_value' => $node->field_vod['und'][0]['value'],
+    );
+
     $form['archived'] = array(
 		'#type' => 'checkbox',
 		'#title' => t('Archive'),
@@ -867,7 +1091,6 @@ function match_node_finished_form($form, &$form_state) {
 			'#value' => t('Update match info'),
 			'#name' => 'archive',
 		),
-		'#weight' => 0,
 	);
 
 	$form['#submit'] = array(
@@ -941,7 +1164,6 @@ function match_node_like_form($form, &$form_state) {
                 '#value' => t('Like'),
                 '#name' => 'like',
             ),
-            '#weight' => 0,
         );
         $form['dislike'] = array(
             '#type' => 'actions',
@@ -950,7 +1172,6 @@ function match_node_like_form($form, &$form_state) {
                 '#value' => t('Dislike'),
                 '#name' => 'dislike',
             ),
-            '#weight' => 1,
         );
         $form['#submit'] = array(
                 '0' => 'match_controll_form_submit',

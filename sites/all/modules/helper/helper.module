@@ -57,8 +57,8 @@ function helper_get_last_news($limit, $width, $height) {
         ->orderBy('created', 'DESC')
         ->range(0, $limit);
     $result = $query->execute();
-    $html = '<div id="slider">';
-    $sidebar = '<ul id="pagination">';
+    $html = '<table class="no-style"><tr><td><div id="slider">';
+    $sidebar = '<td><ul id="pagination">';
     $first = true;
     $showImage = 0;
     while ($nid = $result->fetchField()) {
@@ -85,15 +85,15 @@ function helper_get_last_news($limit, $width, $height) {
         $showImage++;
         //krumo($node);
     }
-    $sidebar .= '</ul>';
-    $html .= '</div>';
+    $sidebar .= '</ul></td>';
+    $html .= '</div></td>';
     $html .= $sidebar;
-    $html .= '<div class="clear"></div>';
-    if($sidebar != '') {
-        drupal_add_css(drupal_get_path('module', 'helper').'/css/slider.css');
-        drupal_add_js(drupal_get_path('module', 'helper').'/js/flux.js');
-        drupal_add_js(drupal_get_path('module', 'helper').'/js/helper.js');
-    }
+    $html .= '<div class="clear"></div></tr></table>';
+
+    drupal_add_css(drupal_get_path('module', 'helper').'/css/slider.css');
+    drupal_add_js(drupal_get_path('module', 'helper').'/js/flux.js');
+    drupal_add_js(drupal_get_path('module', 'helper').'/js/helper.js');
+
     return $html;
 }
 
@@ -193,7 +193,7 @@ function helper_get_hero_images($name) {
 }
 
 function helper_get_match_statistics($match_id) {
-    //$match_id = 27110133;
+    $match_id = 27110133;
     $url = 'https://api.steampowered.com/IDOTA2Match_570/GetMatchDetails/V001/?match_id='.$match_id.'&key='.API_KEY.'&format=json';
     $result = helper_curl($url);
 
@@ -209,4 +209,22 @@ function helper_grab_image($url,$saveto){
     }
     fclose($in);
     fclose($out);
+}
+
+function helper_get_steam_id($uid) {
+    $steam = db_select('hybridauth_identity', 'h')
+        ->fields('h', array('data'))
+        ->condition('h.uid', $uid)
+        ->condition('h.provider', 'Steam')
+        ->execute()
+        ->fetchObject();
+
+    $steam_id = 0;
+    if (isset($steam) && $steam) {
+        $profile = unserialize($steam->data);
+
+        $steam_id = explode('/', $profile['identifier']);
+        $steam_id = end($steam_id);
+    }
+    return $steam_id;
 }

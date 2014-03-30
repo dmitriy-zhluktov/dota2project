@@ -228,7 +228,8 @@ a.regular-user {
 form#match-node-planned-ticket-form {
     text-align: center;
 }
-table.planned-matches {
+table.planned-matches,
+table.finished-matches {
     margin: 0px;
 
 }
@@ -256,4 +257,38 @@ table.active-matches tr td.row-timing {
 }
 table.active-matches tr td.row-players {
     width: 50%;
+}
+.comment .comment-created {
+    float: right;
+}
+.comment .new-comment span{
+    background: url('../images/new.png') 0 6px no-repeat transparent;
+    padding-left: 30px;
+    display: block;
+}
+
+.comment .comment-author a {
+    color: #ee2d42;
+}
+.comment-info {
+    border-bottom: 1px dashed #d2d2d2;
+}
+.comment {
+    border-bottom: 2px solid #d2d2d2;
+}
+.comment p {
+    margin: 0;
+}
+#edit-like,
+#edit-dislike {
+    float: left;
+}
+span.stars, span.stars span {
+    display: block;
+    background: url('../images/stars.png') 0 -16px repeat-x;
+    width: 80px;
+    height: 16px;
+}
+span.stars span {
+    background-position: 0 0;
 }

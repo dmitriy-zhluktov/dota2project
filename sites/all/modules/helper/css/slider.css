@@ -7,3 +7,13 @@
 #pagination a { display: block; }
 .pagination-arrow { position: absolute; width: 9px; height: 62px; left: -5px; top: 0px; background: url('../images/active-arrow.png') 0 50% no-repeat transparent; z-index: 999; }
 .clear { clear: both; }
+table.no-style,
+table.no-style tbody,
+table.no-style tr,
+table.no-style tr td {
+    padding: 0;
+    margin: 0;
+    border: none;
+    background: transparent;
+    text-align: center;
+}

@@ -24,7 +24,10 @@ table.planned-matches tr.we-need-a-hero td { position: relative; }
 .views-field-field-need-player {display: none;}
 ul.players-list li {display: block;}
 .region-content ul.items-list  { padding: 0;}
-ul.items-list li.items-list-item { list-style: none; float: left;}
+
+ul.items-list li.items-list-item { list-style: none; float: left; padding: 2px; }
+ul.items-list li.items-list-item img { display: block; }
+ul.items-list li.items-list-item.last {padding-right: 0px; }
 span.yesno {
     display: block;
     width: 24px;
@@ -66,14 +69,79 @@ a.check-vod {
     border-radius: 5px;
     background: #f4f4f4;
 }
-.radiant {
+.radiant,
+table.match-statistics tr th.radiant,
+table.finished-matches tr th.radiant {
     color: #82c261;
 }
-.dire {
+.dire,
+table.match-statistics tr th.dire,
+table.finished-matches tr th.dire {
     color: #d66150;
 }
-.winner {
+div.winner { text-align: center; }
+table.winner {
+    margin: 0;
+    border: none;
     font-size: 20px;
-    padding: 10px;
+}
+table.winner tbody,
+table.winner tr,
+table.finished-matches table.winner tr td {
+    border: none;
     text-align: center;
+    background: transparent;
+    padding: 0;
+}
+
+table.match-statistics {
+
+}
+table.match-statistics tr td {
+    border: none;
+    text-align: center;
+}
+table.match-statistics tr th,
+table.finished-matches tr th {
+    background: #fff;
+    border: 1px solid #000;
+    color: #000;
+    text-align: center;
+}
+table.match-statistics tr td.nicknames,
+table.match-statistics tr th.nicknames{
+    text-align: left;
+}
+td.nicknames { width: 18%; }
+td.levels { width: 5%; }
+td.heroes {width: 5%; }
+td.heroes img { display: block; }
+td.kda { width: 4%; }
+td.items { width: 30%; }
+td.digits { width: 6%; }
+
+table.finished-matches ul.players-list {
+    height: 20px;
+    overflow: hidden;
+}
+table.finished-matches tr { background: transparent; }
+table.finished-matches tr td { border: 1px solid #000;}
+table.finished-matches td.id { width: 5%; text-align: center; }
+table.finished-matches td.time { width: 5%; text-align: center; }
+table.finished-matches td.date { width: 8%; text-align: center; }
+table.finished-matches td.mod { width: 5%; text-align: center; }
+table.finished-matches td.rating { width: 10%; text-align: center; }
+table.finished-matches td.results { width: 17%; }
+table.finished-matches td.teams { width: 25%; position: relative; }
+.more-info,
+.less-info {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    cursor: pointer;
+}
+table.finished-matches a.check-vod {
+    width: auto;
+    text-align: center;
+    font-size: 15px;
 }

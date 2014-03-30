@@ -57,6 +57,7 @@
  * @see theme_comment()
  */
 ?>
+<?php /*
 <div class="<?php print $classes; ?> clearfix"<?php print $attributes; ?>>
 
   <div class="attribution">
@@ -102,4 +103,30 @@
 
     <?php print render($content['links']); ?>
   </div> <!-- /.comment-text -->
+</div>
+ */ ?>
+<div class="<?php print $classes; ?> clearfix"<?php print $attributes; ?>>
+    <div class="comment-info">
+        <span class="comment-author">
+            <?php print $author; ?>
+        </span>
+        <span class="comment-created <?php echo ($new)? 'new-comment':''?>">
+            <?php print $created; ?>
+        </span>
+        <div class="clear"></div>
+    </div>
+    <div class="comment-content"<?php print $content_attributes; ?>>
+        <?php
+        // We hide the comments and links now so that we can render them later.
+        hide($content['links']);
+        print render($content);
+        ?>
+        <?php if ($signature): ?>
+            <div class="user-signature clearfix">
+                <?php print $signature; ?>
+            </div>
+        <?php endif; ?>
+    </div> <!-- /.content -->
+
+    <?php print render($content['links']); ?>
 </div>

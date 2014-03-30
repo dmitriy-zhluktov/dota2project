@@ -675,7 +675,6 @@ ul.links {
 }
 .comment {
   margin-bottom: 20px;
-  display: table;
   vertical-align: top;
 }
 .comment .attribution {
