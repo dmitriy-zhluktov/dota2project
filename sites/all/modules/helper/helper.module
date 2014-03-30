@@ -193,7 +193,7 @@ function helper_get_hero_images($name) {
 }
 
 function helper_get_match_statistics($match_id) {
-    $match_id = 27110133;
+    //$match_id = 27110133;
     $url = 'https://api.steampowered.com/IDOTA2Match_570/GetMatchDetails/V001/?match_id='.$match_id.'&key='.API_KEY.'&format=json';
     $result = helper_curl($url);
 
