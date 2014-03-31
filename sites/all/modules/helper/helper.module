@@ -116,11 +116,26 @@ function helper_news_image() {
 
 function helper_menu() {
     $items = array(
-        'get-heroes' => array(
+        /*'get-heroes' => array(
             'page callback' => 'helper_get_match_statistics',
             'page arguments' => array(27110133),
             'access arguments' => array('use steam api'),
             'type' => MENU_CALLBACK
+        ),*/
+        'pro-list' => array(
+            'title' => t('PRO-players'),
+            'page callback' => 'helper_get_pro_list',
+            'access callback' => TRUE,
+            'menu_name' => 'main-menu',
+            'file' => 'inc/pro.list.inc',
+            //'options' => array('attributes' => array('class' => array('pro-list'))),
+        ),
+        'my-matches' => array(
+            'title' => t('My matches'),
+            'page callback' => 'helper_get_matches_list',
+            'access callback' => 'user_is_logged_in',
+            'menu_name' => 'menu-helper-menu',
+            'file' => 'inc/matches.list.inc',
         )
     );
 
@@ -170,8 +185,6 @@ function helper_get_heroes($api_key) {
         $query->values($value);
     }
     $query->execute();*/
-    echo 'qq';
-
 }
 
 function helper_curl($url) {
@@ -187,6 +200,7 @@ function helper_curl($url) {
 
     return json_decode($out);
 }
+
 function helper_get_hero_images($name) {
     $url = 'http://media.steampowered.com/apps/dota2/images/items/'.$name.'_lg.png';
     helper_grab_image($url, file_stream_wrapper_get_instance_by_uri('public://')->getDirectoryPath().'/artifacts/'.$name.'.png');
@@ -200,7 +214,8 @@ function helper_get_match_statistics($match_id) {
     //krumo($result);
     return $result;
 }
-function helper_grab_image($url,$saveto){
+
+function helper_grab_image($url,$saveto) {
     $in = fopen($url, "rb");
     $out = fopen($saveto, "wb");
     while ($chunk = fread($in,8192))
@@ -227,4 +242,28 @@ function helper_get_steam_id($uid) {
         $steam_id = end($steam_id);
     }
     return $steam_id;
+}
+
+function helper_menu_alter(&$items) {
+    //krumo($items);
+    if(isset($items['messages'])) {
+        $items['messages']['menu_name'] = 'menu-helper-menu';
+        //$items['messages']['title callback'] = 'helper_privatemessage_title_callback';
+        //krumo($items);exit;
+    }
+}
+
+function helper_privatemessage_menu_title() {
+    $count = privatemsg_unread_count();
+    $icon = theme('image', array(
+        'path' => drupal_get_path('theme', 'pwp').'/images/message.png',
+        'alt' => t('Messages'),
+        'title' => t('Messages'),
+        'width' => 20,
+        'height' => 11
+    ));
+    if ($count > 0) {
+        return '<span class="prvtmsg-icon">'.$icon.'<span class="prvtmsg-count">'.$count.'</span></span>';
+    }
+    return '<span class="prvtmsg-icon">'.$icon.'</span>';
 }

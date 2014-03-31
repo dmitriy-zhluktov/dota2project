@@ -1,5 +1,6 @@
 name = Helper functions
-description = Разлчные вспомогательные функции
+description = Различные вспомогательные функции
 core=7.x
 version=7.x-1.0
 files[] = helper.module
+stylesheets[all][] = css/helper.css

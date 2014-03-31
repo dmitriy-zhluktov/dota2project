@@ -1,0 +1,23 @@
+#block-menu-menu-helper-menu { height: 33px; float: right; margin-right: 20px; }
+#block-menu-menu-helper-menu h2 { display: none; }
+#block-menu-menu-helper-menu ul li { float: left; }
+#block-menu-menu-helper-menu ul li.leaf {
+    list-style: none;
+}
+span.prvtmsg-icon {
+    position: relative;
+    display: block;
+}
+span.prvtmsg-count {
+    position: absolute;
+    bottom: -4px;
+    right: -9px;
+    background: #fff;
+    height: 15px;
+    width: 15px;
+    line-height: 15px;
+    text-align: center;
+    color: #ee2d42;
+    border-radius: 2px;
+    font-size: 15px;
+}
