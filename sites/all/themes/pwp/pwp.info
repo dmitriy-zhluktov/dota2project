@@ -8,6 +8,8 @@ core = 7.x
 stylesheets[all][] = css/layout.css
 stylesheets[all][] = css/style.css
 stylesheets[all][] = css/colors.css
+stylesheets[all][] = css/custom.css
+scripts[] = js/local.js
 stylesheets[print][] = css/print.css
 
 regions[control_panel] = Control panel
