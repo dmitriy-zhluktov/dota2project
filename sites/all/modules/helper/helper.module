@@ -1,5 +1,5 @@
 <?php
-define("API_KEY", "FCCCF409F8ABCF875212A32AB03D9395");
+define("API_KEY", "6F38C138960AF16B52F57DC7E955DE40");
 
 function helper_node_insert($node) {
     if($node->type == 'news') {
@@ -117,8 +117,8 @@ function helper_news_image() {
 function helper_menu() {
     $items = array(
         /*'get-heroes' => array(
-            'page callback' => 'helper_get_match_statistics',
-            'page arguments' => array(27110133),
+            'page callback' => 'helper_get_nickname_by_steam_id',
+            'page arguments' => array(76561198128967682),
             'access arguments' => array('use steam api'),
             'type' => MENU_CALLBACK
         ),*/
@@ -242,6 +242,15 @@ function helper_get_steam_id($uid) {
         $steam_id = end($steam_id);
     }
     return $steam_id;
+}
+
+function helper_get_nickname_by_steam_id($steamId) {
+    //$steamId = 76561198078669377;
+    $url = 'http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key='.API_KEY.'&steamids='.$steamId;
+
+    $result = helper_curl($url);
+
+    return $result->response->players[0]->personaname;
 }
 
 function helper_menu_alter(&$items) {

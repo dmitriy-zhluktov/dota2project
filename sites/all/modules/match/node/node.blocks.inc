@@ -46,7 +46,7 @@ function match_get_node_planned_markup($node) {
                 <div class="plain-text"><h3>'.t('Match starts in:').'</h3>'.match_get_planned_timing(strtotime($node->field_date['und'][0]['value']), $node->uid).'</div>
                 <div class="plain-text"><h3>'.$last.'</h3></div>
             </div>';
-	$html .= match_get_planned_players_html($node->field_profi_command['und'][0]['value']);
+	$html .= match_get_planned_players_html($node->field_profi_command['und'][0]['value'], $node->uid);
 	$form = drupal_get_form('match_node_planned_form');
 
     if($node->field_free_place['und'][0]['value'] > 0) {
@@ -73,7 +73,9 @@ function match_get_node_active_markup($node, $user) {
 
 	$html .= match_get_planned_players_html($node->field_profi_command['und'][0]['value'], $node->uid);
 
-    $stream = '<div class="display active-twitch">'.match_get_twitch_html($node->field_vod['und'][0]['value']).'</div>';
+    $stream = '';
+    if(isset($node->field_vod['und'][0]['value']))
+        $stream = '<div class="display active-twitch">'.match_get_twitch_html($node->field_vod['und'][0]['value']).'</div>';
 
 	$form = '';
     if($node->uid == $user->uid) {
@@ -157,7 +159,7 @@ function match_get_finished_players_html($expert, $rival, $proId) {
 
         $items[] = array(
             'data' => theme('image', array(
-                'path' => file_create_url('public://').'/artifacts/'.str_replace(" ", "_", strtolower($iName->name)).'.png',
+                'path' => file_create_url('public://').'artifacts/'.str_replace(" ", "_", strtolower($iName->name)).'.png',
                 'alt' => $iName->name,
                 'title' => $iName->name,
                 'width' => 40,
@@ -168,7 +170,7 @@ function match_get_finished_players_html($expert, $rival, $proId) {
     }
 
     $image = theme('image', array(
-        'path' => file_create_url('public://').'/heroes/'.str_replace(" ", "_", strtolower($pro['hero_name'])).'.png',
+        'path' => file_create_url('public://').'heroes/'.str_replace(" ", "_", strtolower($pro['hero_name'])).'.png',
         'alt' => $pro['hero_name'],
         'title' => $pro['hero_name'],
         'width' => 40,
@@ -295,7 +297,7 @@ function match_get_finished_players_html($expert, $rival, $proId) {
 
             $items[] = array(
                 'data' => theme('image', array(
-                    'path' => file_create_url('public://').'/artifacts/'.str_replace(" ", "_", strtolower($iName->name)).'.png',
+                    'path' => file_create_url('public://').'artifacts/'.str_replace(" ", "_", strtolower($iName->name)).'.png',
                     'alt' => $iName->name,
                     'title' => $iName->name,
                     'width' => 40,
@@ -306,7 +308,7 @@ function match_get_finished_players_html($expert, $rival, $proId) {
         }
 
         $image = theme('image', array(
-            'path' => file_create_url('public://').'/heroes/'.str_replace(" ", "_", strtolower($player->hero_name)).'.png',
+            'path' => file_create_url('public://').'heroes/'.str_replace(" ", "_", strtolower($player->hero_name)).'.png',
             'alt' => $player->hero_name,
             'title' => $player->hero_name,
             'width' => 40,
@@ -438,7 +440,7 @@ function match_get_finished_players_html($expert, $rival, $proId) {
 
             $items[] = array(
                 'data' => theme('image', array(
-                    'path' => file_create_url('public://').'/artifacts/'.str_replace(" ", "_", strtolower($iName->name)).'.png',
+                    'path' => file_create_url('public://').'artifacts/'.str_replace(" ", "_", strtolower($iName->name)).'.png',
                     'alt' => $iName->name,
                     'title' => $iName->name,
                     'width' => 40,
@@ -449,7 +451,7 @@ function match_get_finished_players_html($expert, $rival, $proId) {
         }
 
         $image = theme('image', array(
-            'path' => file_create_url('public://').'/heroes/'.str_replace(" ", "_", strtolower($player->hero_name)).'.png',
+            'path' => file_create_url('public://').'heroes/'.str_replace(" ", "_", strtolower($player->hero_name)).'.png',
             'alt' => $player->hero_name,
             'title' => $player->hero_name,
             'width' => 40,
@@ -522,7 +524,7 @@ function match_get_finished_players_html($expert, $rival, $proId) {
 
 function match_get_planned_players_html ($team, $proId = false) {
 	$query = db_select('players', 'p')
-		->fields('p', array('nickname', 'uid'));
+		->fields('p', array('nickname', 'uid', 'steam_id'));
 		
 	$query->condition('p.team_id', $team);
 	if($proId)
@@ -540,7 +542,9 @@ function match_get_planned_players_html ($team, $proId = false) {
 
 	while($row = $result->fetchObject()) {
 		$items[] = array(
-			'data' => l($row->nickname, 'user/'.$row->uid, array('attributes' => array('class' => array('regular-user')))),
+			'data' => l($row->nickname, 'user/'.$row->uid, array('attributes' => array('class' => array('regular-user')))).
+                '<a href="steam://friends/add/'.$row->steam_id.'" class="button add-to-steam" title="Add friend to steam">+</a>'.
+                '<a href="steam://friends/message/'.$row->steam_id.'" class="button add-to-steam" title="Send message">Send message</a>',
 			'class' => array(t('players-list-item')),
 		);
 	}
@@ -631,7 +635,7 @@ function match_node_planned_form($form, &$form_state) {
 		'#weight' => 5,
         '#prefix' => '<div class="controls-updater"><h2>'.t('Controls').'</h2><div class="controls-wrapper">'
 	);
-	$form['fiveminutes'] = array(
+	/*$form['fiveminutes'] = array(
 		'#type' => 'actions',
 		'submit' => array(
 			'#type' => 'submit',
@@ -640,7 +644,7 @@ function match_node_planned_form($form, &$form_state) {
 		),
 		'#weight' => 6,
 		
-	);
+	);*/
 	$form['start'] = array(
 		'#type' => 'actions',
 		'submit' => array(
@@ -804,7 +808,10 @@ function match_controll_form_submit($form, &$form_state) {
                                         ->condition('players.steam_id', $player->account_id)
                                         ->execute();
                                 } else {
-                                    $data['nickname'] = 'Test name '.$k;
+                                    $nick =  helper_get_nickname_by_steam_id($player->account_id);
+                                    if(!$nick || $nick == null)
+                                        $nick = 'Anon';
+                                    $data['nickname'] = $nick;
                                     $data['steam_id'] = $player->account_id;
                                     $data['team_id'] = $node->field_rival_command['und'][0]['value'];
                                     db_insert('players')->fields($data)->execute();
@@ -816,13 +823,28 @@ function match_controll_form_submit($form, &$form_state) {
                                         ->condition('players.steam_id', $player->account_id)
                                         ->execute();
                                 } else {
-                                    $data['nickname'] = 'Test name '.$k;
+                                    $nick =  helper_get_nickname_by_steam_id($player->account_id);
+                                    if(!$nick || $nick == null)
+                                        $nick = 'Anon';
+                                    $data['nickname'] = $nick;
                                     $data['steam_id'] = $player->account_id;
                                     $data['team_id'] = $node->field_rival_command['und'][0]['value'];
                                     db_insert('players')->fields($data)->execute();
                                 }
                             }
 
+                        }
+
+                        if(($side == 1 && $result->radiant_win) || ($side == 0 && !$result->radiant_win)) {
+                            db_update('teams')
+                                ->fields(array('winner' => 0))
+                                ->condition('id', $node->field_rival_command['und'][0]['value'])
+                                ->execute();
+                        } else {
+                            db_update('teams')
+                                ->fields(array('winner' => 0))
+                                ->condition('id', $node->field_profi_command['und'][0]['value'])
+                                ->execute();
                         }
                         //exit;
                         $node->field_state['und'][0]['value'] = 2;
