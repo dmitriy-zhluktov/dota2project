@@ -523,6 +523,7 @@ function match_get_finished_players_html($expert, $rival, $proId) {
 }
 
 function match_get_planned_players_html ($team, $proId = false) {
+    global $user;
 	$query = db_select('players', 'p')
 		->fields('p', array('nickname', 'uid', 'steam_id'));
 		
@@ -541,10 +542,13 @@ function match_get_planned_players_html ($team, $proId = false) {
 	);
 
 	while($row = $result->fetchObject()) {
+        $links = '';
+        if($user->uid == $proId) {
+            $links .= '<a href="steam://friends/add/'.$row->steam_id.'" class="button add-to-steam" title="Add friend to steam">+</a>'.
+                '<a href="steam://friends/message/'.$row->steam_id.'" class="button add-to-steam" title="Send message">Send message</a>';
+        }
 		$items[] = array(
-			'data' => l($row->nickname, 'user/'.$row->uid, array('attributes' => array('class' => array('regular-user')))).
-                '<a href="steam://friends/add/'.$row->steam_id.'" class="button add-to-steam" title="Add friend to steam">+</a>'.
-                '<a href="steam://friends/message/'.$row->steam_id.'" class="button add-to-steam" title="Send message">Send message</a>',
+			'data' => l($row->nickname, 'user/'.$row->uid, array('attributes' => array('class' => array('regular-user')))).$links,
 			'class' => array(t('players-list-item')),
 		);
 	}
