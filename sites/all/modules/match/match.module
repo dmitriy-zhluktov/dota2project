@@ -208,13 +208,17 @@ function match_active_block_markup() {
 	/* creating an array of active matches twitch viewers*/
 	$viewers = array();
 	foreach ($rows as $key => $row) {
-		$stream = parse_url($row->field_vod_value, PHP_URL_PATH);
-		$res = drupal_http_request('https://api.twitch.tv/kraken/streams'.$stream);
+        if(isset($row->field_vod_value)) {
+            $stream = parse_url($row->field_vod_value, PHP_URL_PATH);
+            $res = drupal_http_request('https://api.twitch.tv/kraken/streams'.$stream);
 
-		if ($res->code == 200 && $res->status_message == 'OK' && json_decode($res->data)->stream !== null)
-			$viewers[] = array('id' => $key, 'views' => json_decode($res->data)->stream->viewers);
-		else
-			$viewers[] = array('id' => $key, 'views' => 0);
+            if ($res->code == 200 && $res->status_message == 'OK' && json_decode($res->data)->stream !== null)
+                $viewers[] = array('id' => $key, 'views' => json_decode($res->data)->stream->viewers);
+            else
+                $viewers[] = array('id' => $key, 'views' => 0);
+        } else {
+            $viewers[] = array('id' => $key, 'views' => 0);
+        }
 	}
 	/* sort criteria*/
 	foreach ($viewers as $viewer) {
@@ -247,7 +251,7 @@ function match_active_block_markup() {
             t('Timing'),
         );
         $output .= theme('table', array('header' => $header, 'rows' => $body, 'attributes' => array('class' => array('active-matches'))));
-	    $output .= theme('pager', array('element' => 1, 'tags' => array('0' => t('в нач.'), '1' => t('пред.'), '2' => t('t2'), '3' => t('след.'), '4' => t('посл.'))));    // Получаем html код таблицы
+	    $output .= theme('pager', array('element' => 2, 'tags' => array('0' => t('в нач.'), '1' => t('пред.'), '2' => t('t2'), '3' => t('след.'), '4' => t('посл.'))));    // Получаем html код таблицы
     } else {
         $output .= '<div class="center" id="no-active">'.t('No active matches at this moment').'</div>';
     }
@@ -414,7 +418,7 @@ function match_finished_block_markup() {
         );
 	}
     $output .= theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('class' => array('finished-matches'))));
-	$output .= theme('pager', array('element' => 2, 'tags' => array('0' => t('в нач.'), '1' => t('пред.'), '2' => t('t2'), '3' => t('след.'), '4' => t('посл.'))));    // Получаем html код таблицы
+	$output .= theme('pager', array('element' => 3, 'tags' => array('0' => t('в нач.'), '1' => t('пред.'), '2' => t('t2'), '3' => t('след.'), '4' => t('посл.'))));    // Получаем html код таблицы
     if(count($rows) == 0)
         $output = '<div class="center">'.t('No finished matches at this moment').'</div>';
 
@@ -471,13 +475,16 @@ function match_get_timing($timestamp) {
 	if ($interval->i < 1)
 		$out = t($seconds.' sec');
 	elseif ($interval->h < 1 && $interval->i >= 1)
-		$out = t($minutes.' min '.$seconds. 'sec');
+		$out = t($minutes.' min '.$seconds. ' sec');
 	else
-		$out = t($hours.' hours '.$minutes.' min '.$seconds. 'sec');
+		$out = t($hours.' hours '.$minutes.' min '.$seconds. ' sec');
 	return $out;
 }
 
 function match_get_planned_timing($timestamp, $uid) {
+    if($timestamp-strtotime('now') < 0) {
+        return t('Right now!');
+    }
 	$start = new DateTime('@'.$timestamp);
 	$now = new DateTime('@'.strtotime('now'));
 	$interval = $start->diff($now);
@@ -500,9 +507,9 @@ function match_get_planned_timing($timestamp, $uid) {
 		if ($interval->i < 1)
 			$out = t($seconds.' sec');
 		elseif ($interval->h < 1 && $interval->i >= 1)
-			$out = t($minutes.' min '.$seconds. 'sec');
+			$out = t($minutes.' min '.$seconds. ' sec');
 		else
-			$out = t($hours.' hours '.$minutes.' min '.$seconds. 'sec');
+			$out = t($hours.' hours '.$minutes.' min '.$seconds. ' sec');
 	}
 	return $out;
 }
@@ -561,15 +568,15 @@ function match_get_ticket_form($form, &$form_state, $args) {
 
 function match_get_ticket_form_submit($form, &$form_state) {
 	$node = node_load($form_state['values']['node']);
-	if ($node->field_free_place['und'][0]['value'] < 1)
+	if ($node->field_free_place[$node->language][0]['value'] < 1)
 		drupal_set_message(t('No more free places on this match'), 'error');
 	else {
 		global $user;
-		$command = $node->field_profi_command['und'][0]['value'];
+		$command = $node->field_profi_command[$node->language][0]['value'];
 		$steam_id = $form_state['values']['steam_id'];
 		$nickname = $form_state['values']['nickname'];
 		db_insert('players')->fields(array('uid' => $user->uid, 'team_id' => $command, 'steam_id' => "$steam_id", 'nickname' => "$nickname",))->execute();
-		$node->field_free_place['und'][0]['value']--;
+		$node->field_free_place[$node->language][0]['value']--;
 		node_save($node);
 		drupal_set_message(t('Thanks for register'));
 	}

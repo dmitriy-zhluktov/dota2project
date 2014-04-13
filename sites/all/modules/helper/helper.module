@@ -68,7 +68,7 @@ function helper_get_last_news($limit, $width, $height) {
             'nav-id' => $nid
         );
         $image = theme('image', array(
-            'path' => file_create_url($node->field_image['und'][0]['uri']),
+            'path' => file_create_url($node->field_image[LANGUAGE_NONE][0]['uri']),
             'alt' => t($node->title),
             'title' => t($node->title),
             'width' => $width,
@@ -103,7 +103,7 @@ function helper_news_image() {
         'class' => 'image'
     );
     $image = theme('image', array(
-        'path' => file_create_url($node->field_image['und'][0]['uri']),
+        'path' => file_create_url($node->field_image[LANGUAGE_NONE][0]['uri']),
         'alt' => t($node->title),
         'title' => t($node->title),
         'width' => 988,
@@ -117,9 +117,9 @@ function helper_news_image() {
 function helper_menu() {
     $items = array(
         /*'get-heroes' => array(
-            'page callback' => 'helper_get_nickname_by_steam_id',
-            'page arguments' => array(76561198128967682),
-            'access arguments' => array('use steam api'),
+            'page callback' => 'helper_tttest',
+            'page arguments' => array(1),
+            'access callback' => TRUE,
             'type' => MENU_CALLBACK
         ),*/
         'pro-list' => array(
@@ -143,7 +143,7 @@ function helper_menu() {
 }
 
 function helper_get_heroes($api_key) {
-    /*$url = 'http://api.steampowered.com/IEconDOTA2_570/GetHeroes/v1?key='.$api_key;
+    $url = 'http://api.steampowered.com/IEconDOTA2_570/GetHeroes/v1?key='.$api_key;
     $data = helper_curl($url);
     if($data != null) {
         $heroes = $data->result->heroes;
@@ -184,7 +184,7 @@ function helper_get_heroes($api_key) {
     foreach ($data as $value) {
         $query->values($value);
     }
-    $query->execute();*/
+    $query->execute();
 }
 
 function helper_curl($url) {
@@ -237,20 +237,32 @@ function helper_get_steam_id($uid) {
     $steam_id = 0;
     if (isset($steam) && $steam) {
         $profile = unserialize($steam->data);
-
         $steam_id = explode('/', $profile['identifier']);
         $steam_id = end($steam_id);
     }
     return $steam_id;
 }
 
-function helper_get_nickname_by_steam_id($steamId) {
-    //$steamId = 76561198078669377;
+function helper_convert_id($id) {
+    if (strlen($id) === 17) {
+        $converted = substr($id, 3) - 61197960265728;
+    } else {
+        $converted = '765'.($id + 61197960265728);
+    }
+
+    return (string) $converted;
+}
+
+function helper_get_nickname_by_steam_id($id) {
+    $steamId = helper_convert_id($id);
     $url = 'http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key='.API_KEY.'&steamids='.$steamId;
-
     $result = helper_curl($url);
-
-    return $result->response->players[0]->personaname;
+    //krumo($result);
+    if(count($result->response->players) > 0) {
+        return $result->response->players[0]->personaname;
+    } else {
+        return false;
+    }
 }
 
 function helper_menu_alter(&$items) {

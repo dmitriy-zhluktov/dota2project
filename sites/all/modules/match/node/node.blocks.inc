@@ -5,7 +5,7 @@ function match_get_node_data() {
 	global $user;
 	$node = menu_get_object();
 	
-	$type = $node->field_state['und'][0]['value']; //0 - план, 1 - актив, 2 - заверш
+	$type = $node->field_state[$node->language][0]['value']; //0 - план, 1 - актив, 2 - заверш
 	$html = '';
 	switch ($type) {
 		case 0:
@@ -25,7 +25,8 @@ function match_get_node_data() {
 function match_get_node_planned_markup($node) {
 	//krumo($node);
     $author = user_load($node->uid);
-    $state = $node->field_state['und'][0]['value'];
+
+    $state = $node->field_state[$node->language][0]['value'];
     switch($state) {
         case 0:
             $stateText = t('Planned');
@@ -37,19 +38,36 @@ function match_get_node_planned_markup($node) {
             $stateText = t('Finished');
             break;
     }
-    $last = ($node->field_last['und'][0]['value'] == 1)? t('Last match'): t('');
-    $mod = (!isset($node->field_mod['und'][0]['value']) || $node->field_mod['und'][0]['value'] == '')? '' : '<h3>'.t('Mod:').'</h3>'.t($node->field_mod['und'][0]['value']);
+    $last = ($node->field_last[$node->language][0]['value'] == 1)? t('Last match'): t('');
+    $mod = (!isset($node->field_mod[$node->language][0]['value']) || $node->field_mod[$node->language][0]['value'] == '')? '' : '<h3>'.t('Mod:').'</h3>'.t($node->field_mod[$node->language][0]['value']);
+    $restarted = '';
+    if(count($node->field_restart) > 0) {
+        $title = t('');
+
+        $type = 'ul';
+        $attributes = array(
+            'class' => 'reason-list'
+        );
+        foreach($node->field_restart[$node->language] as $reason) {
+            $items[] = array(
+                'data' => $reason['value'],
+                'class' => array('list-item')
+            );
+        }
+        $restarted .= '<div class="plain-text"><h3>'.t('Restart reason: ').'</h3>'.theme('item_list', array('items' => $items, 'title' => $title, 'type' => $type, 'attributes' => $attributes)).'</div>';
+    }
     $html = '<div class="node-match-planned-info">
                 <div class="plain-text"><h3>'.t('PRO:').'</h3>'.l($author->name, 'user/'.$author->uid, array('attributes' => array('class' => array('pro-user')))).'</div>
                 <div class="plain-text"><h3>'.t('Match status:').'</h3>'.$stateText.'</div>
+                '.$restarted.'
                 <div class="plain-text">'.$mod.'</div>
-                <div class="plain-text"><h3>'.t('Match starts in:').'</h3>'.match_get_planned_timing(strtotime($node->field_date['und'][0]['value']), $node->uid).'</div>
+                <div class="plain-text"><h3>'.t('Match starts in:').'</h3>'.match_get_planned_timing(strtotime($node->field_date[$node->language][0]['value']), $node->uid).'</div>
                 <div class="plain-text"><h3>'.$last.'</h3></div>
             </div>';
-	$html .= match_get_planned_players_html($node->field_profi_command['und'][0]['value'], $node->uid);
+	$html .= match_get_planned_players_html($node->field_profi_command[$node->language][0]['value'], $node->uid);
 	$form = drupal_get_form('match_node_planned_form');
 
-    if($node->field_free_place['und'][0]['value'] > 0) {
+    if($node->field_free_place[$node->language][0]['value'] > 0) {
         $ticketform = drupal_get_form('match_node_planned_ticket_form');
         $html .= drupal_render($ticketform);
     }
@@ -61,21 +79,21 @@ function match_get_node_planned_markup($node) {
  
 function match_get_node_active_markup($node, $user) {
 	//krumo($node);
-
-    $last = ($node->field_last['und'][0]['value'] == 1)? t('Last match'): t('');
-    $mod = (!isset($node->field_mod['und'][0]['value']) || $node->field_mod['und'][0]['value'] == '')? '' : '<h3>'.t('Mod:').'</h3>'.t($node->field_mod['und'][0]['value']);
+    $author = user_load($node->uid);
+    $last = ($node->field_last[$node->language][0]['value'] == 1)? t('Last match'): t('');
+    $mod = (!isset($node->field_mod[$node->language][0]['value']) || $node->field_mod[$node->language][0]['value'] == '')? '' : '<h3>'.t('Mod:').'</h3>'.t($node->field_mod[$node->language][0]['value']);
     $html = '<div class="node-match-planned-info">
-                <div class="plain-text"><h3>'.t('PRO:').'</h3>'.l($user->name, 'user/'.$user->uid, array('attributes' => array('class' => array('pro-user')))).'</div>
+                <div class="plain-text"><h3>'.t('PRO:').'</h3>'.l($author->name, 'user/'.$author->uid, array('attributes' => array('class' => array('pro-user')))).'</div>
                 <div class="plain-text">'.$mod.'</div>
-                <div class="plain-text"><h3>'.t('Timing:').'</h3>'.match_get_timing($node->field_started['und'][0]['value']).'</div>
+                <div class="plain-text"><h3>'.t('Timing:').'</h3>'.match_get_timing($node->field_started[$node->language][0]['value']).'</div>
                 <div class="plain-text"><h3>'.$last.'</h3></div>
             </div>';
 
-	$html .= match_get_planned_players_html($node->field_profi_command['und'][0]['value'], $node->uid);
+	$html .= match_get_planned_players_html($node->field_profi_command[$node->language][0]['value'], $node->uid);
 
     $stream = '';
-    if(isset($node->field_vod['und'][0]['value']))
-        $stream = '<div class="display active-twitch">'.match_get_twitch_html($node->field_vod['und'][0]['value']).'</div>';
+    if(count($node->field_vod) > 0)
+        $stream = '<div class="display active-twitch">'.match_get_twitch_html($node->field_vod[$node->language][0]['value']).'</div>';
 
 	$form = '';
     if($node->uid == $user->uid) {
@@ -88,16 +106,16 @@ function match_get_node_active_markup($node, $user) {
 
 function match_get_node_finished_markup($node, $user) {
 	//krumo($node);
-    $html = '<div class="timing">'.t('Продолжительность матча: ').$node->field_duration['und'][0]['value'].'</div>';
-    $html .= match_get_finished_players_html($node->field_profi_command['und'][0]['value'], $node->field_rival_command['und'][0]['value'], $node->uid);
-    if($node->field_result['und'][0]['value'] == 0) {
+    $html = '<div class="timing">'.t('Продолжительность матча: ').$node->field_duration[$node->language][0]['value'].'</div>';
+    $html .= match_get_finished_players_html($node->field_profi_command[$node->language][0]['value'], $node->field_rival_command[$node->language][0]['value'], $node->uid);
+    if($node->field_result[$node->language][0]['value'] == 0) {
         $html .= '<div class="winner"><span class="dire">'.t('The Dire').'</span> '.t('wins').'</div><div>';
     } else {
         $html .= '<div class="winner"><span class="radiant">'.t('The Radiant').'</span> '.t('wins').'</div><div>';
     }
     $html .= '';
-    if($node->field_vod['und'][0]['value'] != '')
-        $html .= '<div class="vod"><a class="check-vod" href="'.$node->field_vod['und'][0]['value'].'" target="_blank" alt="'.t('Check the VOD').'" title="'.t('Check the VOD').'">'.t('Check the VOD').'</a></div>';
+    if(count($node->field_vod) > 0)
+        $html .= '<div class="vod"><a class="check-vod" href="'.$node->field_vod[$node->language][0]['value'].'" target="_blank" alt="'.t('Check the VOD').'" title="'.t('Check the VOD').'">'.t('Check the VOD').'</a></div>';
     $form = drupal_get_form('match_node_finished_form');
     $like = drupal_get_form('match_node_like_form');
     $html .= drupal_render($form).drupal_render($like);
@@ -114,7 +132,7 @@ function match_get_finished_players_html($expert, $rival, $proId) {
     $query->addField('h', 'name', 'hero_name');
     $query->leftJoin('heroes','h', 'p.hero=h.id');
     $query->condition('p.team_id', $expert)
-        ->condition('p.uid', $proId, '!=');
+        ->condition('p.uid', $proId, '!=') ;
     $portal = $query->execute()->fetchAll();
 
     $query = db_select('players', 'p')
@@ -545,7 +563,8 @@ function match_get_planned_players_html ($team, $proId = false) {
         $links = '';
         if($user->uid == $proId) {
             $links .= '<a href="steam://friends/add/'.$row->steam_id.'" class="button add-to-steam" title="Add friend to steam">+</a>'.
-                '<a href="steam://friends/message/'.$row->steam_id.'" class="button add-to-steam" title="Send message">Send message</a>';
+                '<a href="steam://friends/message/'.$row->steam_id.'" class="button add-to-steam" title="Send message">Send message</a>'.
+                '<a href="#" kick="'.$row->uid.'" class="kick button">'.t('Kick player').'</a>';
         }
 		$items[] = array(
 			'data' => l($row->nickname, 'user/'.$row->uid, array('attributes' => array('class' => array('regular-user')))).$links,
@@ -558,21 +577,32 @@ function match_get_planned_players_html ($team, $proId = false) {
 	else
 		$html .= t('No players accepted this match yet');
     $html .= '</div>';
+    if(isset($items)) {
+        $html .= '<div class="hidden kick-form"><div id="mask"><div id="above-mask"><div class="modal-header">
+            <a class="close" href="#"></a>
+            '.t('Kick reason').'</div>'.match_get_kick_player_form().'</div></div></div>';
+    }
 	return $html;
 }
 function match_node_active_form($form, &$form_state) {
-	$form['restart'] = array(
+	$form['restart_reason'] = array(
+        '#type' => 'textarea',
+        '#title' => t('Restart reason'),
+        '#weight' => 0,
+    );
+    $form['restart'] = array(
 		'#type' => 'actions',
 		'submit' => array(
 			'#type' => 'submit',
 			'#value' => t('Restart'),
 			'#name' => 'restart',
 		),
-		'#weight' => 0,
+		'#weight' => 1,
 	);
     $form['dota_id'] = array(
         '#type' => 'textfield',
-        '#title' => t('Match id')
+        '#title' => t('Match id'),
+        '#weight' => 3,
     );
 	$form['finish'] = array(
 		'#type' => 'actions',
@@ -581,7 +611,7 @@ function match_node_active_form($form, &$form_state) {
 			'#value' => t('Finish match'),
 			'#name' => 'finish',
 		),
-		'#weight' => 1,
+		'#weight' => 4,
 	);	
 	
 	$form['#submit'] = array(
@@ -592,8 +622,8 @@ function match_node_active_form($form, &$form_state) {
 function match_node_planned_form($form, &$form_state) {
     global $user;
 	$node = menu_get_object();
-	$vod = (isset($node->field_vod['und'][0]['value']))? $node->field_vod['und'][0]['value'] : '';
-	$mod = (isset($node->field_mod['und'][0]['value']))? $node->field_mod['und'][0]['value'] : '';
+	$vod = (isset($node->field_vod[$node->language][0]['value']))? $node->field_vod[$node->language][0]['value'] : '';
+	$mod = (isset($node->field_mod[$node->language][0]['value']))? $node->field_mod[$node->language][0]['value'] : '';
 
 	$form['vod'] = array(
 		'#type' => 'textfield',
@@ -614,7 +644,7 @@ function match_node_planned_form($form, &$form_state) {
 	$form['last'] = array(
 		'#type' => 'checkbox',
 		'#title' => t('Last match'),
-		'#default_value' => $node->field_last['und'][0]['value'],
+		'#default_value' => $node->field_last[$node->language][0]['value'],
         '#weight' => 3,
         '#prefix' => '<div class="clear"></div>',
 	);
@@ -628,7 +658,7 @@ function match_node_planned_form($form, &$form_state) {
 		'#weight' => 4,
         '#suffix' => '</div></div>'
 	);
-    $needHero = ($node->field_need_player['und'][0]['value'] == 1)? 'Stop fast recruit':'Start fast recruit';
+    $needHero = ($node->field_need_player[$node->language][0]['value'] == 1)? 'Stop fast recruit':'Start fast recruit';
 	$form['needahero'] = array(
 		'#type' => 'actions',
 		'submit' => array(
@@ -676,9 +706,9 @@ function match_controll_form_submit($form, &$form_state) {
 	//krumo($node);exit;
 	switch ($action) {
 		case 'update':
-			$node->field_last['und'][0]['value'] = $form_state['values']['last'];
-			$node->field_vod['und'][0]['value'] = $form_state['values']['vod'];
-			$node->field_mod['und'][0]['value'] = $form_state['values']['mod'];
+			$node->field_last[$node->language][0]['value'] = $form_state['values']['last'];
+			$node->field_vod[$node->language][0]['value'] = $form_state['values']['vod'];
+			$node->field_mod[$node->language][0]['value'] = $form_state['values']['mod'];
 			node_save($node);
 			drupal_set_message(t('Updated'));
 		break;
@@ -686,37 +716,26 @@ function match_controll_form_submit($form, &$form_state) {
             drupal_set_message(t('Sending 5 mins. notifications. Not working at this moment'), 'error');
 		break;
 		case 'start':
-			$node->field_started['und'][0]['value'] = time();
-			$node->field_state['und'][0]['value'] = 1;
-			//create new planned match if not exists
-			if($node->field_next['und'][0]['value'] == 0 && $node->field_last['und'][0]['value'] == 0) {
+			$node->field_started[$node->language][0]['value'] = time();
+			$node->field_state[$node->language][0]['value'] = 1;
 
+            if(count($node->field_restart) == 0) {
                 /* add PRO to list of players*/
-                $steam = db_select('hybridauth_identity', 'h')
-                    ->fields('h', array('data'))
-                    ->condition('h.uid', $user->uid)
-                    ->condition('h.provider', 'Steam')
-                    ->execute()
-                    ->fetchObject();
-
-                $profile = unserialize($steam->data);
-
-                $steam_id = explode('/', $profile['identifier']);
-                $steam_id = end($steam_id);
-
-
-                $command = $node->field_profi_command['und'][0]['value'];
-
+                $steam_id = helper_get_steam_id($user->uid);
+                $command = $node->field_profi_command[$node->language][0]['value'];
                 db_insert('players')->fields(array('uid' => $user->uid, 'team_id' => $command, 'steam_id' => "$steam_id", 'nickname' => "$user->name"))->execute();
                 /* end of add PRO to list of players*/
+            }
 
+            //create new planned match if not exists
+            if($node->field_next[$node->language][0]['value'] == 0 && $node->field_last[$node->language][0]['value'] == 0) {
 				$newnode = new stdClass();
 				$newnode->type = 'match';
                 $newnode->uid = $user->uid;
 				node_object_prepare($newnode);
 
 				$newnode->title = 'Match №';
-				$newnode->language = LANGUAGE_NONE;
+				$newnode->language = $node->language;
 				
 				node_save($newnode);
 
@@ -733,26 +752,33 @@ function match_controll_form_submit($form, &$form_state) {
 
 				node_save($newnode);
 				
-				$node->field_next['und'][0]['value'] = $newnode->nid;
+				$node->field_next[$node->language][0]['value'] = $newnode->nid;
 			}
 			
 			node_save($node);
             drupal_set_message(t('Match started'));
 		break;	
 		case 'needahero':
-			if($node->field_need_player['und'][0]['value'] == 1) {
-                $node->field_need_player['und'][0]['value'] = 0;
+			if($node->field_need_player[$node->language][0]['value'] == 1) {
+                $node->field_need_player[$node->language][0]['value'] = 0;
                 drupal_set_message(t('Match unmarked as fast recruit'));
             } else {
-                $node->field_need_player['und'][0]['value'] = 1;
+                $node->field_need_player[$node->language][0]['value'] = 1;
                 drupal_set_message(t('Match marked as fast recruit'));
             }
             node_save($node);
 		break;
 		case 'restart':
-			$node->field_state['und'][0]['value'] = 0;
-			node_save($node);
-            drupal_set_message(t('Match marked as planned'));
+            $restart_reason = $match_id = $form_state['values']['restart_reason'];
+            //echo $restart_reason;exit;
+            if($restart_reason == '') {
+                drupal_set_message(t('Set restart reason'), 'error');
+            } else {
+                $node->field_state[$node->language][0]['value'] = 0;
+                $node->field_restart[$node->language][]['value'] = $form_state['values']['restart_reason'];
+                node_save($node);
+                drupal_set_message(t('Match marked as planned'));
+            }
 		break;
 		case 'finish':
             $match_id = $form_state['values']['dota_id'];
@@ -772,20 +798,21 @@ function match_controll_form_submit($form, &$form_state) {
                         $result = $info->result;
                         $players = $info->result->players;
                         if($result->radiant_win)
-                            $node->field_result['und'][0]['value'] = 1;
+                            $node->field_result[$node->language][0]['value'] = 1;
                         else
-                            $node->field_result['und'][0]['value'] = 0;
+                            $node->field_result[$node->language][0]['value'] = 0;
                         $proSteamId = helper_get_steam_id($user->uid);
                         $side = 0;
                         foreach ($players as $k => $player) {
-                            if($player->account_id == $proSteamId) {
+                            $steam64 = helper_convert_id($player->account_id);
+                            if($steam64 == $proSteamId) {
                                 if($k < 5) {
                                     $side = 1;
                                 }
                             }
                         }
                         foreach ($players as $k => $player) {
-
+                            $steam64 = helper_convert_id($player->account_id);
                             $data = array(
                                 'side' => $side,
                                 'level' => $player->level,
@@ -809,30 +836,30 @@ function match_controll_form_submit($form, &$form_state) {
                                 if($k < 5) {
                                     db_update('players')
                                         ->fields($data)
-                                        ->condition('players.steam_id', $player->account_id)
+                                        ->condition('players.steam_id', $steam64)
                                         ->execute();
                                 } else {
                                     $nick =  helper_get_nickname_by_steam_id($player->account_id);
                                     if(!$nick || $nick == null)
                                         $nick = 'Anon';
                                     $data['nickname'] = $nick;
-                                    $data['steam_id'] = $player->account_id;
-                                    $data['team_id'] = $node->field_rival_command['und'][0]['value'];
+                                    $data['steam_id'] = $steam64;
+                                    $data['team_id'] = $node->field_rival_command[$node->language][0]['value'];
                                     db_insert('players')->fields($data)->execute();
                                 }
                             } else {
                                 if($k >= 5) {
                                     db_update('players')
                                         ->fields($data)
-                                        ->condition('players.steam_id', $player->account_id)
+                                        ->condition('players.steam_id', $steam64)
                                         ->execute();
                                 } else {
                                     $nick =  helper_get_nickname_by_steam_id($player->account_id);
                                     if(!$nick || $nick == null)
                                         $nick = 'Anon';
                                     $data['nickname'] = $nick;
-                                    $data['steam_id'] = $player->account_id;
-                                    $data['team_id'] = $node->field_rival_command['und'][0]['value'];
+                                    $data['steam_id'] = $steam64;
+                                    $data['team_id'] = $node->field_rival_command[$node->language][0]['value'];
                                     db_insert('players')->fields($data)->execute();
                                 }
                             }
@@ -842,18 +869,18 @@ function match_controll_form_submit($form, &$form_state) {
                         if(($side == 1 && $result->radiant_win) || ($side == 0 && !$result->radiant_win)) {
                             db_update('teams')
                                 ->fields(array('winner' => 0))
-                                ->condition('id', $node->field_rival_command['und'][0]['value'])
+                                ->condition('id', $node->field_rival_command[$node->language][0]['value'])
                                 ->execute();
                         } else {
                             db_update('teams')
                                 ->fields(array('winner' => 0))
-                                ->condition('id', $node->field_profi_command['und'][0]['value'])
+                                ->condition('id', $node->field_profi_command[$node->language][0]['value'])
                                 ->execute();
                         }
                         //exit;
-                        $node->field_state['und'][0]['value'] = 2;
+                        $node->field_state[$node->language][0]['value'] = 2;
 
-                        $time = time() - $node->field_started['und'][0]['value'];
+                        $time = time() - $node->field_started[$node->language][0]['value'];
 
                         if ($time < 60)
                             $time = date('s', $time).t(' secs;');
@@ -905,9 +932,9 @@ function match_controll_form_submit($form, &$form_state) {
 
                         $steam_id = explode('/', $profile['identifier']);
                         $steam_id = end($steam_id);
-                        $nickname = explode('/', rtrim($profile['profileURL'], '/'));
-                        $nickname = end($nickname);
-
+                        /*$nickname = explode('/', rtrim($profile['profileURL'], '/'));
+                        $nickname = end($nickname);*/
+                        $nickname = $user->name;
 
                         $command = $node->field_profi_command['und'][0]['value'];
 
@@ -957,6 +984,36 @@ function match_controll_form_submit($form, &$form_state) {
             node_save($node);
             drupal_set_message(t('Thanks for you voice'));
         break;
+        case 'kick':
+            //krumo($form_state);
+            $pid = (int)$form_state['values']['pid'];
+            if(!$pid || $pid == 0) {
+                drupal_set_message(t('Wrong player id'), 'error');
+            } else {
+                db_delete('players')
+                    ->condition('team_id', $node->field_profi_command['und'][0]['value'])
+                    ->condition('uid', $pid)
+                    ->execute();
+                db_insert('kick_history')->fields(array(
+                    'player_id' => $pid,
+                    'match_id' => $node->nid,
+                    'reason_id' => $form_state['values']['reason']
+                ))->execute();
+
+                privatemsg_new_thread(
+                    array(user_load($pid)),
+                    t('Kicked from match'),
+                    t('You was kicked from Match №@match_id by a reason @reason_id',
+                        array('@match_id' => $node->nid, '@reason_id' => $form_state['values']['reason'])),
+                    array(
+                        'autrhor' => $user,
+                        'timestamp' => REQUEST_TIME
+                    ));
+                $node->field_free_place['und'][0]['value']++;
+                node_save($node);
+                drupal_set_message(t('Player kicked'));
+            }
+        break;
 	}
 }
 
@@ -970,7 +1027,7 @@ function match_create_match_form($form, &$form_state) {
 	$form['time'] = array(
 		'#type' => 'textfield',
 		'#title' => t('Time'),
-		'#description' => t('E.g. 15:15'),
+		'#description' => t('E.g. @time', array( '@time' => date('H:i'))),
 		'#size' => 5,
 		'#required' => TRUE
 	);
@@ -1099,16 +1156,20 @@ function match_element_validate_number($form, &$form_state) {
 function match_node_finished_form($form, &$form_state) {
     global $user;
     $node = menu_get_object();
+    $vod = '';
+    if(count($node->field_vod) > 0) {
+        $vod = $node->field_vod[$node->language][0]['value'];
+    }
     $form['vod'] = array(
         '#type' => 'textfield',
         '#title' => t('VOD'),
-        '#default_value' => $node->field_vod['und'][0]['value'],
+        '#default_value' => $vod,
     );
 
     $form['archived'] = array(
 		'#type' => 'checkbox',
 		'#title' => t('Archive'),
-		'#default_value' => $node->field_archived['und'][0]['value'],
+		'#default_value' => $node->field_archived[$node->language][0]['value'],
 	);
 	$form['archive'] = array(
 		'#type' => 'actions',
@@ -1133,7 +1194,7 @@ function match_node_planned_ticket_form($form, &$form_state) {
     $node = menu_get_object();
     $query = db_select('players', 'p')
         ->fields('p', array('uid'))
-        ->condition('p.team_id', $node->field_profi_command['und'][0]['value'])
+        ->condition('p.team_id', $node->field_profi_command[$node->language][0]['value'])
         ->execute();
     $uids = $query->fetchAll();
     $in_match = false;
@@ -1204,4 +1265,46 @@ function match_node_like_form($form, &$form_state) {
         );
         return $form;
     }
+}
+
+function match_get_kick_player_form() {
+
+    $out = '';
+    $form =  drupal_get_form('match_kick_player_form');
+    $out .= drupal_render($form);
+    return $out;
+}
+
+function match_kick_player_form($form, &$form_state) {
+    //krumo($args);
+    $form['reason'] = array(
+        '#type' => 'radios',
+        '#title' => t('Kick reasons'),
+        '#required' => TRUE,
+        '#options' => array(
+            t('AFK'),
+            t('Leaver'),
+            t('Something else')
+        )
+    );
+    $form['pid'] = array(
+        '#type' => 'hidden',
+        '#default_value' => 0,
+    );
+
+    $form['kick'] = array(
+        '#type' => 'actions',
+        'submit' => array(
+            '#type' => 'submit',
+            '#value' => t('Kick'),
+            '#name' => 'kick',
+        ),
+        '#weight' => 1,
+    );
+
+    $form['#submit'] = array(
+        '0' => 'match_controll_form_submit',
+    );
+
+    return $form;
 }

@@ -51,4 +51,24 @@ jQuery(document).ready(function($) {
         });
     }
     $('span.stars').stars();
+    $('a.kick').click(function(e) {
+        e.preventDefault();
+        pid = $(this).attr('kick');
+        $('input[name="pid"]').val(pid);
+        $('.kick-form').removeClass('hidden');
+    });
+    $('a.close').click(function(e) {
+        e.preventDefault();
+        $('.kick-form').addClass('hidden');
+    });
+    $(window).resize(function(){
+
+        $('#above-mask').css({
+            //position:'absolute',
+            //left: ($(window).width() - $('#above-mask').outerWidth())/2,
+            top: ($(window).height() - $('#above-mask').outerHeight())/2
+        });
+
+    });
+    $(window).resize();
 });
