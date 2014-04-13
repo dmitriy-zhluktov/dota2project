@@ -288,3 +288,23 @@ function helper_privatemessage_menu_title() {
     }
     return '<span class="prvtmsg-icon">'.$icon.'</span>';
 }
+
+function helper_node_delete($node) {
+    if($node->type == 'match') {
+        $db_or = db_or();
+        $db_or->condition('team_id', $node->field_profi_command[$node->language][0]['value']);
+        $db_or->condition('team_id', $node->field_rival_command[$node->language][0]['value']);
+        db_delete('players')
+            ->condition($db_or)
+            ->execute();
+        db_delete('teams')
+            ->condition('match_id', $node->nid)
+            ->execute();
+        db_delete('match_votes')
+            ->condition('match_id', $node->nid)
+            ->execute();
+        db_delete('kick_history')
+            ->condition('match_id', $node->nid)
+            ->execute();
+    }
+}

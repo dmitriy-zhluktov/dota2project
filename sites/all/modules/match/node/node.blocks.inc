@@ -889,8 +889,8 @@ function match_controll_form_submit($form, &$form_state) {
                         elseif ($time >= 3600)
                             $time = date('H:i:s', $time);
 
-                        $node->field_duration['und'][0]['value'] = $time;
-                        $node->field_vod['und'][0]['value'] = '';
+                        $node->field_duration[$node->language][0]['value'] = $time;
+                        $node->field_vod[$node->language][0]['value'] = '';
                         node_save($node);
 
                         drupal_set_message(t('Match finished'));
@@ -899,16 +899,16 @@ function match_controll_form_submit($form, &$form_state) {
             }
 		break;
         case 'archive':
-            $node->field_archived['und'][0]['value'] = $form_state['values']['archived'];
-            $node->field_vod['und'][0]['value'] = $form_state['values']['vod'];
+            $node->field_archived[$node->language][0]['value'] = $form_state['values']['archived'];
+            $node->field_vod[$node->language][0]['value'] = $form_state['values']['vod'];
             node_save($node);
-            drupal_set_message(t('Match updated'));
+            drupal_set_message(t('Match moved to archive'));
         break;
         case 'leave':
             $node->field_free_place['und'][0]['value']++;
             node_save($node);
             db_delete('players')
-                ->condition('team_id', $node->field_profi_command['und'][0]['value'])
+                ->condition('team_id', $node->field_profi_command[$node->language][0]['value'])
                 ->condition('uid', $user->uid)
                 ->execute();
             drupal_set_message(t('You have left the match'));
@@ -939,7 +939,7 @@ function match_controll_form_submit($form, &$form_state) {
                         $command = $node->field_profi_command['und'][0]['value'];
 
                         db_insert('players')->fields(array('uid' => $user->uid, 'team_id' => $command, 'steam_id' => "$steam_id", 'nickname' => "$nickname",))->execute();
-                        $node->field_free_place['und'][0]['value']--;
+                        $node->field_free_place[$node->language][0]['value']--;
                         node_save($node);
                         drupal_set_message(t('Thanks for register'));
                     } else {
@@ -991,7 +991,7 @@ function match_controll_form_submit($form, &$form_state) {
                 drupal_set_message(t('Wrong player id'), 'error');
             } else {
                 db_delete('players')
-                    ->condition('team_id', $node->field_profi_command['und'][0]['value'])
+                    ->condition('team_id', $node->field_profi_command[$node->language][0]['value'])
                     ->condition('uid', $pid)
                     ->execute();
                 db_insert('kick_history')->fields(array(
@@ -1009,7 +1009,7 @@ function match_controll_form_submit($form, &$form_state) {
                         'autrhor' => $user,
                         'timestamp' => REQUEST_TIME
                     ));
-                $node->field_free_place['und'][0]['value']++;
+                $node->field_free_place[$node->language][0]['value']++;
                 node_save($node);
                 drupal_set_message(t('Player kicked'));
             }
