@@ -814,7 +814,6 @@ function match_controll_form_submit($form, &$form_state) {
                         foreach ($players as $k => $player) {
                             $steam64 = helper_convert_id($player->account_id);
                             $data = array(
-                                'side' => $side,
                                 'level' => $player->level,
                                 'hero' => $player->hero_id,
                                 'kills' => $player->kills,
@@ -834,14 +833,14 @@ function match_controll_form_submit($form, &$form_state) {
                             );
                             if($side == 1) {
                                 if($k < 5) {
+                                    $data['side'] = $side;
                                     db_update('players')
                                         ->fields($data)
                                         ->condition('players.steam_id', $steam64)
                                         ->execute();
                                 } else {
                                     $nick =  helper_get_nickname_by_steam_id($player->account_id);
-                                    if(!$nick || $nick == null)
-                                        $nick = 'Anon';
+                                    $data['side'] = 0;
                                     $data['nickname'] = $nick;
                                     $data['steam_id'] = $steam64;
                                     $data['team_id'] = $node->field_rival_command[$node->language][0]['value'];
@@ -849,14 +848,14 @@ function match_controll_form_submit($form, &$form_state) {
                                 }
                             } else {
                                 if($k >= 5) {
+                                    $data['side'] = $side;
                                     db_update('players')
                                         ->fields($data)
                                         ->condition('players.steam_id', $steam64)
                                         ->execute();
                                 } else {
                                     $nick =  helper_get_nickname_by_steam_id($player->account_id);
-                                    if(!$nick || $nick == null)
-                                        $nick = 'Anon';
+                                    $data['side'] = 1;
                                     $data['nickname'] = $nick;
                                     $data['steam_id'] = $steam64;
                                     $data['team_id'] = $node->field_rival_command[$node->language][0]['value'];
