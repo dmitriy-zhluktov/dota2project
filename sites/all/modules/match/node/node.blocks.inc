@@ -114,7 +114,7 @@ function match_get_node_finished_markup($node, $user) {
         $html .= '<div class="winner"><span class="radiant">'.t('The Radiant').'</span> '.t('wins').'</div><div>';
     }
     $html .= '';
-    if(count($node->field_vod) > 0)
+    if(count($node->field_vod) > 0 && $node->field_vod[$node->language][0]['value'] != "")
         $html .= '<div class="vod"><a class="check-vod" href="'.$node->field_vod[$node->language][0]['value'].'" target="_blank" alt="'.t('Check the VOD').'" title="'.t('Check the VOD').'">'.t('Check the VOD').'</a></div>';
     $form = drupal_get_form('match_node_finished_form');
     $like = drupal_get_form('match_node_like_form');
