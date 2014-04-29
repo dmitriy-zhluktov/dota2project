@@ -1,0 +1,141 @@
+<?php
+
+function uniteller_menu() {
+    $items['uniteller/done'] = array(
+        'title' => 'Internal Data',
+        'page callback' => 'uniteller_done',
+        'access callback' => 'menu_access',
+        'page arguments' => array(),
+        'access arguments' => array('access done'),
+        'type' => MENU_CALLBACK,
+    );
+
+    $items['uniteller/cron'] = array(
+        'title' => 'Uniteller Cron',
+        'page callback' => 'uniteller_cron',
+        'access callback' => 'menu_access',
+        'page arguments' => array(),
+        'access arguments' => array('access cron'),
+        'type' => MENU_CALLBACK,
+    );
+
+    $items['uniteller/test'] = array(
+        'title' => 'Uniteller test',
+        'page callback' => 'drupal_get_form',
+        'access callback' => 'menu_access',
+        'page arguments' => array('uniteller_order_form'),
+        'type' => MENU_CALLBACK,
+    );
+    return $items;
+}
+
+function menu_access() {
+    return true;
+}
+
+function uc_uniteller_done() {
+    //Update order statuses
+    /*ps_uniteller::setStatus();*/
+}
+
+function uniteller_cron() {
+    //Sync orders by cron
+    /*
+    ps_uniteller::setMerchantData();
+    $sql = "SELECT order FROM uc_orders WHERE modified >= '" . ps_uniteller::$date_fix_order_sync . "'";
+    $results = db_query($sql);
+    while ($result = db_fetch_array($results)) {
+        ps_uniteller::doSyncStatus($result['order_id']);
+    }
+    */
+}
+
+function uniteller_order_form($form, &$form_state) {
+
+    $form['Lifetime'] = array(
+        '#type' => 'hidden',
+        '#default_value' => 3600,
+    );
+
+    $form['URL_RETURN_OK'] = array(
+        '#type' => 'hidden',
+        '#default_value' => '16',
+    );
+
+    $form['URL_RETURN_NO'] = array(
+        '#type' => 'hidden',
+        '#default_value' => '16',
+    );
+
+    $form['qty'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Quantity'),
+        '#required' => true,
+        '#element_validate' => array('element_validate_integer_positive'),
+    );
+
+    $form['submit'] = array(
+        '#type' => 'actions',
+        'submit' => array(
+            '#type' => 'submit',
+            '#value' => t('Continue'),
+        ),
+    );
+
+    $form['#submit'] = array(
+        '0' => 'uniteller_order_form_submit',
+    );
+
+    return $form;
+}
+function uniteller_order_form_submit($form, &$form_state) {
+    global $user;
+
+    $total = uniteller_get_order_totals($form_state['values']['qty']);
+
+    db_insert('orders')
+        ->fields(array(
+            'uid' => $user->uid,
+            'qty' => $form_state['values']['qty'],
+            'total' => $total,
+        ))
+        ->execute();
+    $orderId = Database::getConnection()->lastInsertId();
+
+    $shopId = uniteller_get_shopid();
+
+    $lifetime = $form_state['values']['Lifetime'];
+    $URL_RETURN_OK = $form_state['values']['URL_RETURN_OK'];
+    $URL_RETURN_NO = $form_state['values']['URL_RETURN_NO'];
+    $meanType = '';
+    $emoneyType = '';
+    $customerIDP = '';
+    $cardIDP = '';
+    $iData = '';
+    $ptCode = '';
+    $password = uniteller_get_password();
+    $signature = strtoupper(md5(md5($shopId).'&'.md5($orderId).'&'.md5($total).'&'.md5($meanType).'&'.md5($emoneyType).'&'.md5($lifetime).'&'.md5($customerIDP).'&'.md5($cardIDP).'&'.md5($iData).'&'.md5($ptCode).'&'.md5($password)));
+
+    $data = "Shop_IDP=$shopId&Order_IDP=$orderId&Subtotal_P=$total&Lifetime=$lifetime&Signature=$signature&URL_RETURN_OK=$URL_RETURN_OK&URL_RETURN_NO=$URL_RETURN_NO";
+    echo $data;
+    $options = array(
+        'method' => 'POST',
+        'data' => $data,
+        'timeout' => 15,
+    );
+    $result = drupal_http_request('https://test.wpay.uniteller.ru/pay/', $options);
+    echo $result->data;
+    exit;
+}
+
+function uniteller_get_order_totals($qty) {
+    return $qty*5;
+}
+
+function uniteller_get_password() {
+    return 'MlBs8xiXaQfOBQCGmXF3AxyTqPam4TULjTTwJoqjk5YD2482nUYITVUAv9amEsmnfJp6kcTDcVfGsFJ8';
+}
+
+function uniteller_get_shopid() {
+    return '4412748049-3540';
+}

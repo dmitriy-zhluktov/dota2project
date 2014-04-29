@@ -1,0 +1,86 @@
+<?php
+
+function uniteller_schema(){
+
+	$schema['orders'] = array(
+		'description' => 'Таблица заказов(покупок валюты)',
+		'fields' => array(
+			'id' => array(
+				'type' => 'serial',
+				'not null' => true,
+				'description' => 'ID записи'
+			),
+            'uid' => array(
+                'type' => 'int',
+                'size' => 'normal',
+                'description' => 'ID пользователя'
+            ),
+            'qty' => array(
+                'type' => 'int',
+                'size' => 'normal',
+                'not null' => true,
+                'default' => 0,
+                'description' => 'Количество товара'
+            ),
+            'status' => array(
+                'description' => 'Статус заказа',
+				'type' => 'varchar',
+				'length' => 255,
+				'default' => 'reject-it'
+            ),
+            'total' => array(
+                'description' => 'Сумма заказа',
+                'type' => 'numeric',
+                'precision' => 16,
+                'scale' => 5,
+                'not null' => TRUE,
+                'default' => 0.0,
+            ),
+            'created' => array(
+                'description' => 'Дата создания',
+                'mysql_type' => 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP',,
+                'not null' => TRUE,
+                'default' => 0,
+            ),
+            'modified' => array(
+                'description' => 'Дата модификации',
+                'mysql_type' => 'TIMESTAMP NULL',
+                'not null' => TRUE,
+                'default' => 0,
+            ),
+		),
+		'primary key' => array('id'),
+		'indexes' => array(
+			'id' => array('id'),
+			'status' => array('status')
+		)
+    );
+
+    /*$schema['orders_comments'] = array(
+        'description' => 'Таблица комментариев к платежам (ошибки, возвращённые системой)',
+        'fields' => array(
+            'id' => array(
+                'type' => 'serial',
+                'not null' => true,
+                'description' => 'ID записи'
+            ),
+            'oid' => array(
+                'type' => 'int',
+                'size' => 'normal',
+                'description' => 'order ID'
+            ),
+            'date' => array(
+                'description' => 'Дата создания',
+                'type' => 'int',
+                'not null' => TRUE,
+                'default' => 0,
+            ),
+            'text' => array(
+                'description' => 'Текст сообщения',
+                'type' => 'text',
+            ),
+        ),
+    );*/
+
+    return $schema;
+}
