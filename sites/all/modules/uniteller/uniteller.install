@@ -39,14 +39,10 @@ function uniteller_schema(){
             'created' => array(
                 'description' => 'Дата создания',
                 'mysql_type' => 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP',
-                'not null' => TRUE,
-                'default' => 0,
             ),
             'modified' => array(
                 'description' => 'Дата модификации',
                 'mysql_type' => 'TIMESTAMP NULL',
-                'not null' => TRUE,
-                'default' => 0,
             ),
 		),
 		'primary key' => array('id'),
