@@ -38,11 +38,13 @@ function uniteller_schema(){
             ),
             'created' => array(
                 'description' => 'Дата создания',
-                'mysql_type' => 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP',
+                'mysql_type' => 'TIMESTAMP',
+                'not null' => TRUE,
+                'default' => 'CURRENT_TIMESTAMP',
             ),
             'modified' => array(
                 'description' => 'Дата модификации',
-                'mysql_type' => 'TIMESTAMP NULL',
+                'mysql_type' => 'TIMESTAMP',
             ),
 		),
 		'primary key' => array('id'),
