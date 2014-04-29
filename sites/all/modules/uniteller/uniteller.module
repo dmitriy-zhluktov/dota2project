@@ -98,6 +98,7 @@ function uniteller_order_form_submit($form, &$form_state) {
             'uid' => $user->uid,
             'qty' => $form_state['values']['qty'],
             'total' => $total,
+            'created' => time()
         ))
         ->execute();
     $orderId = Database::getConnection()->lastInsertId();
