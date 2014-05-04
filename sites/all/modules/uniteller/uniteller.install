@@ -26,7 +26,7 @@ function uniteller_schema(){
                 'description' => 'Статус заказа',
 				'type' => 'varchar',
 				'length' => 255,
-				'default' => 'reject-it'
+				'default' => 'Not processed'
             ),
             'total' => array(
                 'description' => 'Сумма заказа',
@@ -50,6 +50,13 @@ function uniteller_schema(){
                 'default' => 0,
                 'not null' => true,
             ),
+			'transfered' => array(
+				'type' => 'int',
+				'size' => 'tiny',
+				'description' => 'Зачислены ли средства игроку',
+				'not null' => true,
+				'default' => 0
+			)
 		),
 		'primary key' => array('id'),
 		'indexes' => array(
@@ -58,31 +65,40 @@ function uniteller_schema(){
 		)
     );
 
-    /*$schema['orders_comments'] = array(
-        'description' => 'Таблица комментариев к платежам (ошибки, возвращённые системой)',
+    $schema['user_wallets'] = array(
+        'description' => 'Пользовательские кошельки',
         'fields' => array(
-            'id' => array(
-                'type' => 'serial',
-                'not null' => true,
-                'description' => 'ID записи'
-            ),
-            'oid' => array(
+            'uid' => array(
                 'type' => 'int',
                 'size' => 'normal',
-                'description' => 'order ID'
+                'description' => 'user ID'
             ),
-            'date' => array(
-                'description' => 'Дата создания',
+            'cash' => array(
                 'type' => 'int',
-                'not null' => TRUE,
+                'size' => 'normal',
+                'description' => 'Количество валюты',
+                'not null' => true,
                 'default' => 0,
             ),
-            'text' => array(
-                'description' => 'Текст сообщения',
-                'type' => 'text',
-            ),
         ),
-    );*/
+    );
 
     return $schema;
+}
+
+function uniteller_install() {
+    $res = db_select('users', 'u')
+        ->fields('u', array('uid'))
+        ->execute();
+
+    $query = db_insert('user_wallets')->fields(array('uid'));
+
+    while($uid = $res->fetchAssoc()) {
+        $query->values(array(
+            'uid' => $uid['uid'],
+        ));
+    }
+
+    $query->execute();
+
 }

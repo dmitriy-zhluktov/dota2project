@@ -1,6 +1,8 @@
 name = Uniteller
 description = Enable to process payments using http://uniteller.ru
 core = 7.x
-php = 5.3
-
+configure = admin/config/uniteller/settings
+files[] = uniteller.module
+files[] = uniteller.install
+files[] = uniteller.class.inc
 version = "7.x-1.0"
