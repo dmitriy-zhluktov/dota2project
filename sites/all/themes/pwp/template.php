@@ -186,9 +186,14 @@ function pwp_username(&$vars) {
 }
 
 function pwp_preprocess_link(&$vars) {
+
     if($vars['path'] == 'messages' && $vars['text'] == privatemsg_title_callback()) {
         //krumo($vars);
         $vars['options']['html'] = TRUE;
         $vars['text'] = helper_privatemessage_menu_title();
+    }
+    if($vars['path'] == 'uniteller/buy') {
+        $vars['options']['html'] = TRUE;
+        $vars['text'] = uniteller_get_money();
     }
 }

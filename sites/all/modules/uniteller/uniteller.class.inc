@@ -477,10 +477,14 @@ class uniteller {
         curl_setopt($ch, CURLINFO_HEADER_OUT, 1);
         $curl_response = curl_exec($ch);
         $curl_error = curl_error($ch);
-
+        /*echo '<pre>';
+        print_r($curl_response);
+        print_r($curl_error);
+        echo '</pre>';*/
         if ($curl_error) {
             // обработка ошибки обращения за статусом платежа
-            watchdog('Uniteller', t('Order № %d Uniteller returned an error: ', (int)$order_real_id) . $curl_error, array(), WATCHDOG_ERROR, false);
+            watchdog('Uniteller', t('Order № @id Uniteller returned an error: @error', array('@id' => (int)$order_real_id, '@error' => $curl_error)), array(), WATCHDOG_ERROR, false);
+            return;
         } else {
             // данные получены
             // обработка данных из переменной $curl_response
@@ -488,21 +492,21 @@ class uniteller {
             if ( count($arr) > 2 ) {
                 $status = $arr[0];
             } else {
-                watchdog('Uniteller', t('Order № %d Uniteller returned an error: unable to parse data', (int)$order_real_id), array(), WATCHDOG_ERROR, false);
+                watchdog('Uniteller', t('Order № @id Uniteller returned an error: unable to parse data', array('@id' =>(int)$order_real_id)), array(), WATCHDOG_ERROR, false);
+                return;
             }
         }
 
-
         // Заказ в состоянии 'до блокировки средств', а платёж существует.
-        if ($statusCode === 'O' && ($status === 'authorized' || $status === 'paid' || $status === 'canceled')) {
+        if ($statusCode === 'O' && (strtolower($status) === 'authorized' || strtolower($status) === 'paid' || strtolower($status) === 'canceled')) {
             self::setStatusCode($order_real_id, $status);
         }
         // Заказ в состоянии 'блокировка средств', а платёж - нет.
-        if ($statusCode === 'A' && ($status === 'empty' || $status === 'paid' || $status === 'canceled')) {
+        if ($statusCode === 'A' && (strtolower($status) === 'empty' || strtolower($status) === 'paid' || strtolower($status) === 'canceled')) {
             self::setStatusCode($order_real_id, $status);
         }
         // Заказ в состоянии 'средства сняты' и не прошло еще время, отведенное на отмену после оплаты, а платёж - нет.
-        if ($statusCode === 'P' && ($status === 'empty' || $status === 'authorized' || $status === 'canceled')) {
+        if ($statusCode === 'P' && (strtolower($status) === 'empty' || strtolower($status) === 'authorized' || strtolower($status) === 'canceled')) {
             self::setStatusCode($order_real_id, $status);
         }
         // Заказ в состоянии 'средства возвращены', а платёж в состоянии 'средства заблокированны' или 'средства сняты'.
@@ -516,7 +520,7 @@ class uniteller {
             }
         }*/
         // Заказ в состоянии 'неизвестно', а платёж существует.
-        if ($statusCode === 'W' && ($status === 'authorized' || $status === 'paid' || $status === 'canceled')) {
+        if ($statusCode === 'W' && (strtolower($status) === 'authorized' || strtolower($status) === 'paid' || strtolower($status) === 'canceled')) {
             self::setStatusCode($order_real_id, $status);
         }
     }

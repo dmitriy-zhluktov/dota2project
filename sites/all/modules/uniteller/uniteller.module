@@ -25,7 +25,7 @@ function uniteller_menu() {
     );
 
     $items['uniteller/buy'] = array(
-        'title' => t('Buy game currency'),
+        'title' => t('Buy'),
         'page callback' => 'drupal_get_form',
         'access callback' => 'user_is_logged_in',
         'page arguments' => array('uniteller_order_form'),
@@ -191,7 +191,7 @@ function uniteller_order_form_submit($form, &$form_state) {
     $URL_RETURN = url('user/'.$user->uid.'/orders', array('absolute' => true));
     $meanType = '';
     $emoneyType = '';
-    $customerIDP = $user->uid;
+    $customerIDP = '';//$user->uid;
     $cardIDP = '';
     $iData = '';
     $ptCode = '';
@@ -202,11 +202,11 @@ function uniteller_order_form_submit($form, &$form_state) {
         'Shop_IDP' => $shopId,
         'Order_IDP' => $orderId,
         'Subtotal_P' => $total,
-        'Customer_IDP' => $customerIDP,
+        //'Customer_IDP' => $customerIDP,
         'Lifetime' => $lifetime,
         'Signature' => $signature,
-        'URL_RETURN_OK' => urlencode($URL_RETURN.'?result=resultok'),
-        'URL_RETURN_NO' => urlencode($URL_RETURN.'?result=resultno'),
+        'URL_RETURN_OK' => $URL_RETURN.'?result=resultok',
+        'URL_RETURN_NO' => $URL_RETURN.'?result=resultno',
     );
     $url = uniteller_get_gateway();
     $autosubmit =  uniteller_autosubmitform($url, $passData);
@@ -234,7 +234,7 @@ function uniteller_autosubmitform($url, $data) {
     foreach($data as $key => $value) {
         $html .= '<input type="hidden" name="'.$key.'" value="'.$value.'" />';
     }
-    $html .= '<input type="submit" name="Submit" value="Оплатить"></form>';
+    $html .= '<input type="submit" name="Submit" value="'.t('Submit').'"></form>';
     $html .= '<script type="text/javascript">
         window.onload = function() {
             document.getElementById("htmlForm").submit();
@@ -455,4 +455,14 @@ function uniteller_order_load($id) {
 
 function uniteller_order_update_status($id, $status) {
     db_update('orders')->fields(array('status' => $status, 'modified' => REQUEST_TIME))->condition('orders.id', $id)->execute();;
+}
+
+function uniteller_get_money() {
+    global $user;
+    $res = db_select('user_wallets', 'w')
+        ->fields('w', array('cash'))
+        ->condition('uid', $user->uid)
+        ->execute();
+    $cash = $res->fetchObject();
+    return '<span class="cash">'.$cash->cash.'</span>'.t('Buy');
 }

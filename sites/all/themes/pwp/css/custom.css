@@ -74,9 +74,7 @@ h1#page-title {
     background: url('../images/dota2.png') 99% 10px no-repeat #ee2d42;
     color: #fff;
 }
-.node-type-match h1#page-title {
-    text-align: center;
-}
+
 .news-image {
     border: 1px solid #bababa;
 }
@@ -224,7 +222,6 @@ a.regular-user {
     padding-left: 27px;
 }
 .accepted-users {
-    text-align: center;
 }
 form#match-node-planned-ticket-form {
     text-align: center;
@@ -328,4 +325,106 @@ a.close {
 }
 label[for="edit-reason"] {
     display: none;
+}
+table.node-match-planned-info {
+    border-bottom: 2px solid #d12d40;
+    margin: 0;
+}
+table.node-match-planned-info tbody {
+    border: none;
+}
+table.node-match-planned-info tr {background: transparent;}
+table.node-match-planned-info tr td {
+    border: none;
+    padding: 0;
+    vertical-align: top;
+}
+.node-match-planned-info .plain-wrapper {
+    margin: 0 auto;
+}
+.node-match-planned-info .plain-text {
+    float: left;
+    padding-left: 20px;
+    font-size: 16px;
+}
+.node-match-planned-info .plain-text.first {
+    padding-left: 40px;
+}
+.node-match-planned-info .plain-text h3 {
+    font-weight: 700;
+    font-size: 16px;
+    margin: 0;
+}
+.node-match-planned-info .timing-wrapper {
+    text-align: center;
+    font-size: 25px;
+    color: #fff;
+}
+.node-match-planned-info .timing-wrapper span { display: block;}
+.node-match-planned-info .timing-wrapper span.title { font-size: 15px; }
+.node-match-planned-info .timing { float: left; width: 546px; height: 54px; background: url('../images/timing-bg.png') 0 0 repeat-x transparent; }
+.node-match-planned-info .corner-bottom-left {
+    float: right;
+    width: 54px;
+    height: 54px;
+    background: url('../images/corner-bottom-left.png') 0 0 no-repeat transparent;
+}
+.reason-list {
+    list-style: none;
+    height: 34px;
+    overflow: hidden;
+}
+.reason-list li.list-item {
+    margin: 0;
+    line-height: 14px;
+}
+.see-all {
+    cursor: pointer;
+    color: #c4c4c4;
+    font-size: 12px;
+}
+.node-match-planned-info .accepted-users .title-wrapper {
+    margin-left: 40px;
+    position: relative;
+}
+.node-match-planned-info .accepted-users span.accepted-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0;
+    position: absolute;
+    left: 0;
+    top: -40px;
+}
+.node-match-planned-info .accepted-users ul li.players-list-item {
+    padding: 10px;
+    font-size: 16px;
+    width: 235px;
+    position: relative;
+}
+.player-controls {
+    position: absolute;
+    right: -80px;
+    top: 13px;
+}
+a.player-button {
+    display: inline-block;
+    height: 21px;
+    width: 21px;
+    background: url('../images/player-buttons.png') 0 -22px no-repeat transparent;
+    margin-left: 5px;
+}
+a.player-button:hover {
+    background-position-y: 0px;
+}
+a.player-button.add {
+    background-position-x: -26px;
+}
+a.player-button.kick {
+    background-position-x: -52px;
+}
+span.cash {
+    display: inline-block;
+    padding: 0 0 0 35px;
+    background: url('../images/cash.png') 0% 3px no-repeat transparent;
+    margin-right: 15px;
 }

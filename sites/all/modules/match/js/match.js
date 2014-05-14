@@ -71,4 +71,10 @@ jQuery(document).ready(function($) {
 
     });
     $(window).resize();
+    $('div.see-all').toggle(
+        function(e) {
+            $('ul.reason-list').animate({height: $('ul.reason-list li').outerHeight()*$('ul.reason-list li').length + 'px'}, 300);
+        }, function(e){
+            $('ul.reason-list').animate({height: $('ul.reason-list li').outerHeight()*2 + 'px'}, 300);
+    });
 });

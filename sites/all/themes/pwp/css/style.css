@@ -206,14 +206,16 @@ tr th {
   border-color: #555;
   border-color: rgba(255, 255, 255, 0.18);
 }
-tr.odd {
-  background: #e4e4e4;
-  background: rgba(0, 0, 0, 0.105);
+tr.odd,
+li.odd {
+    /*background: rgba(0, 0, 0, 0.105);*/
+    background: #f6f6f6;
 }
 tr,
-tr.even {
-  background: #efefef;
-  background: rgba(0, 0, 0, 0.063);
+tr.even,
+li.even {
+    background: rgba(0, 0, 0, 0.063);
+    background: #eeeeee;
 }
 table ul.links {
   margin: 0;

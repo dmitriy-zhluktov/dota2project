@@ -48,23 +48,37 @@ function match_get_node_planned_markup($node) {
         $attributes = array(
             'class' => 'reason-list'
         );
+        $restartedSeeAll = '';
         foreach($node->field_restart[$node->language] as $reason) {
             $items[] = array(
                 'data' => $reason['value'],
                 'class' => array('list-item')
             );
         }
-        $restarted .= '<div class="plain-text"><h3>'.t('Restart reason: ').'</h3>'.theme('item_list', array('items' => $items, 'title' => $title, 'type' => $type, 'attributes' => $attributes)).'</div>';
+        if(count($items) > 2) {
+            $restartedSeeAll = '<div class="see-all">'.t('See all').'</div>';
+        }
+        $restarted .= '<div class="plain-text"><h3>'.t('Restart reason: ').'</h3><div class="reasons">'.theme('item_list', array('items' => $items, 'title' => $title, 'type' => $type, 'attributes' => $attributes)).$restartedSeeAll.'</div></div>';
     }
-    $html = '<div class="node-match-planned-info">
-                <div class="plain-text"><h3>'.t('PRO:').'</h3>'.l($author->name, 'user/'.$author->uid, array('attributes' => array('class' => array('pro-user')))).'</div>
-                <div class="plain-text"><h3>'.t('Match status:').'</h3>'.$stateText.'</div>
-                '.$restarted.'
-                <div class="plain-text">'.$mod.'</div>
-                <div class="plain-text"><h3>'.t('Match starts in:').'</h3>'.match_get_planned_timing(strtotime($node->field_date[$node->language][0]['value']), $node->uid).'</div>
-                <div class="plain-text"><h3>'.$last.'</h3></div>
-            </div>';
-	$html .= match_get_planned_players_html($node->field_profi_command[$node->language][0]['value'], $node->uid);
+
+    $html = '<table class="table node-match-planned-info">
+                <tr>
+                    <td width="60%">
+                        <div class="plain-wrapper">
+                            <div class="plain-text first"><h3>'.t('PRO:').'</h3>'.l($author->name, 'user/'.$author->uid, array('attributes' => array('class' => array('pro-user')))).'</div>
+                            <div class="plain-text"><h3>'.t('Match status:').'</h3>'.$stateText.'</div>
+                            <div class="plain-text">'.$mod.'</div>
+                            '.$restarted.'
+                            <div class="clear"></div>
+                        </div>
+                        <div class="timing-wrapper"><div class="timing"><span class="title">'.t('Match starts in:').'</span><span>'.match_get_planned_timing(strtotime($node->field_date[$node->language][0]['value']), $node->uid).'</span></div><div class="corner-bottom-left"></div></div>
+                    </td>
+                    <td width="40%">
+                        '.match_get_planned_players_html($node->field_profi_command[$node->language][0]['value'], $node->uid).'
+                    </td>
+                </tr>
+            </table>';
+
 	$form = drupal_get_form('match_node_planned_form');
 
     if($node->field_free_place[$node->language][0]['value'] > 0) {
@@ -82,15 +96,63 @@ function match_get_node_active_markup($node, $user) {
     $author = user_load($node->uid);
     $last = ($node->field_last[$node->language][0]['value'] == 1)? t('Last match'): t('');
     $mod = (!isset($node->field_mod[$node->language][0]['value']) || $node->field_mod[$node->language][0]['value'] == '')? '' : '<h3>'.t('Mod:').'</h3>'.t($node->field_mod[$node->language][0]['value']);
-    $html = '<div class="node-match-planned-info">
+    /*$html = '<div class="node-match-planned-info">
                 <div class="plain-text"><h3>'.t('PRO:').'</h3>'.l($author->name, 'user/'.$author->uid, array('attributes' => array('class' => array('pro-user')))).'</div>
                 <div class="plain-text">'.$mod.'</div>
                 <div class="plain-text"><h3>'.t('Timing:').'</h3>'.match_get_timing($node->field_started[$node->language][0]['value']).'</div>
                 <div class="plain-text"><h3>'.$last.'</h3></div>
             </div>';
 
-	$html .= match_get_planned_players_html($node->field_profi_command[$node->language][0]['value'], $node->uid);
+	$html .= match_get_planned_players_html($node->field_profi_command[$node->language][0]['value'], $node->uid);*/
+    $state = $node->field_state[$node->language][0]['value'];
+    switch($state) {
+        case 0:
+            $stateText = t('Planned');
+            break;
+        case 1:
+            $stateText = t('Active');
+            break;
+        case 2:
+            $stateText = t('Finished');
+            break;
+    }
+    $restarted = '';
+    if(count($node->field_restart) > 0) {
+        $title = t('');
 
+        $type = 'ul';
+        $attributes = array(
+            'class' => 'reason-list'
+        );
+        $restartedSeeAll = '';
+        foreach($node->field_restart[$node->language] as $reason) {
+            $items[] = array(
+                'data' => $reason['value'],
+                'class' => array('list-item')
+            );
+        }
+        if(count($items) > 2) {
+            $restartedSeeAll = '<div class="see-all">'.t('See all').'</div>';
+        }
+        $restarted .= '<div class="plain-text"><h3>'.t('Restart reason: ').'</h3><div class="reasons">'.theme('item_list', array('items' => $items, 'title' => $title, 'type' => $type, 'attributes' => $attributes)).$restartedSeeAll.'</div></div>';
+    }
+    $html = '<table class="table node-match-planned-info">
+                <tr>
+                    <td width="60%">
+                        <div class="plain-wrapper">
+                            <div class="plain-text first"><h3>'.t('PRO:').'</h3>'.l($author->name, 'user/'.$author->uid, array('attributes' => array('class' => array('pro-user')))).'</div>
+                            <div class="plain-text"><h3>'.t('Match status:').'</h3>'.$stateText.'</div>
+                            <div class="plain-text">'.$mod.'</div>
+                            '.$restarted.'
+                            <div class="clear"></div>
+                        </div>
+                        <div class="timing-wrapper"><div class="timing"><span class="title">'.t('Timing:').'</span><span>'.match_get_timing($node->field_started[$node->language][0]['value']).'</span></div><div class="corner-bottom-left"></div></div>
+                    </td>
+                    <td width="40%">
+                        '.match_get_planned_players_html($node->field_profi_command[$node->language][0]['value'], $node->uid, false).'
+                    </td>
+                </tr>
+            </table>';
     $stream = '';
     if(count($node->field_vod) > 0)
         $stream = '<div class="display active-twitch">'.match_get_twitch_html($node->field_vod[$node->language][0]['value']).'</div>';
@@ -540,7 +602,7 @@ function match_get_finished_players_html($expert, $rival, $proId) {
 	return $out;
 }
 
-function match_get_planned_players_html ($team, $proId = false) {
+function match_get_planned_players_html ($team, $proId = false, $controls = true) {
     global $user;
 	$query = db_select('players', 'p')
 		->fields('p', array('nickname', 'uid', 'steam_id'));
@@ -552,28 +614,30 @@ function match_get_planned_players_html ($team, $proId = false) {
     $result = $query->execute();
 	$i = 0;
 	
-	$title = t('Accepted players');
+	$title = '';//t('Accepted players');
 	
 	$type = 'ul';
 	$attributes = array(
 		'class' => 'players-list'
 	);
-
+    $count = 0;
 	while($row = $result->fetchObject()) {
         $links = '';
-        if($user->uid == $proId) {
-            $links .= '<a href="steam://friends/add/'.$row->steam_id.'" class="button add-to-steam" title="Add friend to steam">+</a>'.
-                '<a href="steam://friends/message/'.$row->steam_id.'" class="button add-to-steam" title="Send message">Send message</a>'.
-                '<a href="#" kick="'.$row->uid.'" class="kick button">'.t('Kick player').'</a>';
+        $oddeven = $count%2 == 0? 'odd' : 'even';
+        if($user->uid == $proId && $controls) {
+            $links .= '<div class="player-controls"><a href="steam://friends/message/'.$row->steam_id.'" class="player-button message" title="'.t("Send message").'"></a>'.
+                '<a href="steam://friends/add/'.$row->steam_id.'" class="player-button add" title="'.t("Add friend to steam").'"></a>'.
+                '<a href="#" kick="'.$row->uid.'" class="kick player-button" title="'.t("Kick player").'"></a></div>';
         }
 		$items[] = array(
 			'data' => l($row->nickname, 'user/'.$row->uid, array('attributes' => array('class' => array('regular-user')))).$links,
-			'class' => array(t('players-list-item')),
+			'class' => array('players-list-item', $oddeven),
 		);
+        $count++;
 	}
     $html = '<div class="accepted-users">';
 	if(isset($items))
-		$html .= theme('item_list', array('items' => $items, 'title' => $title, 'type' => $type, 'attributes' => $attributes));
+		$html .= '<div class="title-wrapper"><span class="accepted-title">'.t('Accepted players').'</span></div>'.theme('item_list', array('items' => $items, 'title' => $title, 'type' => $type, 'attributes' => $attributes));
 	else
 		$html .= t('No players accepted this match yet');
     $html .= '</div>';
