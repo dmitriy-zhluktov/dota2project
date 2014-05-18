@@ -79,7 +79,7 @@ table.match-statistics tr th.dire,
 table.finished-matches tr th.dire {
     color: #d66150;
 }
-div.winner { text-align: center; }
+div.winner { text-align: center; margin: 10px 0;}
 table.winner {
     margin: 0;
     border: none;
@@ -139,9 +139,34 @@ table.finished-matches td.teams { width: 25%; position: relative; }
     right: 0;
     bottom: 0;
     cursor: pointer;
+    background: #efefef;
+    padding: 5px 10px;
+    width: 75px;
 }
 table.finished-matches a.check-vod {
     width: auto;
     text-align: center;
     font-size: 15px;
+}
+#block-match-4 {
+    text-align: left;
+}
+#match-node-like-form {
+    width: 172px;
+    margin: 0 auto;
+}
+input.form-submit.match-like,
+input.form-submit.match-dislike {
+    font-size: 14px;
+    width: 85px;
+    margin: 0;
+    padding: 0;
+}
+input.form-submit.match-like {
+    border-top-right-radius: 0px;
+    border-bottom-right-radius: 0px;
+}
+input.form-submit.match-dislike {
+    border-top-left-radius: 0px;
+    border-bottom-left-radius: 0px;
 }

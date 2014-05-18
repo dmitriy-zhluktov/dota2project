@@ -29,6 +29,9 @@ function helper_block_info() {
     $blocks[1] = array(
         'info' => t('Картинка для новости'),
     );
+    $blocks[2] = array(
+        'info' => t('Картинка uniteller'),
+    );
 
     return $blocks;
 }
@@ -43,6 +46,10 @@ function helper_block_view($delta='') {
         case 1:
             $block['subject'] = t('');
             $block['content'] = helper_news_image();
+            break;
+        case 2:
+            $block['subject'] = t('');
+            $block['content'] = helper_uniteller_buy_image();
             break;
     }
 
@@ -275,6 +282,18 @@ function helper_menu_alter(&$items) {
         //$items['messages']['title callback'] = 'helper_privatemessage_title_callback';
         //krumo($items);exit;
     }
+    unset($items['messages/new']);
+    $items['messages/new'] = array(
+        'title'            => '+ Write new message',
+        'page callback'    => 'drupal_get_form',
+        'page arguments'   => array('privatemsg_new', 2, 3, NULL),
+        'file'             => drupal_get_path('module','privatemsg').'/privatemsg.pages.inc',
+        'access callback'  => 'privatemsg_user_access',
+        'access arguments' => array('write privatemsg'),
+        'type'             => MENU_LOCAL_TASK,
+        'weight'           => 11,
+        'menu_name'        => 'user-menu',
+    );
 }
 
 function helper_privatemessage_menu_title() {
@@ -310,4 +329,48 @@ function helper_node_delete($node) {
             ->condition('match_id', $node->nid)
             ->execute();
     }
+}
+
+function helper_uniteller_buy_image() {
+    $attributes = array(
+        'class' => 'image'
+    );
+    $image = theme('image', array(
+        'path' => base_path().'sites/all/themes/pwp/images/pcoins.png',
+        'alt' => t('Pcoins'),
+        'title' => t('Pcoins'),
+        'width' => 1000,
+        'height' => 135,
+        'attributes' => $attributes,
+    ));
+
+    return '<div class="uniteller-image">'.$image.'</div>';
+}
+
+function helper_module_implements_alter(&$implementations, $hook) {
+    if($hook == 'menu_local_tasks_alter') {
+        unset($implementations['privatemsg']);
+    }
+    if($hook == 'user_view') {
+        $group = $implementations['helper'];
+        unset($implementations['helper']);
+        $implementations['helper'] = $group;
+        //krumo($implementations);
+    }
+}
+
+function helper_form_alter(&$form, &$form_state, $form_id) {
+    switch($form_id) {
+        case 'privatemsg_form_reply':
+            //krumo($form);
+            $form['actions']['submit']['#suffix'] = '<div class="clear"></div>';
+            unset($form['body']['#title']);
+            break;
+    }
+}
+
+function helper_user_view($account) {
+    global $user;
+    if($account->uid == $user->uid)
+        unset($account->content['privatemsg_send_new_message']);
 }

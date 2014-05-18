@@ -197,3 +197,54 @@ function pwp_preprocess_link(&$vars) {
         $vars['text'] = uniteller_get_money();
     }
 }
+
+function pwp_form_comment_form_alter(&$form, &$form_state) {
+    /* Remove the "your name" elements for authenticated users */
+    if ($form['is_anonymous']['#value'] == false) {
+        $form['author']['#access'] = FALSE;
+    }
+}
+
+function pwp_menu_local_task(&$vars) {
+
+    $link = $vars['element']['#link'];
+    $link_text = $link['title'];
+    $class = 'tab';
+    if($link['path'] == 'messages/new')
+        $class .= ' tab-new-message';
+
+    if (!empty($vars['element']['#active'])) {
+        // Add text to indicate active tab for non-visual users.
+        $active = '<span class="element-invisible">' . t('(active tab)') . '</span>';
+
+        // If the link does not contain HTML already, check_plain() it now.
+        // After we set 'html'=TRUE the link will not be sanitized by l().
+        if (empty($link['localized_options']['html'])) {
+            $link['title'] = check_plain($link['title']);
+        }
+        $link['localized_options']['html'] = TRUE;
+        $link_text = t('!local-task-title!active', array('!local-task-title' => $link['title'], '!active' => $active));
+    }
+
+    return '<li' . (!empty($vars['element']['#active']) ? ' class="active '.$class.'"' : ' class="'.$class.'"') . '>' . l($link_text, $link['href'], $link['localized_options']) . "</li>\n";
+}
+
+function pwp_preprocess_privatemsg_view(&$vars) {
+    //krumo($vars);
+    $actions = $vars['message_actions'];
+    $dom = new DOMDocument();
+    $dom->loadHTML($actions);
+    $list = $dom->getElementsByTagName('ul');
+    foreach($list->item(0)->getElementsByTagName('a') as $a) {
+        $segments = explode('/', $a->getAttribute('href'));
+
+        if(in_array('delete', $segments)) {
+            $vars['message_action_delete'] = '<a href="'.$a->getAttribute('href').'" title="'.t('Delete message').'"><img src="'.base_path().'sites/all/themes/pwp/images/msg-delete.png'.'" title="'.t('Delete message').'" alt="'.t('Delete message').'" width="20" height="20" /></a>';
+        }
+        if(in_array('block', $segments)) {
+            $vars['message_action_block'] = '<a href="'.$a->getAttribute('href').'" title="'.t('Block user').'">'.t('Block user').'</a>';
+        }
+    }
+    $timestamp = $vars['message']->timestamp;
+    $vars['message_date'] = date('d.m.Y, H:i A', $timestamp);
+}

@@ -614,7 +614,8 @@ h1#page-title {
   font-size: 0.857em;
   color: #fff;
     background: #ee2d42;
-    padding: 0 15px;
+    padding: 5px 15px;
+    line-height: 21px;
 }
 .submitted .user-picture img {
   float: left; /* LTR */
@@ -1337,7 +1338,7 @@ html.js input.throbbing {
 .comment-form label {
   float: left; /* LTR */
   font-size: 0.929em;
-  width: 120px;
+  width: 70px;
 }
 .comment-form input,
 .comment-form .form-select {
@@ -1370,7 +1371,7 @@ html.js input.throbbing {
   width: auto;
 }
 .no-sidebars .comment-form .form-text {
-  width: 800px;
+  width: 880px;
 }
 .one-sidebar .comment-form .form-text {
   width: 500px;

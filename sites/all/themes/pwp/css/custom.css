@@ -127,11 +127,10 @@ h2#control {
     display: none;
 }
 #match-create-match-form {
-    width: 440px;
-    margin: 0 auto;
 }
 #match-create-match-form input.form-submit {
     border: none;
+    float: right;
 }
 #match-create-match-form .form-item {
     float: left;
@@ -150,9 +149,12 @@ h2#control {
 }
 #match-create-match-form .form-item label {
     font-size: 15px;
+    text-align: center;
+    font-weight: 100;
 }
 #match-create-match-form .form-item .description {
     font-size: 10px;
+    text-align: center;
 }
 .center {
     text-align: center;
@@ -277,9 +279,13 @@ table.active-matches tr td.row-players {
 .comment p {
     margin: 0;
 }
-#edit-like,
-#edit-dislike {
+#edit-like {
     float: left;
+    padding: 0;
+}
+#edit-dislike {
+    float: right;
+    padding: 0;
 }
 span.stars, span.stars span {
     display: block;
@@ -427,4 +433,174 @@ span.cash {
     padding: 0 0 0 35px;
     background: url('../images/cash.png') 0% 3px no-repeat transparent;
     margin-right: 15px;
+}
+#block-quicktabs-front-mathces,
+.match-finished-wrap {
+    width: 990px;
+    margin: 0 auto;
+}
+.match-finished-wrap .timing { margin-left: 20px; }
+#comments,
+#privatemsg-form-reply {
+    border-top: 2px solid #d12d40;
+}
+#comments h2 {
+    background: #f4f4f4;
+    padding-left: 20px;
+    padding-top: 5px;
+    margin: 0;
+}
+#comments #comment-form {
+    padding: 20px;
+    background: #f4f4f4;
+}
+
+#comment-body-add-more-wrapper .form-type-textarea label {
+    display: none;
+}
+#comments .comments-wrapper {
+    width: 990px;
+    margin: 0 auto;
+}
+#comments .comment {
+    margin-bottom: 5px;
+}
+.float-right { float: right; }
+.float-left { float: left; }
+.text-right { text-align: right; }
+.text-left { text-align: left; }
+.text-center { text-align: center; }
+#uniteller-order-form { margin: 15px; }
+#uniteller-order-form label[for="edit-qty"] {
+    background: url('../images/pcoins-mini.png') 100% 50% no-repeat transparent;
+    width: 200px;
+    margin-bottom: 5px;
+    font-size: 17px;
+    font-weight: 100;
+}
+
+#uniteller-order-form #edit-qty {
+    width: 200px;
+}
+#uniteller-order-form label[for="edit-qty"] span {
+    display: none;
+}
+.recounter-text {
+    color: #d2d2d2;
+    font-size: 22px;
+    padding: 0 10px;
+}
+.bux {
+    color: #000;
+    padding-left: 5px;
+}
+#qty-recounter {
+    border: 1px solid #d2d2d2;
+    width: 200px;
+}
+#logo img {
+    display: block;
+}
+.page-uniteller-buy #featured {
+    padding: 0;
+    border: none;
+}
+.uniteller-image img {
+    display: block;
+}
+.tabs ul.primary {
+    padding: 0;
+    font-size: 18px;
+    background: url('../images/link.png') 50% 50% transparent;
+}
+.tabs ul.primary li {
+    background: url('../images/link.png') 50% 50% transparent;
+    text-align: center;
+    margin: 0;
+    border-right: 1px solid #e64b5b;;
+    height: 32px;
+}
+.tabs ul.primary li.active {
+    background: url('../images/link-active.png') 50% 50% transparent;
+}
+.tabs ul.primary li a,
+.tabs ul.primary li.active a {
+    background: none;
+    border: none;
+    float: none;
+    color: #fff;
+    line-height: 32px;
+}
+.tabs ul.primary li.tab-new-message {
+    float: right;
+    background: url('../images/new-msg-corner.png') 0% 50% no-repeat transparent;
+    width: 250px;
+}
+.privatemsg-message {
+    width: 990px;
+    margin: 0 auto;
+    border-bottom: 1px dashed #d2d2d2;
+    margin-bottom: 10px;
+}
+.privatemsg-message-last {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+.privatemsg-author-avatar {
+    width: 100px;
+    padding: 0;
+}
+
+.privatemsg-message-column {
+    width: 890px;
+}
+div.privatemsg-message-information {
+    background: #f4f4f4;
+    height: 20px;
+}
+.privatemsg-author-name {
+    padding-left: 20px;
+}
+.privatemsg-message-date,
+.privatemsg-message-delete {
+    float: right;
+}
+.privatemsg-message-date,
+span.privatemsg-message-new {
+    margin-right: 5px;
+}
+.privatemsg-user-block {
+    margin-left: 30px;
+}
+.privatemsg-message-date {
+    font-size: 14px;
+    line-height: 20px;
+    color: #000;
+    padding: 0;
+}
+#content h2.privatemsg-reply {
+    background: #f4f4f4;
+    padding-left: 20px;
+    padding-top: 5px;
+    margin: 0;
+}
+#privatemsg-form-reply #edit-actions,
+#privatemsg-form-reply .text-format-wrapper {
+    padding: 20px;
+    background: #f4f4f4;
+}
+#privatemsg-form-reply #edit-actions {
+    margin: 0;
+    padding: 0 20px 10px;
+}
+#privatemsg-form-reply #edit-actions input {
+    float: right;
+    margin: 0;
+}
+#privatemsg-form-reply #edit-actions input:after {
+    content: ".";
+    display: block;
+    height: 0;
+    clear: both;
+    visibility: hidden;
 }

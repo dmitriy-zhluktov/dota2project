@@ -4,7 +4,7 @@ function match_schema(){
 	$schema['teams'] = array(
 		'description' => 'Таблица команд',
 		'fields' => array(
-				'id' => array(
+            'id' => array(
 				'type' => 'serial',
 				'not null' => true,
 				'description' => 'ID команды'
@@ -37,7 +37,12 @@ function match_schema(){
 				'type' => 'serial',
 				'not null' => true,
 				'description' => 'ID записи'
-			),		
+			),
+            'side' => array(
+                'type' => 'int',
+                'size' => 'tiny',
+                'description' => 'Команда 0 или команда 1'
+            ),
 			'team_id' => array(
 				'type' => 'int',
 				'size' => 'normal',

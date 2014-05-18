@@ -347,8 +347,8 @@ function match_finished_block_markup() {
             $radiant[] = l($row->name, 'user/'.$row->uid, array('attributes' => array('class' => array('pro-user'))));
         } else {
             $dire[] = l($row->name, 'user/'.$row->uid, array('attributes' => array('class' => array('pro-user')))).'
-                <a href="#" class="more-info more-info-'.$row->nid.'" row="'.$row->nid.'">'.t('Show more').'</a>
-                <a href="#" class="less-info less-info-'.$row->nid.' hidden" row="'.$row->nid.'">'.t('Hide').'</a>';
+                <a href="#" class="more-info more-info-'.$row->nid.'" row="'.$row->nid.'">'.t('Show more').'<span class="float-right">&#9660;</span></a>
+                <a href="#" class="less-info less-info-'.$row->nid.' hidden" row="'.$row->nid.'">'.t('Hide').'<span class="float-right">&#9650;</span></a>';
         }
         $k = 0;
         while($player = $players->fetchObject()) {
@@ -365,8 +365,8 @@ function match_finished_block_markup() {
                 } else {
                     if($k == 0) {
                         $dire[] = '<a href="#" class="regular-user">'.$player->nickname.'</a>
-                            <a href="#" class="more-info more-info-'.$row->nid.'" row="'.$row->nid.'">'.t('Show more').'</a>
-                            <a href="#" class="less-info less-info-'.$row->nid.' hidden" row="'.$row->nid.'">'.t('Hide').'</a>';
+                            <a href="#" class="more-info more-info-'.$row->nid.'" row="'.$row->nid.'">'.t('Show more').'<span class="float-right">&#9660;</span></a>
+                            <a href="#" class="less-info less-info-'.$row->nid.' hidden" row="'.$row->nid.'">'.t('Hide').'<span class="float-right">&#9650;</span></a>';
                     } else {
                         $dire[] = '<a href="#" class="regular-user">'.$player->nickname.'</a>';
                     }

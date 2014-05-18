@@ -9,7 +9,7 @@ function match_get_node_data() {
 	$html = '';
 	switch ($type) {
 		case 0:
-			$html = match_get_node_planned_markup($node);
+			$html = match_get_node_planned_markup($node, $user);
 			break;
 		case 1:
 			$html = match_get_node_active_markup($node, $user);
@@ -22,7 +22,7 @@ function match_get_node_data() {
 	return $html;
  }
 
-function match_get_node_planned_markup($node) {
+function match_get_node_planned_markup($node, $user) {
 	//krumo($node);
     $author = user_load($node->uid);
 
@@ -79,13 +79,16 @@ function match_get_node_planned_markup($node) {
                 </tr>
             </table>';
 
-	$form = drupal_get_form('match_node_planned_form');
-
+    $form = '';
+    if($node->uid == $user->uid) {
+        $form = drupal_get_form('match_node_planned_form');
+        $form = drupal_render($form);
+    }
     if($node->field_free_place[$node->language][0]['value'] > 0) {
         $ticketform = drupal_get_form('match_node_planned_ticket_form');
         $html .= drupal_render($ticketform);
     }
-	$html .= drupal_render($form);
+	$html .= $form;
     module_load_include('module', 'match', '../match');
 
 	return $html;
@@ -178,9 +181,16 @@ function match_get_node_finished_markup($node, $user) {
     $html .= '';
     if(count($node->field_vod) > 0 && $node->field_vod[$node->language][0]['value'] != "")
         $html .= '<div class="vod"><a class="check-vod" href="'.$node->field_vod[$node->language][0]['value'].'" target="_blank" alt="'.t('Check the VOD').'" title="'.t('Check the VOD').'">'.t('Check the VOD').'</a></div>';
-    $form = drupal_get_form('match_node_finished_form');
+
+    $form = '';
+    if($node->uid == $user->uid) {
+        $form = drupal_get_form('match_node_finished_form');
+        $form = drupal_render($form);
+    }
     $like = drupal_get_form('match_node_like_form');
-    $html .= drupal_render($form).drupal_render($like);
+
+    $html .= $form.drupal_render($like);
+    $html = '<div class="match-finished-wrap">'.$html.'</div>';
 	return $html;
 }
 
@@ -1084,7 +1094,8 @@ function match_create_match_form($form, &$form_state) {
 	$form['date'] = array(
 		'#type' => 'date',
 		//'#date_format' => 'd/m/Y',
-		'#title' => t('Match day')
+		'#title' => t('Match day'),
+        '#required' => TRUE
 	);
 	
 	$form['time'] = array(
@@ -1313,6 +1324,7 @@ function match_node_like_form($form, &$form_state) {
                 '#type' => 'submit',
                 '#value' => t('Like'),
                 '#name' => 'like',
+                '#attributes' => array('class' => array('match-like'))
             ),
         );
         $form['dislike'] = array(
@@ -1321,7 +1333,9 @@ function match_node_like_form($form, &$form_state) {
                 '#type' => 'submit',
                 '#value' => t('Dislike'),
                 '#name' => 'dislike',
+                '#attributes' => array('class' => array('match-dislike'))
             ),
+            '#suffix' => '<div class="clear"></div>',
         );
         $form['#submit'] = array(
                 '0' => 'match_controll_form_submit',

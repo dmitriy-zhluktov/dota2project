@@ -9,4 +9,14 @@
         }
     }
 
+    Drupal.behaviors.uniteller = {
+        attach: function (context, settings){
+            $('#edit-qty').keyup(function(e) {
+                if($(this).val() == '')
+                    $('#qty-recounter').val('');
+                else
+                    $('#qty-recounter').val($(this).val()*settings.uniteller.currency);
+            });
+        }
+    }
 })(jQuery);
