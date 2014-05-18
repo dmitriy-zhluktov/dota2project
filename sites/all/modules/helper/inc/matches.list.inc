@@ -21,7 +21,9 @@ function helper_get_matches_list() {
                 ->entityCondition('bundle', $type)
                 ->propertyCondition('nid', $nids, 'in')
                 ->execute();
-            $nodes = node_load_multiple(array_keys($entities['node']));
+            if(count($entities) > 0) {
+                $nodes = node_load_multiple(array_keys($entities['node']));
+            }
         }
     } else {
         $query = new EntityFieldQuery();
@@ -29,7 +31,9 @@ function helper_get_matches_list() {
             ->entityCondition('bundle', $type)
             ->propertyCondition('uid', $uid)
             ->execute();
-        $nodes = node_load_multiple(array_keys($entities['node']));
+        if(count($entities) > 0) {
+            $nodes = node_load_multiple(array_keys($entities['node']));
+        }
     }
     if(count($nodes) > 0) {
         //krumo($nodes);
@@ -69,6 +73,6 @@ function helper_get_matches_list() {
 
         return theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('class' => array('user-matches'))));
     } else {
-        return t('Not implemented yet');
+        return t("You didn't play yet");
     }
 }
