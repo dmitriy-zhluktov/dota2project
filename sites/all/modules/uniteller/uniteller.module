@@ -26,9 +26,9 @@ function uniteller_menu() {
 
     $items['uniteller/buy'] = array(
         'title' => t('Buy'),
-        'page callback' => 'drupal_get_form',
+        'page callback' => 'uniteller_buy_page',
         'access callback' => 'user_is_logged_in',
-        'page arguments' => array('uniteller_order_form'),
+        'page arguments' => array(),
         'menu_name' => 'menu-helper-menu',
     );
 
@@ -152,6 +152,7 @@ function uniteller_order_form($form, &$form_state) {
         '#title' => t('Quantity'),
         '#required' => true,
         '#element_validate' => array('element_validate_integer_positive'),
+        '#field_suffix' => '<span class="recounter-text">=</span><input type="text" disabled="disabled" id="qty-recounter" /><span class="recounter-text bux">$</span>'
     );
 
     $form['submit'] = array(
@@ -465,4 +466,11 @@ function uniteller_get_money() {
         ->execute();
     $cash = $res->fetchObject();
     return '<span class="cash">'.$cash->cash.'</span>'.t('Buy');
+}
+
+function uniteller_buy_page() {
+    $form = drupal_get_form('uniteller_order_form');
+    $html = drupal_render($form);
+    drupal_add_js(array('uniteller' => array('currency' => variable_get('uniteller_currency'))), array('type' => 'setting'));
+    return $html;
 }
