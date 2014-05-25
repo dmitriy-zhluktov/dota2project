@@ -187,14 +187,20 @@ function pwp_username(&$vars) {
 
 function pwp_preprocess_link(&$vars) {
 
-    if($vars['path'] == 'messages' && $vars['text'] == privatemsg_title_callback()) {
-        //krumo($vars);
+    if($vars['path'] == 'messages' && $vars['text'] == 'Messages') {
         $vars['options']['html'] = TRUE;
         $vars['text'] = helper_privatemessage_menu_title();
     }
     if($vars['path'] == 'uniteller/buy') {
         $vars['options']['html'] = TRUE;
         $vars['text'] = uniteller_get_money();
+    }
+    if($vars['path'] == 'user') {
+        $vars['text'] = helper_user_menu_title();
+    }
+    if($vars['path'] == 'my-matches' && $vars['text'] == 'My matches') {
+        $vars['options']['html'] = TRUE;
+        $vars['text'] = helper_my_matches_title_callback();
     }
 }
 

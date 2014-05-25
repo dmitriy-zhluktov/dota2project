@@ -430,9 +430,12 @@ a.player-button.kick {
 }
 span.cash {
     display: inline-block;
-    padding: 0 0 0 35px;
-    background: url('../images/cash.png') 0% 3px no-repeat transparent;
-    margin-right: 15px;
+    padding: 2px 100px 2px 10px;
+    background: url('../images/pcoins-mini.png') 45px 50% no-repeat #fff;
+    margin-right: 25px;
+    float: left;
+    border-radius: 3px;
+    margin-top: 3px;
 }
 #block-quicktabs-front-mathces,
 .match-finished-wrap {
@@ -459,7 +462,7 @@ span.cash {
     display: none;
 }
 #comments .comments-wrapper {
-    width: 990px;
+    width: 980px;
     margin: 0 auto;
 }
 #comments .comment {
@@ -517,7 +520,7 @@ span.cash {
     background: url('../images/link.png') 50% 50% transparent;
     text-align: center;
     margin: 0;
-    border-right: 1px solid #e64b5b;;
+    border-right: 1px solid #e64b5b;
     height: 32px;
 }
 .tabs ul.primary li.active {
@@ -603,4 +606,63 @@ span.privatemsg-message-new {
     height: 0;
     clear: both;
     visibility: hidden;
+}
+.control-icon {
+    width: 20px;
+    height: 20px;
+    background: url('../images/roll.png') 50% 50% no-repeat transparent;
+    display: block;
+    padding: 5px 10px;
+}
+.update-wallet {
+    background: #3d3d3d;
+    color: #fff;
+    padding: 2px 10px;
+    border-radius: 3px;
+    float: right;
+    margin-right: 15px;
+    margin-top: 3px;
+}
+.node-news .content {
+    padding: 10px;
+}
+#match-node-active-form,
+#match-node-planned-form {
+    padding: 10px;
+}
+table.active-matches tr td.row-twitch {
+    border-top: 2px solid #e64b5b;
+    padding: 0;
+
+}
+.twitch-wrap {
+    height: 29px;
+    overflow: hidden;
+}
+.best-match .twitch-wrap {
+    height: auto;
+}
+.twitch-slider {
+    width: 220px;
+    height: 29px;
+    margin: 0 auto;
+    background: url('../images/stream-button.png') 50% 50% no-repeat transparent;
+    cursor: pointer;
+}
+.widget {
+    margin-top: 20px;
+}
+table.active-matches {
+    margin-top: 20px;
+    margin-bottom: 0;
+    border-bottom: none;
+}
+.margin-30 {
+    height: 30px;
+}
+#privatemsg-new {
+    padding: 0 10px;
+}
+#privatemsg-new ul li {
+    list-style: none;
 }

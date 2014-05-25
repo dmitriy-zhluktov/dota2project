@@ -79,7 +79,7 @@ table.match-statistics tr th.dire,
 table.finished-matches tr th.dire {
     color: #d66150;
 }
-div.winner { text-align: center; margin: 10px 0;}
+.match-finished-wrap div.winner { text-align: center; margin: 10px 0;}
 table.winner {
     margin: 0;
     border: none;

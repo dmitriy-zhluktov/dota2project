@@ -103,7 +103,7 @@
         </div> <!-- /#main-menu -->
     <?php endif; ?>
     <?php if ($page['control_panel']): ?>
-    <h2 id="control"><a href="#" title="<?php print t('Control panel'); ?>"><?php print t('Control panel'); ?></a></h2>
+    <h2 id="control"><a href="#" title="<?php print t('Control panel'); ?>" class="control-icon"></a></h2>
     <?php print render($page['control_panel']); ?>
 <?php endif; ?>
 </div></div> <!-- /.section, /#control-panel -->

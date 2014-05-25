@@ -227,13 +227,39 @@ function match_active_block_markup() {
 	/* sorting*/
     if(isset($sortByViewers) && $sortByViewers != null) {
 	    array_multisort($sortByViewers, SORT_DESC, $viewers);
-
+        $table = '<table class="active-matches sticky-enabled tableheader-processed sticky-table">
+                <thead>
+                    <tr>
+                        <th>'.t('ID').'</th>
+                        <th>'.t('Mod').'</th>
+                        <th>'.t('Players').'</th>
+                        <th>'.t('Timing').'</th>
+                    </tr>
+                </thead>
+                <tbody>';
         foreach($viewers as $view) {
             $addClass = '';
             if ($i == 0)
                 $addClass .= 'best-match';
+            if($i%2 == 0) {
+                $addClass .= ' odd';
+            } else {
+                $addClass .= ' even';
+            }
+            $table .= '<tr class="'.$addClass.'">
+                        <td class="row-id">'.l(t('Match №').$rows[$view['id']]->nid, 'match/'.$rows[$view['id']]->nid).'</td>
+                        <td class="row-mod">'.$rows[$view['id']]->field_mod_value.'</td>
+                        <td class="row-players">'.match_get_players_html($rows[$view['id']]->field_profi_command_value, $rows[$view['id']]->uid, $rows[$view['id']]->name).'</td>
+                        <td class="row-timing">'.match_get_timing($rows[$view['id']]->field_started_value).'</td>
+                        </tr>
+                        <tr class="'.$addClass.'">
+                        <td class="row-twitch" colspan="4"><div class="twitch-wrap" id="widget-'.$rows[$view['id']]->nid.'"><div class="twitch-slider" open="'.$rows[$view['id']]->nid.'"></div><div class="widget">'.match_get_twitch_html($rows[$view['id']]->field_vod_value).'</div></div></td>
+                        </tr>';
+            if($i < (count($viewers) - 1)) {
+                $table .= '<tr class="margin-30" />';
+            }
 
-            $body[] = array(
+            /*$body[] = array(
                 'data' => array(
                     array( 'data' => l(t('Match №').$rows[$view['id']]->nid, 'match/'.$rows[$view['id']]->nid), 'class' => 'row-id'),
                     array( 'data' => $rows[$view['id']]->field_mod_value, 'class' => 'row-mod'),
@@ -241,17 +267,19 @@ function match_active_block_markup() {
                     array( 'data' => match_get_timing($rows[$view['id']]->field_started_value), 'class' => 'row-timing'),
                 ),
                 'class' => array($addClass)
-            );
+            );*/
             $i++;
         }
-        $header = array(
+        $table .= '</tbody></table>';
+        /*$header = array(
             'ID',
             t('Mod'),
             t('Players'),
             t('Timing'),
-        );
-        $output .= theme('table', array('header' => $header, 'rows' => $body, 'attributes' => array('class' => array('active-matches'))));
-	    $output .= theme('pager', array('element' => 2, 'tags' => array('0' => t('в нач.'), '1' => t('пред.'), '2' => t('t2'), '3' => t('след.'), '4' => t('посл.'))));    // Получаем html код таблицы
+        );*/
+        //$output .= theme('table', array('header' => $header, 'rows' => $body, 'attributes' => array('class' => array('active-matches'))));
+        $output .= $table;
+	    $output .= theme('pager', array('element' => 2, 'tags' => array('0' => t('first'), '1' => t('prev.'), '2' => t('...'), '3' => t('next'), '4' => t('last'))));    // Получаем html код таблицы
     } else {
         $output .= '<div class="center" id="no-active">'.t('No active matches at this moment').'</div>';
     }

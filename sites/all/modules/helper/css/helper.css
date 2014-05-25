@@ -1,17 +1,18 @@
 #block-menu-menu-helper-menu { height: 33px; float: right; margin-right: 20px; }
 #block-menu-menu-helper-menu h2 { display: none; }
-#block-menu-menu-helper-menu ul li { float: left; }
+#block-menu-menu-helper-menu ul li { float: left; height: 30px;}
 #block-menu-menu-helper-menu ul li.leaf {
     list-style: none;
 }
 span.prvtmsg-icon {
     position: relative;
     display: block;
+    padding: 3px 15px;
 }
 span.prvtmsg-count {
     position: absolute;
-    bottom: -4px;
-    right: -9px;
+    bottom: 0;
+    right: 5px;
     background: #fff;
     height: 15px;
     width: 15px;
@@ -20,4 +21,34 @@ span.prvtmsg-count {
     color: #ee2d42;
     border-radius: 2px;
     font-size: 15px;
+}
+#block-menu-menu-helper-menu ul li.last {
+    border-left: 2px dotted #bababa;
+    padding-left: 10px;
+    line-height: 30px;
+}
+#block-menu-menu-helper-menu ul li {
+    border-left: 2px solid #d2d2d2;
+    padding: 0;
+    position: relative;
+}
+#block-menu-menu-helper-menu ul li.first {
+    border-left: none;
+}
+.active-match-link {
+    color: #ee2d42;
+    position: absolute;
+    right: 9px;
+    bottom: 0;
+    font-size: 15px;
+}
+.active-match-link:hover {
+    color: #ee2d42;
+    text-decoration: none;
+}
+span.mymatch-icon {
+    padding: 7px 15px 0;
+}
+span.mymatch-icon span.prvtmsg-count {
+    bottom: 2px;
 }

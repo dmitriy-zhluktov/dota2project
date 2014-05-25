@@ -276,12 +276,14 @@ function helper_get_nickname_by_steam_id($id) {
 }
 
 function helper_menu_alter(&$items) {
-    //krumo($items);
-    if(isset($items['messages'])) {
+    if(isset($items['messages']) && $items['messages']['menu_name'] == 'user-menu') {
         $items['messages']['menu_name'] = 'menu-helper-menu';
         //$items['messages']['title callback'] = 'helper_privatemessage_title_callback';
-        //krumo($items);exit;
     }
+    if(isset($items['user'])) {
+        $items['user']['menu_name'] = 'menu-helper-menu';
+    }
+
     unset($items['messages/new']);
     $items['messages/new'] = array(
         'title'            => '+ Write new message',
@@ -373,4 +375,61 @@ function helper_user_view($account) {
     global $user;
     if($account->uid == $user->uid)
         unset($account->content['privatemsg_send_new_message']);
+}
+
+function helper_user_menu_title() {
+    return user_is_logged_in() ? $GLOBALS['user']->name : t('User account');
+}
+
+function helper_my_matches_title_callback() {
+    global $user;
+    $type = 'match';
+    $count = 0;
+    if(!in_array('pro', $user->roles)) {
+        $query = "SELECT t.match_id FROM {teams} AS t
+          JOIN {players} AS p ON p.team_id = t.id
+          WHERE p.uid = $user->uid";
+        $exec = db_query($query);
+        while($res = $exec->fetchAssoc()) {
+            $nids[] = $res['match_id'];
+        }
+
+        if(count($nids) > 0) {
+            $query = new EntityFieldQuery();
+            $entities = $query->entityCondition('entity_type', 'node')
+                ->entityCondition('bundle', $type)
+                ->propertyCondition('nid', $nids, 'in')
+                ->fieldCondition('field_state', 'value', 1)
+                ->range(0, 1)
+                ->execute();
+            //krumo($entities);
+            if(count($entities) > 0) {
+                $nid = array_keys($entities['node'])[0];
+                $count = 1;
+            }
+        }
+    } else {
+        $query = new EntityFieldQuery();
+        $entities = $query->entityCondition('entity_type', 'node')
+            ->entityCondition('bundle', $type)
+            ->propertyCondition('uid', $user->uid)
+            ->fieldCondition('field_state', 'value', 1)
+            ->range(0, 1)
+            ->execute();
+        if(count($entities) > 0) {
+            $nid = array_keys($entities['node'])[0];
+            $count = 1;
+        }
+    }
+    $icon = theme('image', array(
+        'path' => drupal_get_path('theme', 'pwp').'/images/match-icon.png',
+        'alt' => t('My mathces'),
+        'title' => t('My matches'),
+        'width' => 20,
+        'height' => 17
+    ));
+    if ($count > 0) {
+        return '<span class="prvtmsg-icon mymatch-icon">'.$icon.'<span class="prvtmsg-count">'.l($count, 'match/'.$nid, array('attributes' => array('class' => array('active-match-link'), 'title' => t('To active match')))).'</span></span>';
+    }
+    return '<span class="prvtmsg-icon">'.$icon.'</span>';
 }

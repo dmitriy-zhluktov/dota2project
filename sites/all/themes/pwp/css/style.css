@@ -505,6 +505,7 @@ h1#site-name {
 .featured #main-menu-links li a:active,
 .featured #main-menu-links li a.active {
     background: url('../images/link-active.png') 50% 50% transparent;
+    border-bottom-left-radius: 5px;
 }
 
 /* --------------- Secondary Menu ------------ */
