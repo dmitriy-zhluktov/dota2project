@@ -418,7 +418,8 @@ function helper_my_matches_title_callback() {
             ->range(0, 1)
             ->execute();
         if(count($entities) > 0) {
-            $nid = array_keys($entities['node'])[0];
+            $nid = array_keys($entities['node']);
+            $nid = $nid[0];
             $count = 1;
         }
     }
