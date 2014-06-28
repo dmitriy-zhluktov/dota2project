@@ -8,7 +8,7 @@
 .best-match .active-twitch,
 .display.active-twitch { display: block; }
 .display.active-twitch { margin-top: 15px; }
-table.planned-matches tr.we-need-a-hero {background-color: #0F1; }
+table.planned-matches tr.we-need-a-hero {background-color: #F8AEBA; }
 table.planned-matches tr.we-need-a-hero td { position: relative; }
 .hero-span {
     position: absolute;

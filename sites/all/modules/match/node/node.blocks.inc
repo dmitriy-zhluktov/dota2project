@@ -84,7 +84,7 @@ function match_get_node_planned_markup($node, $user) {
         $form = drupal_get_form('match_node_planned_form');
         $form = drupal_render($form);
     }
-    if($node->field_free_place[$node->language][0]['value'] > 0) {
+    if($node->field_free_place[$node->language][0]['value'] > 0 && !in_array('ban', $user->roles)) {
         $ticketform = drupal_get_form('match_node_planned_ticket_form');
         $html .= drupal_render($ticketform);
     }
@@ -1058,7 +1058,6 @@ function match_controll_form_submit($form, &$form_state) {
             drupal_set_message(t('Thanks for you voice'));
         break;
         case 'kick':
-            //krumo($form_state);
             $pid = (int)$form_state['values']['pid'];
             if(!$pid || $pid == 0) {
                 drupal_set_message(t('Wrong player id'), 'error');
@@ -1072,16 +1071,29 @@ function match_controll_form_submit($form, &$form_state) {
                     'match_id' => $node->nid,
                     'reason_id' => $form_state['values']['reason']
                 ))->execute();
-
+                $reason = taxonomy_term_load($form_state['values']['reason']);
+                $ban = $reason->field_days_of_ban[$reason->language][0]['value'];
+                $transReason = i18n_taxonomy_localize_terms($reason);
+                $target = user_load($pid);
+                $target->field_kick_reason[LANGUAGE_NONE][0]['value'] = $form_state['values']['reason'];
                 privatemsg_new_thread(
-                    array(user_load($pid)),
+                    array($target),
                     t('Kicked from match'),
-                    t('You was kicked from Match №@match_id by a reason @reason_id',
-                        array('@match_id' => $node->nid, '@reason_id' => $form_state['values']['reason'])),
+                    t('You was kicked from Match №@match_id by a reason @reason',
+                        array('@match_id' => $node->nid, '@reason' => $transReason->description)),
                     array(
                         'autrhor' => $user,
                         'timestamp' => REQUEST_TIME
                     ));
+                if($ban > 0) {
+                    $roles = $target->roles;
+                    $rid = array_search('ban', user_roles());
+                    $roles[$rid] = 'ban';
+                    $expire = 'role_expire_'.$rid;
+                    $target->roles = $roles;
+                    $target->$expire = $ban.' day';
+                }
+                user_save($target);
                 $node->field_free_place[$node->language][0]['value']++;
                 node_save($node);
                 drupal_set_message(t('Player kicked'));
@@ -1353,16 +1365,18 @@ function match_get_kick_player_form() {
 }
 
 function match_kick_player_form($form, &$form_state) {
-    //krumo($args);
+    $banReason = taxonomy_vocabulary_machine_name_load('bans');
+    $reasons = taxonomy_get_tree($banReason->vid);
+    $reasons = i18n_taxonomy_localize_terms($reasons);
+    $options = array();
+    foreach($reasons as $reason) {
+        $options[$reason->tid] = $reason->description;
+    }
     $form['reason'] = array(
         '#type' => 'radios',
         '#title' => t('Kick reasons'),
         '#required' => TRUE,
-        '#options' => array(
-            t('AFK'),
-            t('Leaver'),
-            t('Something else')
-        )
+        '#options' => $options
     );
     $form['pid'] = array(
         '#type' => 'hidden',

@@ -305,7 +305,7 @@ function helper_privatemessage_menu_title() {
         'alt' => t('Messages'),
         'title' => t('Messages'),
         'width' => 20,
-        'height' => 11
+        'height' => 15
     ));
     if ($count > 0) {
         return '<span class="prvtmsg-icon">'.$icon.'<span class="prvtmsg-count">'.$count.'</span></span>';
@@ -378,13 +378,27 @@ function helper_user_view($account) {
 }
 
 function helper_user_menu_title() {
-    return user_is_logged_in() ? $GLOBALS['user']->name : t('User account');
+    global $user;
+    $user = user_load($user->uid);
+    $ban = false;
+    if(in_array('ban', $user->roles)) {
+        $ban = true;
+    }
+
+    if($user->uid != 0 && !$ban && isset($user->picture)) {
+        $pic = theme('image_style', array('path' => $user->picture->uri, 'style_name' => 'user_top_pic'));
+        $data['pic'] = $pic;
+    }
+    $data['ban'] = $ban;
+    $data['name'] = user_is_logged_in() ? $GLOBALS['user']->name : t('User account');
+    return $data;
 }
 
 function helper_my_matches_title_callback() {
     global $user;
     $type = 'match';
     $count = 0;
+    $nids = array();
     if(!in_array('pro', $user->roles)) {
         $query = "SELECT t.match_id FROM {teams} AS t
           JOIN {players} AS p ON p.team_id = t.id
@@ -428,10 +442,59 @@ function helper_my_matches_title_callback() {
         'alt' => t('My mathces'),
         'title' => t('My matches'),
         'width' => 20,
-        'height' => 17
+        'height' => 15
     ));
     if ($count > 0) {
         return '<span class="prvtmsg-icon mymatch-icon">'.$icon.'<span class="prvtmsg-count">'.l($count, 'match/'.$nid, array('attributes' => array('class' => array('active-match-link'), 'title' => t('To active match')))).'</span></span>';
     }
     return '<span class="prvtmsg-icon">'.$icon.'</span>';
+}
+
+function helper_user_is_online($uid) {
+    $online = db_query("SELECT uid FROM {sessions} WHERE uid = :uid AND timestamp >= :time", array(':uid' => $uid, ':time' => (REQUEST_TIME - 600)))->fetchField();
+    return $online;
+}
+
+function helper_picture_form($form, &$form_state) {
+
+    // Attach User Picture upload
+    $form['picture']['profile'] = array(
+        '#type' => 'file',
+        '#title' => t('Profile picture'),
+    );
+
+    $form['submit'] = array('#type' => 'submit','#value' => 'Submit');
+
+    return $form;
+}
+
+
+function helper_picture_form_validate($form, &$form_state) {
+    $file = file_save_upload('profile', array(
+        'file_validate_is_image' => array(),
+        'file_validate_extensions' => array('png gif jpg jpeg'),
+    ));
+    if ($file) {
+        if ($file = file_move($file, 'public://')) {
+            $form_state['values']['profile'] = $file;
+        } else {
+            form_set_error('profile', t('Failed to write the uploaded file the site\'s file folder.'));
+        }
+    } else {
+        form_set_error('profile', t('No file was uploaded.'));
+    }
+}
+
+function helper_picture_form_submit($form, &$form_state) {
+    global $user;
+    $uid = $user->uid;
+    $account = user_load($uid);
+
+    $file = $form_state['values']['profile'];
+    unset($form_state['values']['profile']);
+    $file->status = FILE_STATUS_PERMANENT;
+    file_save($file);
+
+    $edit['picture'] = $file;
+    user_save($account, $edit);
 }

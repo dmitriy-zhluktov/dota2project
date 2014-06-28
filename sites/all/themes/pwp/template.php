@@ -77,6 +77,9 @@ function pwp_process_page(&$variables) {
   }
     /* unset "No content message" */
     unset($variables['page']['content']['system_main']['default_message']);
+    if(isset($variables['page']['content']['system_main']['#theme']) && $variables['page']['content']['system_main']['#theme'] == 'user_profile') {
+        $variables['title'] = NULL;
+    }
 }
 
 /**
@@ -186,7 +189,6 @@ function pwp_username(&$vars) {
 }
 
 function pwp_preprocess_link(&$vars) {
-
     if($vars['path'] == 'messages' && $vars['text'] == 'Messages') {
         $vars['options']['html'] = TRUE;
         $vars['text'] = helper_privatemessage_menu_title();
@@ -196,7 +198,14 @@ function pwp_preprocess_link(&$vars) {
         $vars['text'] = uniteller_get_money();
     }
     if($vars['path'] == 'user') {
-        $vars['text'] = helper_user_menu_title();
+        $params = helper_user_menu_title();
+        if(!$params['ban']) {
+            $vars['text'] = $params['name'];
+            //$vars['options']['html'] = TRUE;
+        } else {
+            $vars['text'] = '<span class="ban">BAN</span>'.$params['name'];
+            $vars['options']['html'] = TRUE;
+        }
     }
     if($vars['path'] == 'my-matches' && $vars['text'] == 'My matches') {
         $vars['options']['html'] = TRUE;
@@ -253,4 +262,77 @@ function pwp_preprocess_privatemsg_view(&$vars) {
     }
     $timestamp = $vars['message']->timestamp;
     $vars['message_date'] = date('d.m.Y, H:i A', $timestamp);
+}
+
+function pwp_preprocess_user_profile(&$vars) {
+    global $user;
+    $account = $vars['elements']['#account'];
+    $roles = $account->roles;
+    if(in_array('ban', $roles)) {
+        $expire = role_expire_get_user_role_expiry_time($account->uid, array_search('ban', $roles));
+        $expire = new DateTime(date("Y-m-d H:i:s",$expire));
+        $expire = $expire->diff(new DateTime());
+        $kick = $account->field_kick_reason[LANGUAGE_NONE][0]['value'];
+        $reason = taxonomy_term_load($kick);
+        $transReason = i18n_taxonomy_localize_terms($reason);
+        if($expire->d == 0) {
+            $days = '';
+        } else {
+            $days = $expire->d.' '.t('days');
+        }
+        if($expire->h < 10) {
+            $hour = '0'.$expire->i;
+        } else {
+            $hour = $expire->i;
+        }
+        if($expire->i < 10) {
+            $min = '0'.$expire->i;
+        } else {
+            $min = $expire->i;
+        }
+        if($expire->s < 10) {
+            $sec = '0'.$expire->s;
+        } else {
+            $sec = $expire->s;
+        }
+        $vars['user_profile']['ban'] = array(
+            'description' => $transReason->description,
+            'expiration' => $days.' '.$hour.':'.$min.':'.$sec,
+        );
+        drupal_add_css(drupal_get_path('theme', 'pwp').'/js/colorbox.css');
+        drupal_add_js(drupal_get_path('theme', 'pwp').'/js/jquery.colorbox-min.js');
+    } else {
+        $vars['user_profile']['ban'] = FALSE;
+    }
+    $vars['user_profile']['pro'] = FALSE;
+    if(in_array('pro', $roles)) {
+        $vars['user_profile']['pro'] = TRUE;
+    }
+
+    $vars['user_profile']['self'] = FALSE;
+    if($user->uid == $account->uid) {
+        $vars['user_profile']['self'] = TRUE;
+        $vars['user_profile']['picform'] = drupal_get_form('helper_picture_form');
+    } else {
+        $vars['user_profile']['msglink'] = l(t('Send a message'), 'messages/new/'.$account->uid, array('attributes' => array('class' => array('send-msg'))));
+    }
+    $vars['user_profile']['name'] = $account->name;
+    $vars['user_profile']['is_online'] = helper_user_is_online($account->uid);
+}
+function pwp_preprocess_menu_link(&$vars) {
+    if($vars['element']['#href'] == 'user') {
+        $params = helper_user_menu_title();
+        if(!$params['ban']) {
+            $vars['element']['#below']['#markup'] = $params['pic'];
+            $vars['element']['#attributes']['class'][] = 'no-ban';
+        }
+        //krumo($vars);
+    }
+}
+
+function pwp_form_alter(&$form, &$form_state, $form_id) {
+    if ($form_id == 'user_profile_form') {
+        unset($form['field_kick_reason']);
+        unset($form['contact']);
+    }
 }

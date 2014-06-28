@@ -1,3 +1,13 @@
+@font-face {
+    font-family: "Din";
+    src: url("../fonts/DINPro-Regular.otf");
+}
+@font-face {
+    font-family: "Din";
+    src: url("../fonts/DINPro-Bold.otf");
+    font-weight: bold;
+}
+
 #block-ajax-register-ajax-register-block { background: #ee2d42; width: 170px; font-size: 14px; position: absolute; right: 0; top: 35px; display: none; z-index: 1;}
 #block-ajax-register-ajax-register-block a { color: #fff; }
 #block-ajax-register-ajax-register-block .content { margin: 0;}
@@ -17,9 +27,9 @@ div.ctools-modal-content .form-item .description { display: none;}
 #block-quicktabs-front-mathces h2 { display: none; }
 #control-panel {
     box-shadow: 0px 3px 10px rgba(0,0,0,0.5);
-    z-index: 2;
     position: relative;
     background: url('../images/control-bg.png') 50% 50% transparent;
+    border-bottom-left-radius: 5px;
 }
 ul.quicktabs-tabs {
     height: 43px;
@@ -307,10 +317,13 @@ span.stars span {
 }
 #above-mask {
     position: relative;
-    width: 250px;
+    width: 500px;
     margin: 0 auto;
     z-index: 101;
     background: #fff;
+}
+#match-kick-player-form {
+    padding: 0 10px;
 }
 div.contextual-links-wrapper {
     z-index: 99;
@@ -549,8 +562,10 @@ span.cash {
     border-bottom: none;
     margin-bottom: 0;
 }
-.privatemsg-author-avatar {
+.privatemsg-author-avatar,
+.privatemsg-author-avatar img {
     width: 100px;
+    max-height: 100px;
     padding: 0;
 }
 
@@ -665,4 +680,170 @@ table.active-matches {
 }
 #privatemsg-new ul li {
     list-style: none;
+}
+.profile {
+    padding: 0 10px;
+}
+.user-wrapper {
+    padding: 10px;
+}
+.user-picture-wrap,
+.user-profile-level,
+.user-ratings,
+.match-box {
+    float: left;
+}
+.user-ratings {
+    padding-top: 50px;
+    margin-left: 30px;
+}
+.match-box {
+    text-align: center;
+    margin: 0 10px;
+    width: 80px;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+.match-box.wins {
+    margin: 0;
+}
+.match-box div {
+    font-size: 21px;
+}
+.win-rating {
+    text-align: right;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+.winrate-percents {
+    color: #ee2d42;
+}
+.separator-horizontal {
+    font-size: 50px;
+    line-height: 65px;
+}
+.match-box .all-matches {
+    background: #3b3b3b;
+    color: #fff;
+}
+.match-box .lost,
+.match-box .wins {
+    background: #ececec;
+    color: #3d3d3d;
+}
+.steam-profile {
+    float: right;
+}
+
+.steam-profile a {
+    display: block;
+    width: 32px;
+    height: 32px;
+    background: url('../images/steam.png') no-repeat 50% 50% transparent;
+}
+.steam-profile .no-steam-identity {
+    margin: 45px auto 0;
+}
+.ban {
+    background: #FF0000;
+    color: #FFFFFF;
+    display: inline-block;
+    font-size: 12px;
+    height: 30px;
+    margin-right: 5px;
+    text-align: center;
+    text-decoration: none;
+    width: 30px;
+}
+.no-ban a {
+    display: block;
+    float: right;
+    margin-left: 5px;
+}
+.no-ban img {
+    display: block;
+}
+body {
+    background: url('../images/bg.jpg') no-repeat 50% 0 #fff;
+}
+#ban-above-mask {
+    right: 10px;
+    color: #ee2d42;
+    width: 350px;
+}
+#ban-above-mask h2 {
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 0;
+    font-size: 23px;
+    background: #cd3143;
+    color: #fff;
+    text-transform: uppercase;
+}
+
+.expiration {
+    text-align: center;
+    font-size: 35px;
+    background: #fff;
+    color: #3d3d3d;
+}
+#ban-above-mask .description {
+    color: #000;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+    -moz-border-radius-bottomleft: 5px;
+    -moz-border-radius-bottomright: 5px;
+    margin-bottom: 10px;
+}
+.grey {
+    background: #ececec;
+}
+#ban-above-mask .description .grey,
+#ban-above-mask .description .plain {
+    padding: 0 5px;
+}
+.tabs {
+    position: relative;
+}
+.image1,
+.image2 {
+    background-size: 100%;
+}
+#block-system-user-menu a,
+#block-system-user-menu a:hover {
+    color: #fff;
+    text-decoration: none;
+}
+.profile-level {
+    width: 270px;
+    height: 105px;
+    background: url('../images/profile-level.png') no-repeat 50% 50% transparent;
+    margin-top: 20px;
+}
+.profile-level.pro {
+    background: url('../images/profile-pro.png') no-repeat 50% 50% transparent;
+}
+.user-profile-level {
+    margin-left: 20px;
+}
+.user-profile-level h1 {
+    margin: 0 0 10px;
+    font-size: 35px;
+    line-height: 25px;
+    display: inline;
+}
+.online {
+    color: #00ff00;
+    font-size: 25px;
+}
+.offline {
+    color: #cd3143;
+    font-size: 25px;
+}
+.page-user-edit .form-wrapper {
+    margin: 0 10px;
+}
+.pic-form {
+    width: 115px;
+    float: left;
 }

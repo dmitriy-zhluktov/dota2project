@@ -56,6 +56,9 @@ jQuery(document).ready(function($) {
         pid = $(this).attr('kick');
         $('input[name="pid"]').val(pid);
         $('.kick-form').removeClass('hidden');
+        $('#above-mask').css({
+            top: ($(window).height() - $('#above-mask').outerHeight())/2
+        });
     });
     $('a.close').click(function(e) {
         e.preventDefault();
@@ -64,13 +67,11 @@ jQuery(document).ready(function($) {
     $(window).resize(function(){
 
         $('#above-mask').css({
-            //position:'absolute',
-            //left: ($(window).width() - $('#above-mask').outerWidth())/2,
             top: ($(window).height() - $('#above-mask').outerHeight())/2
         });
 
     });
-    $(window).resize();
+
     $('div.see-all').toggle(
         function(e) {
             $('ul.reason-list').animate({height: $('ul.reason-list li').outerHeight()*$('ul.reason-list li').length + 'px'}, 300);

@@ -106,7 +106,7 @@ body,
 #site-slogan,
 .ui-widget,
 .comment-form label {
-  font-family: Georgia, "Times New Roman", Times, serif;
+  font-family: "Din", Georgia, "Times New Roman", Times, serif;
 }
 #header,
 #footer-wrapper,
@@ -121,13 +121,13 @@ div.meta,
 p.comment-time,
 table,
 .breadcrumb {
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: "Din", "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 input,
 textarea,
 select,
 a.button {
-  font-family: "Lucida Grande", "Lucida Sans Unicode", Verdana, sans-serif;
+  font-family: "Din", "Lucida Grande", "Lucida Sans Unicode", Verdana, sans-serif;
 }
 
 /* ------------------ Reset Styles ------------------ */

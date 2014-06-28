@@ -105,7 +105,7 @@ window.flux = {
 		$(this.image1).add(this.image2).css({
 			'position': 'absolute',
 			'top': '0px',
-			'left': '0px'
+			'left': '0px',
 		});
 		
 		// Get a list of the images to use
@@ -183,7 +183,7 @@ window.flux = {
 			var _this = this;
 			this.playing = true;
 			this.interval = setInterval(function() {
-				console.log('play');
+				//console.log('play');
 				_this.transition();
 			}, this.options.delay);
 		},

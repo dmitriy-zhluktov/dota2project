@@ -7,20 +7,22 @@
 span.prvtmsg-icon {
     position: relative;
     display: block;
-    padding: 3px 15px;
+    padding: 7px 15px;
 }
 span.prvtmsg-count {
     position: absolute;
-    bottom: 0;
+    bottom: 5px;
     right: 5px;
-    background: #fff;
-    height: 15px;
-    width: 15px;
-    line-height: 15px;
+    background: #ee2d42;
+    height: 12px;
+    width: 12px;
+    line-height: 12px;
     text-align: center;
-    color: #ee2d42;
+    color: #fff;
     border-radius: 2px;
-    font-size: 15px;
+    font-size: 11px;
+    border: 1px solid #fff;
+    border-radius: 4px;
 }
 #block-menu-menu-helper-menu ul li.last {
     border-left: 2px dotted #bababa;
@@ -36,19 +38,19 @@ span.prvtmsg-count {
     border-left: none;
 }
 .active-match-link {
-    color: #ee2d42;
+    color: #fff;
     position: absolute;
     right: 9px;
-    bottom: 0;
-    font-size: 15px;
+    bottom: -1px;
+    font-size: 11px;
 }
 .active-match-link:hover {
-    color: #ee2d42;
     text-decoration: none;
+    color: #fff;
 }
 span.mymatch-icon {
     padding: 7px 15px 0;
 }
 span.mymatch-icon span.prvtmsg-count {
-    bottom: 2px;
+    bottom: -2px;
 }
