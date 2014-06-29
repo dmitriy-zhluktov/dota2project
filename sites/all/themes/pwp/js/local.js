@@ -6,6 +6,12 @@
                 $('#block-ajax-register-ajax-register-block').stop(true,true).slideToggle(600);
                 $('#block-system-user-menu').stop(true,true).slideToggle(600);
             });
+            $('#change-pic').click(function() {
+               $('input[name="files[profile]"]').trigger('click');
+            });
+            $('input[name="files[profile]"]').change(function() {
+               $('#helper-picture-form').find('.form-submit').trigger('click');
+            });
         }
     }
 
