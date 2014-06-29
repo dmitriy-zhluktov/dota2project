@@ -281,9 +281,9 @@ function pwp_preprocess_user_profile(&$vars) {
             $days = $expire->d.' '.t('days');
         }
         if($expire->h < 10) {
-            $hour = '0'.$expire->i;
+            $hour = '0'.$expire->h;
         } else {
-            $hour = $expire->i;
+            $hour = $expire->h;
         }
         if($expire->i < 10) {
             $min = '0'.$expire->i;
