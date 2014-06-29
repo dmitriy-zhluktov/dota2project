@@ -859,6 +859,7 @@ body {
     position: absolute;
     left: -99999px;
 }
+.send-msg,
 #change-pic {
     cursor: pointer;
     background: #ececec;
@@ -867,6 +868,9 @@ body {
     text-align: center;
     border-radius: 3px;
     font-size: 13px;
+}
+.send-msg:hover {
+    text-decoration: none;
 }
 .user-picture img {
     margin-bottom: 5px;
