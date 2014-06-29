@@ -25,7 +25,7 @@ function helper_get_pro_list() {
                     'class' => array('pro-match-amount')
                 ),
                 array(
-                    'data' => ($win == 0)? (0).'%' : ($win/$played*100).'%',
+                    'data' => ($win == 0)? (0).'%' : round($win/$played*100).'%',
                     'class' => array('pro-win-rating')
                 ),
                 array(

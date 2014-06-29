@@ -265,7 +265,7 @@ function pwp_preprocess_privatemsg_view(&$vars) {
 }
 
 function pwp_preprocess_user_profile(&$vars) {
-    global $user;
+    global $user, $language;
     $account = $vars['elements']['#account'];
     $roles = $account->roles;
     if(in_array('ban', $roles)) {
@@ -316,8 +316,10 @@ function pwp_preprocess_user_profile(&$vars) {
     } else {
         $vars['user_profile']['msglink'] = l(t('Send a message'), 'messages/new/'.$account->uid, array('attributes' => array('class' => array('send-msg'))));
     }
+    $vars['user_profile']['match'] = helper_player_win_rating($account);
     $vars['user_profile']['name'] = $account->name;
     $vars['user_profile']['is_online'] = helper_user_is_online($account->uid);
+    $vars['user_profile']['member'] = format_interval(REQUEST_TIME - $account->created, 2, $language->language);
 }
 function pwp_preprocess_menu_link(&$vars) {
     if($vars['element']['#href'] == 'user') {

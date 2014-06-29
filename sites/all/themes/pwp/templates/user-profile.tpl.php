@@ -5,7 +5,10 @@
         <?php endif; ?>
         <?php if($user_profile['self']): ?>
             <div class="pic-form">
-                <?php print render($user_profile['picform']); ?>
+                <div class="hide-left">
+                    <?php print render($user_profile['picform']); ?>
+                </div>
+                <span id="change-pic"><?php print t('Change picture') ?></span>
             </div>
         <?php else: ?>
             <div class="pic-form">
@@ -44,31 +47,36 @@
         <div class="<?php print $user_profile['pro']? 'pro ':''?>profile-level">
 
         </div>
+        <div class="member-for">
+            <?php print t('Member for:')?><span> <?php print $user_profile['member'] ?></span>
+        </div>
     </div>
     <div class="user-ratings">
         <div class="match-box all">
             <span><?php print t('Matches'); ?></span>
             <div class="all-matches">
-                <?php print '10' ?>
+                <?php print $user_profile['match']['total'] ?>
             </div>
         </div>
         <div class="separator-horizontal float-left">-</div>
         <div class="float-left">
-            <div class="match-box lost">
-                <span><?php print t('Losts'); ?></span>
-                <div class="lost">
-                    <?php print '5' ?>
-                </div>
-            </div>
             <div class="match-box wins">
                 <span><?php print t('Wins'); ?></span>
                 <div class="wins">
-                    <?php print '5' ?>
+                    <?php print $user_profile['match']['win'] ?>
+                </div>
+            </div>
+
+            <div class="match-box lost">
+                <span><?php print t('Losts'); ?></span>
+                <div class="lost">
+                    <?php print $user_profile['match']['lost'] ?>
                 </div>
             </div>
             <div class="clear"></div>
+
             <div class="win-rating clearfix">
-                <span class="winrate-percents">50%</span> <?php print t('winrate'); ?>
+                <span class="winrate-percents"><?php print $user_profile['match']['percents'] ?></span> <?php print t('winrate'); ?>
             </div>
         </div>
     </div>

@@ -7,6 +7,7 @@ function helper_get_matches_list() {
     $nodes = array();
 
     if(!in_array('pro', $user->roles)) {
+        $nids = array();
         $query = "SELECT t.match_id FROM {teams} AS t
           JOIN {players} AS p ON p.team_id = t.id
           WHERE p.uid = $uid";

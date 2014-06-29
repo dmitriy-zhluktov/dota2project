@@ -704,7 +704,7 @@ table.active-matches {
     text-transform: uppercase;
     font-weight: 600;
 }
-.match-box.wins {
+.match-box.lost {
     margin: 0;
 }
 .match-box div {
@@ -737,9 +737,10 @@ table.active-matches {
 
 .steam-profile a {
     display: block;
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     background: url('../images/steam.png') no-repeat 50% 50% transparent;
+    background-size: 100%;
 }
 .steam-profile .no-steam-identity {
     margin: 45px auto 0;
@@ -818,7 +819,7 @@ body {
     width: 270px;
     height: 105px;
     background: url('../images/profile-level.png') no-repeat 50% 50% transparent;
-    margin-top: 20px;
+    margin-top: 10px;
 }
 .profile-level.pro {
     background: url('../images/profile-pro.png') no-repeat 50% 50% transparent;
@@ -846,4 +847,27 @@ body {
 .pic-form {
     width: 115px;
     float: left;
+}
+.member-for {
+    margin-top: 10px;
+    font-size: 15px;
+}
+.member-for span {
+    font-weight: 700;
+}
+.hide-left {
+    position: absolute;
+    left: -99999px;
+}
+#change-pic {
+    cursor: pointer;
+    background: #ececec;
+    padding: 5px;
+    display: block;
+    text-align: center;
+    border-radius: 3px;
+    font-size: 13px;
+}
+.user-picture img {
+    margin-bottom: 5px;
 }
