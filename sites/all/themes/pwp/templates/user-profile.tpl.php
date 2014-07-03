@@ -83,7 +83,7 @@
     <?php if ($user_profile['summary']): ?>
         <?php print render($user_profile['summary']); ?>
     <?php endif; ?>
-    <?php if($user_profile['ban']): ?>
+    <?php if($user_profile['ban'] && $user_profile['self']): ?>
         <div class="hidden">
             <div id="ban-above-mask">
                 <h2><?php print t('You have been banned!'); ?></h2>
