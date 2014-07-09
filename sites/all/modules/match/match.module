@@ -600,12 +600,18 @@ function match_get_ticket_form_submit($form, &$form_state) {
 		drupal_set_message(t('No more free places on this match'), 'error');
 	else {
 		global $user;
-		$command = $node->field_profi_command[$node->language][0]['value'];
-		$steam_id = $form_state['values']['steam_id'];
-		$nickname = $form_state['values']['nickname'];
-		db_insert('players')->fields(array('uid' => $user->uid, 'team_id' => $command, 'steam_id' => "$steam_id", 'nickname' => "$nickname",))->execute();
-		$node->field_free_place[$node->language][0]['value']--;
-		node_save($node);
-		drupal_set_message(t('Thanks for register'));
+
+        if(uniteller_get_money($user) < variable_get('uniteller_price')) {
+            drupal_set_message(t('You have not enough PCOINS. You can update your wallet <a href="@href">here</a>',  array('@href' => url('uniteller/buy/'))), 'error');
+        } else {
+            $command = $node->field_profi_command[$node->language][0]['value'];
+            $steam_id = $form_state['values']['steam_id'];
+            $nickname = $form_state['values']['nickname'];
+            db_insert('players')->fields(array('uid' => $user->uid, 'team_id' => $command, 'steam_id' => "$steam_id", 'nickname' => "$nickname",))->execute();
+            $node->field_free_place[$node->language][0]['value']--;
+            node_save($node);
+            uniteller_update_wallet_amount($user, variable_get('uniteller_price'), false);
+            drupal_set_message(t('Thanks for register'));
+        }
 	}
 }

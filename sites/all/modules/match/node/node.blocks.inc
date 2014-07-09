@@ -980,6 +980,7 @@ function match_controll_form_submit($form, &$form_state) {
         case 'leave':
             $node->field_free_place['und'][0]['value']++;
             node_save($node);
+            uniteller_update_wallet_amount($user, variable_get('uniteller_price'));
             db_delete('players')
                 ->condition('team_id', $node->field_profi_command[$node->language][0]['value'])
                 ->condition('uid', $user->uid)
@@ -1001,20 +1002,26 @@ function match_controll_form_submit($form, &$form_state) {
                                     ->fetchObject();
 
                     if (isset($steam) && $steam) {
-                        $profile = unserialize($steam->data);
 
-                        $steam_id = explode('/', $profile['identifier']);
-                        $steam_id = end($steam_id);
-                        /*$nickname = explode('/', rtrim($profile['profileURL'], '/'));
-                        $nickname = end($nickname);*/
-                        $nickname = $user->name;
+                        if(uniteller_get_money($user) < variable_get('uniteller_price')) {
+                            drupal_set_message(t('You have not enough PCOINS. You can update your wallet <a href="@href">here</a>',  array('@href' => url('uniteller/buy/'))), 'error');
+                        } else {
+                            $profile = unserialize($steam->data);
 
-                        $command = $node->field_profi_command['und'][0]['value'];
+                            $steam_id = explode('/', $profile['identifier']);
+                            $steam_id = end($steam_id);
+                            /*$nickname = explode('/', rtrim($profile['profileURL'], '/'));
+                            $nickname = end($nickname);*/
+                            $nickname = $user->name;
 
-                        db_insert('players')->fields(array('uid' => $user->uid, 'team_id' => $command, 'steam_id' => "$steam_id", 'nickname' => "$nickname",))->execute();
-                        $node->field_free_place[$node->language][0]['value']--;
-                        node_save($node);
-                        drupal_set_message(t('Thanks for register'));
+                            $command = $node->field_profi_command['und'][0]['value'];
+
+                            db_insert('players')->fields(array('uid' => $user->uid, 'team_id' => $command, 'steam_id' => "$steam_id", 'nickname' => "$nickname",))->execute();
+                            $node->field_free_place[$node->language][0]['value']--;
+                            node_save($node);
+                            uniteller_update_wallet_amount($user, variable_get('uniteller_price'), false);
+                            drupal_set_message(t('Thanks for register'));
+                        }
                     } else {
                         drupal_set_message(t('Specify your steam account first'), 'error');
                     }
@@ -1073,6 +1080,7 @@ function match_controll_form_submit($form, &$form_state) {
                 ))->execute();
                 $reason = taxonomy_term_load($form_state['values']['reason']);
                 $ban = $reason->field_days_of_ban[$reason->language][0]['value'];
+                $refund = $reason->field_refund[$reason->language][0]['value'];
                 $transReason = i18n_taxonomy_localize_terms($reason);
                 $target = user_load($pid);
                 $target->field_kick_reason[LANGUAGE_NONE][0]['value'] = $form_state['values']['reason'];
@@ -1096,6 +1104,9 @@ function match_controll_form_submit($form, &$form_state) {
                 user_save($target);
                 $node->field_free_place[$node->language][0]['value']++;
                 node_save($node);
+                if($refund) {
+                    uniteller_update_wallet_amount($target, variable_get('uniteller_price'));
+                }
                 drupal_set_message(t('Player kicked'));
             }
         break;

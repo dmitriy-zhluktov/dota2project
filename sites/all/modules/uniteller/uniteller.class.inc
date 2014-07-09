@@ -111,7 +111,7 @@ class uniteller {
     */
     public static function setMerchantData() {
         if (self::$Shop_ID == '') {
-            if (variable_get('uc_uniteller_test_mode', true)) {
+            if (variable_get('uniteller_test_mode')) {
                 self::$url_uniteller_pay = 'https://test.wpay.uniteller.ru/pay/';
                 self::$url_uniteller_results = 'https://test.wpay.uniteller.ru/results/';
                 self::$url_uniteller_unblock = 'https://test.wpay.uniteller.ru/unblock/';
@@ -169,6 +169,7 @@ class uniteller {
         } else {
             return 'W';
         }
+
     }
 
     /**
@@ -458,7 +459,7 @@ class uniteller {
             $aCheckData = self::getCheckData($order_real_id);
         }*/
 
-        $statusCode = self::getStatusCode($order_real_id);
+        //$statusCode = self::getStatusCode($order_real_id);
 
         self::setMerchantData();
         $sPostFields = "Shop_ID=".self::$Shop_ID."&Login=".self::$Login."&Password=".self::$Password."&Format=1&ShopOrderNumber=".$order_real_id."&S_FIELDS=Status;ApprovalCode;BillNumber";
@@ -496,7 +497,7 @@ class uniteller {
                 return;
             }
         }
-
+        /*
         // Заказ в состоянии 'до блокировки средств', а платёж существует.
         if ($statusCode === 'O' && (strtolower($status) === 'authorized' || strtolower($status) === 'paid' || strtolower($status) === 'canceled')) {
             self::setStatusCode($order_real_id, $status);
@@ -510,7 +511,7 @@ class uniteller {
             self::setStatusCode($order_real_id, $status);
         }
         // Заказ в состоянии 'средства возвращены', а платёж в состоянии 'средства заблокированны' или 'средства сняты'.
-        /*if ($statusCode === 'C' && ($status === 'authorized' || $status === 'paid')) {
+        if ($statusCode === 'C' && ($status === 'authorized' || $status === 'paid')) {
             if (!self::setUnitellerCancel($order_real_id)) {
                 // Если отменить платёж не удалось, то меняем статус заказа.
                 self::setStatusCode($order_real_id, $status);
@@ -518,11 +519,13 @@ class uniteller {
                 // Если платёж отменён, то заново получаем данные для чека.
                 $aCheckData = self::getCheckData($order_real_id);
             }
-        }*/
+        }
         // Заказ в состоянии 'неизвестно', а платёж существует.
         if ($statusCode === 'W' && (strtolower($status) === 'authorized' || strtolower($status) === 'paid' || strtolower($status) === 'canceled')) {
             self::setStatusCode($order_real_id, $status);
         }
+        */
+        self::setStatusCode($order_real_id, $status);
     }
 
     /**

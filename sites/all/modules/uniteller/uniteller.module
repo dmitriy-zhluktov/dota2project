@@ -14,7 +14,7 @@ function uniteller_menu() {
         'access callback' => true,
         'page arguments' => array(),
         'type' => MENU_CALLBACK,
-    );*/
+    );
     $items['uniteller/cron'] = array(
         'title' => 'Uniteller Cron',
         'page callback' => 'uniteller_cron',
@@ -22,7 +22,7 @@ function uniteller_menu() {
         'page arguments' => array(),
         'access arguments' => array('access cron'),
         'type' => MENU_CALLBACK,
-    );
+    );*/
 
     $items['uniteller/buy'] = array(
         'title' => t('Buy'),
@@ -126,22 +126,24 @@ function uniteller_cron() {
     $query = db_select('orders', 'o')
         ->fields('o', array('id'))
         ->condition('status', 'completed', '!=')
-        ->condition('status', 'Not processed', '!=')
+        //->condition('status', 'Not processed', '!=')
         ->execute();
     while($order = $query->fetchAssoc()) {
         uniteller::doSyncStatus($order['id']);
     }
 
     unset($query);
+    $db_or = db_or();
+    $db_or->condition('status', 'completed')->condition('status', 'processing');
     $query = db_select('orders', 'o')
         ->fields('o', array('id', 'uid', 'qty'))
-        ->condition('status', 'completed')
+        ->condition($db_or)
         ->condition('transfered', 0)
         ->execute();
 
     while($order = $query->fetchAssoc()) {
-        db_update('user_wallets')->expression('cash', 'cash + :qty', array(':qty' => $order['qty']))->condition('user_wallets.uid', $order['uid'])->execute();;
-        db_update('orders')->fields(array('transfered' => 1, 'modified' => REQUEST_TIME))->condition('orders.id', $order['id'])->execute();;
+        db_update('user_wallets')->expression('cash', 'cash + :qty', array(':qty' => $order['qty']))->condition('user_wallets.uid', $order['uid'])->execute();
+        db_update('orders')->fields(array('transfered' => 1, 'modified' => REQUEST_TIME))->condition('orders.id', $order['id'])->execute();
     }
 }
 
@@ -228,7 +230,7 @@ function uniteller_get_shopid() {
 }
 
 function uniteller_get_gateway() {
-    return url(variable_get('uniteller_gateway'));
+    return variable_get('uniteller_test_mode')? 'https://test.wpay.uniteller.ru/pay/': 'https://wpay.uniteller.ru/pay/';
 }
 function uniteller_autosubmitform($url, $data) {
     $html = t('Preparing data...').'<form id="htmlForm" style="position: absolute; left: -9999px;" action="'.$url.'" method="POST">';
@@ -268,12 +270,15 @@ function uniteller_admin_config_form($form, &$form_state) {
         '#default_value' => variable_get('uniteller_shop_password', 'MlBs8xiXaQfOBQCGmXF3AxyTqPam4TULjTTwJoqjk5YD2482nUYITVUAv9amEsmnfJp6kcTDcVfGsFJ8'),
         '#size' => 120
     );
-    $form['uniteller_gateway'] = array(
-        '#type' => 'textfield',
-        '#title' => t('Шлюз'),
+    $form['uniteller_test_mode'] = array(
+        '#type' => 'radios',
+        '#title' => t('Режим'),
         '#required' => true,
-        '#default_value' => variable_get('uniteller_gateway', 'https://test.wpay.uniteller.ru/pay/'),
-        '#size' => 120
+        '#default_value' => variable_get('uniteller_test_mode', 1),
+        '#options' => array(
+            1 => t('Тестовый'),
+            0 => t('Обычный')
+        ),
     );
     $form['uniteller_currency'] = array(
         '#type' => 'textfield',
@@ -395,20 +400,24 @@ function uniteller_user_wallet_form_submit($form, $form_state) {
 }
 
 function uniteller_user_orders($uid) {
+    global $user;
     if(isset($_GET['result'])) {
         $result = filter_xss(trim($_GET['result']));
         if($result === 'resultok') {
             drupal_set_message(t('Your order successfully added.'));
             if(isset($_GET['Order_ID'])) {
                 $orderId = intval($_GET['Order_ID']);
-                uniteller_order_update_status($orderId, 'pending');
+                $order = uniteller_order_load($orderId);
+
+                if($order->status === 'Not processed')
+                    uniteller_order_update_status($orderId, 'pending');
             }
 
         } elseif ($result === 'resultno') {
             drupal_set_message(t('An error occured while placing order'), 'error');
             if(isset($_GET['Order_ID'])) {
                 $orderId = intval($_GET['Order_ID']);
-                db_delete('orders')->condition('id', $orderId)->execute();
+                db_delete('orders')->condition('id', $orderId)->condition('uid', $user->uid)->execute();
             }
         }
     }
@@ -462,17 +471,22 @@ function uniteller_order_load($id) {
 }
 
 function uniteller_order_update_status($id, $status) {
-    db_update('orders')->fields(array('status' => $status, 'modified' => REQUEST_TIME))->condition('orders.id', $id)->execute();;
+    db_update('orders')->fields(array('status' => $status, 'modified' => REQUEST_TIME))->condition('orders.id', $id)->execute();
 }
 
-function uniteller_get_money() {
-    global $user;
+function uniteller_get_money($account) {
+    if(!$account) {
+        global $user;
+    } else {
+        $user = $account;
+    }
+
     $res = db_select('user_wallets', 'w')
         ->fields('w', array('cash'))
         ->condition('uid', $user->uid)
         ->execute();
     $cash = $res->fetchObject();
-    return '<span class="cash">'.$cash->cash.'</span><span class="update-wallet">'.t('Update wallet').'</span>';
+    return $cash->cash;
 }
 
 function uniteller_buy_page() {
@@ -480,4 +494,12 @@ function uniteller_buy_page() {
     $html = drupal_render($form);
     drupal_add_js(array('uniteller' => array('currency' => variable_get('uniteller_currency'))), array('type' => 'setting'));
     return $html;
+}
+
+function uniteller_update_wallet_amount($user, $amount, $increase = true) {
+    if($increase) {
+        db_update('user_wallets')->expression('cash', 'cash + :qty', array(':qty' => $amount))->condition('user_wallets.uid', $user->uid)->execute();
+    } else {
+        db_update('user_wallets')->expression('cash', 'cash - :qty', array(':qty' => $amount))->condition('user_wallets.uid', $user->uid)->execute();
+    }
 }
