@@ -195,7 +195,7 @@ function pwp_preprocess_link(&$vars) {
     }
     if($vars['path'] == 'uniteller/buy') {
         $vars['options']['html'] = TRUE;
-        $vars['text'] = uniteller_get_money();
+        $vars['text'] = '<span class="cash">'.uniteller_get_money(null).'</span><span class="update-wallet">'.t('Update wallet').'</span>';
     }
     if($vars['path'] == 'user') {
         $params = helper_user_menu_title();
