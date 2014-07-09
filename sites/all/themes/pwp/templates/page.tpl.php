@@ -249,6 +249,33 @@
                     </div> <!-- /#footer -->
                 <?php endif; ?>
 
+                <div class="footer-bottom">
+                    <div class="footer-left float-left">
+                        <div class="logo-bottom float-left"></div>
+                        <div class="follow-us  float-left">
+                            <div class="follow-title"><?php print t('Follow us at'); ?></div>
+                            <div class="social">
+                                <a href="#" class="tw"></a>
+                                <a href="#" class="fb"></a>
+                                <a href="#" class="vk"></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="footer-right float-left">
+                        <ul>
+                            <li><a href="#" title="<?php print t('Project rules') ?>"><?php print t('Project rules') ?></a></li>
+                            <li><a href="#" title="<?php print t('FAQ') ?>"><?php print t('FAQ') ?></a></li>
+                            <li><a href="#" title="<?php print t('Company details') ?>"><?php print t('Company details') ?></a></li>
+                            <li><a href="#" title="<?php print t('Privacy policy') ?>"><?php print t('Privacy policy') ?></a></li>
+                            <li><a href="#" title="<?php print t('Site map') ?>"><?php print t('Site map') ?></a></li>
+                        </ul>
+                    </div>
+                    <div class="clear"></div>
+                </div>
+                <div class="copyright">
+                    <p>&copy; <?php echo date("Y"); ?>, Play With Pro</p>
+                    <p>Все права защищены. All rights reserved</p>
+                </div>
             </div></div> <!-- /.section, /#footer-wrapper -->
 
     </div></div> <!-- /#page, /#page-wrapper -->

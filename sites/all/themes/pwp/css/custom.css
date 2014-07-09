@@ -875,3 +875,64 @@ body {
 .user-picture img {
     margin-bottom: 5px;
 }
+#footer-wrapper {
+    padding: 20px;
+}
+.footer-bottom {
+}
+.footer-left {
+    width: 30%;
+}
+.footer-right {
+    width: 70%;
+}
+.logo-bottom {
+    width: 133px;
+    height: 56px;
+    background: url('../images/logo-bottom.png') no-repeat 50% 50% transparent;
+}
+.follow-us {
+    margin-left: 50px;
+}
+.follow-title {
+    text-transform: uppercase;
+    color: #fefefe;
+}
+.footer-bottom .social a {
+    width: 28px;
+    height: 28px;
+    display: inline-block;
+}
+a.tw {
+    background: url('../images/tw.png') no-repeat 50% 50% transparent;
+}
+a.fb {
+    background: url('../images/fb.png') no-repeat 50% 50% transparent;
+}
+a.vk {
+    background: url('../images/vk.png') no-repeat 50% 50% transparent;
+}
+.footer-bottom ul {
+    list-style: none;
+}
+.footer-bottom ul li {
+    float: left;
+    margin-right: 20px;
+    font-size: 20px;
+}
+#footer-wrapper ul li a {
+    color: #fefefe;
+}
+#footer-wrapper ul li a:hover {
+    text-decoration: none;
+}
+.copyright {
+    text-align: center;
+    color: #717171;
+}
+.copyright p {
+    margin: 0;
+}
+.submitted .user-picture img {
+    width: 20px;
+}
