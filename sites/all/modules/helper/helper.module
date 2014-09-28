@@ -376,8 +376,12 @@ function helper_user_menu_title() {
         $ban = true;
     }
 
-    if($user->uid != 0 && !$ban && isset($user->picture)) {
-        $pic = theme('image_style', array('path' => $user->picture->uri, 'style_name' => 'user_top_pic'));
+    if($user->uid != 0 && !$ban) {
+        $pic = file_build_uri('user-default.png');
+        if(isset($user->picture) && $user->picture != NULL) {
+            $pic = $user->picture->uri;
+        }
+        $pic = theme('image_style', array('path' => $pic, 'style_name' => 'user_top_pic'));
         $data['pic'] = $pic;
     }
     $data['ban'] = $ban;
