@@ -183,13 +183,24 @@ function match_get_node_finished_markup($node, $user) {
         $html .= '<div class="vod"><a class="check-vod" href="'.$node->field_vod[$node->language][0]['value'].'" target="_blank" alt="'.t('Check the VOD').'" title="'.t('Check the VOD').'">'.t('Check the VOD').'</a></div>';
 
     $form = '';
+    $likeform = '';
     if($node->uid == $user->uid) {
         $form = drupal_get_form('match_node_finished_form');
         $form = drupal_render($form);
     }
-    $like = drupal_get_form('match_node_like_form');
-
-    $html .= $form.drupal_render($like);
+    if($user->uid > 0) {
+        $query = db_select('match_votes', 'm')
+            ->fields('m', array('uid'))
+            ->condition('m.match_id', $node->nid)
+            ->condition('m.uid', $user->uid)
+            ->execute();
+        $res = $query->fetchObject();
+        if(!$res) {
+            $like = drupal_get_form('match_node_like_form');
+            $likeform = drupal_render($like);
+        }
+    }
+    $html .= $form.$likeform;
     $html = '<div class="match-finished-wrap">'.$html.'</div>';
 	return $html;
 }
@@ -407,7 +418,7 @@ function match_get_finished_players_html($expert, $rival, $proId) {
 
         $rows_radiant[] = array(
             array(
-                'data' => l($player->nickname, 'user/'.$player->uid, array('attributes' => array('class' => array('regular-user')))),
+                'data' => l($player->nickname, 'user/'.$player->uid, array('attributes' => array('class' => array('regular-user', 'margin-right10', 'float-left')))).' '.match_get_player_rating_form($player->uid, $player->rating, $player->team_id, $proId),
                 'class' => array('nicknames')
             ),
             array(
@@ -1188,15 +1199,23 @@ function match_create_match_form_validate($form, &$form_state){
 	}
 }
 
-function match_get_player_rating_form($pid, $rating) {
+function match_get_player_rating_form($pid, $rating, $team_id, $proId) {
+    global $user;
+
+	$out = '';
+    if($rating == 0 && $proId == $user->uid) {
         $args = array(
             'pid' => $pid,
             'rating' => $rating,
+            'team_id' => $team_id
         );
-
-	$out = '';
-	$form =  drupal_get_form('match_create_player_rating_form', $args);
-	$out .= drupal_render($form);
+        $form =  drupal_get_form('match_create_player_rating_form', $args);
+        $out .= '<div class="rating-form float-left">'.drupal_render($form).'</div>';
+    } else {
+        $out .= '<div class="rating-box">
+                        <div class="rating" style="width: '.($rating*20.0).'%;"></div>
+                    </div>';
+    }
 	return $out;    
 }
 
@@ -1208,13 +1227,16 @@ function match_create_player_rating_form($form, &$form_state, $args) {
                 '#required' => TRUE,
                 '#default_value' => $args['rating'],
                 '#size' => 2,
-                '#description' => t('0-5'),
+                '#description' => t('1-5'),
 	);
 	$form['pid'] = array(
 		'#type' => 'hidden',
 		'#default_value' => $args['pid'],
 	);
-
+    $form['team_id'] = array(
+        '#type' => 'hidden',
+        '#default_value' => $args['team_id'],
+    );
 	$form['actions'] = array(
 		'#type' => 'actions',
 		'submit' => array(
@@ -1234,9 +1256,11 @@ function match_create_player_rating_form($form, &$form_state, $args) {
 function match_create_player_rating_form_submit($form, &$form_state) {
     $pid = $form_state['values']['pid'];
     $rating = $form_state['values']['rating'];
+    $team_id = $form_state['values']['team_id'];
     db_update('players')
-        ->fields(array('rating' => $rating,))
-        ->condition('players.id', $pid)
+        ->fields(array('rating' => $rating))
+        ->condition('uid', $pid)
+        ->condition('team_id', $team_id)
         ->execute();
     drupal_set_message(t('Updated'));
 }
@@ -1247,6 +1271,14 @@ function match_element_validate_number($form, &$form_state) {
         if ($value != '' && !is_numeric($value)) {
             form_error($form, t('Error! Rating must be a number'));
         }
+
+        if($value < 1 || $value > 5) {
+            form_error($form, t('Error! Rating should be between 1 and 5'));
+        }
+
+    }
+    if($form_state['values']['rating'] == 0) {
+        form_error($form, t('Error! Rating should be between 1 and 5'));
     }
 }
 
@@ -1332,39 +1364,29 @@ function match_node_planned_ticket_form($form, &$form_state) {
 }
 
 function match_node_like_form($form, &$form_state) {
-	global $user;
-    $node = menu_get_object();
-    $query = db_select('match_votes', 'm')
-        ->fields('m', array('uid'))
-        ->condition('m.match_id', $node->nid)
-        ->condition('m.uid', $user->uid)
-        ->execute();
-    $res = $query->fetchObject();
-    if (!$res) {
-        $form['like'] = array(
-            '#type' => 'actions',
-            'submit' => array(
-                '#type' => 'submit',
-                '#value' => t('Like'),
-                '#name' => 'like',
-                '#attributes' => array('class' => array('match-like'))
-            ),
-        );
-        $form['dislike'] = array(
-            '#type' => 'actions',
-            'submit' => array(
-                '#type' => 'submit',
-                '#value' => t('Dislike'),
-                '#name' => 'dislike',
-                '#attributes' => array('class' => array('match-dislike'))
-            ),
-            '#suffix' => '<div class="clear"></div>',
-        );
-        $form['#submit'] = array(
-                '0' => 'match_controll_form_submit',
-        );
-        return $form;
-    }
+    $form['like'] = array(
+        '#type' => 'actions',
+        'submit' => array(
+            '#type' => 'submit',
+            '#value' => t('Like'),
+            '#name' => 'like',
+            '#attributes' => array('class' => array('match-like'))
+        ),
+    );
+    $form['dislike'] = array(
+        '#type' => 'actions',
+        'submit' => array(
+            '#type' => 'submit',
+            '#value' => t('Dislike'),
+            '#name' => 'dislike',
+            '#attributes' => array('class' => array('match-dislike'))
+        ),
+        //'#suffix' => '<div class="clear"></div>',
+    );
+    $form['#submit'] = array(
+            '0' => 'match_controll_form_submit',
+    );
+    return $form;
 }
 
 function match_get_kick_player_form() {

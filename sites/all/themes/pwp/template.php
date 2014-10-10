@@ -320,6 +320,9 @@ function pwp_preprocess_user_profile(&$vars) {
     $vars['user_profile']['name'] = $account->name;
     $vars['user_profile']['is_online'] = helper_user_is_online($account->uid);
     $vars['user_profile']['member'] = format_interval(REQUEST_TIME - $account->created, 2, $language->language);
+
+    $vars['user_profile']['time_played'] = format_interval(helper_player_played_time($account), 2, $language->language);
+    $vars['user_profile']['avg_rating'] = helper_player_pro_rating($account);
 }
 function pwp_preprocess_menu_link(&$vars) {
     if($vars['element']['#href'] == 'user') {

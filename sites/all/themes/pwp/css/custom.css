@@ -700,7 +700,7 @@ table.active-matches {
 .match-box {
     text-align: center;
     margin: 0 10px;
-    width: 80px;
+    width: 65px;
     text-transform: uppercase;
     font-weight: 600;
 }
@@ -725,11 +725,13 @@ table.active-matches {
 .match-box .all-matches {
     background: #3b3b3b;
     color: #fff;
+    border-radius: 5px;
 }
 .match-box .lost,
 .match-box .wins {
     background: #ececec;
     color: #3d3d3d;
+    border-radius: 5px;
 }
 .steam-profile {
     float: right;
@@ -935,4 +937,54 @@ a.vk {
 }
 .submitted .user-picture img {
     width: 20px;
+}
+.rating-box {
+    width: 50px;
+    height: 10px;
+    font-size: 0;
+    line-height: 0;
+    background: url('../images/stars-red.png') 0 100% repeat-x;
+    text-indent: -999em;
+    overflow: hidden;
+    float: left;
+}
+.rating-box .rating {
+    height: 10px;
+    background: url('../images/stars-red.png') 0 0% repeat-x;
+}
+.margin-right10 {
+    margin-right: 10px;
+}
+
+.rating-form {
+    float: left;
+}
+.rating-form .form-item-rating,
+.rating-form .form-actions {
+    float: left;
+}
+.rating-form .form-actions {
+    margin-top: 5px;
+    margin-bottom: 0;
+}
+.rating-box-big {
+    width: 105px;
+    height: 20px;
+    font-size: 0;
+    line-height: 0;
+    background: url('../images/stars-red-big.png') 0 100% repeat-x;
+    text-indent: -999em;
+    overflow: hidden;
+}
+.rating-box-big .rating {
+    height: 20px;
+    background: url('../images/stars-red-big.png') 0 0% repeat-x;
+}
+span.title {
+    font-weight: 600;
+    text-transform: uppercase;
+    display: block;
+}
+.margin-top20 {
+    margin-top: 20px;
 }

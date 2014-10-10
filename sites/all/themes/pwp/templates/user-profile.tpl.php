@@ -80,6 +80,17 @@
             </div>
         </div>
     </div>
+    <div class="user-ratings">
+        <span class="title"><?php print t('Rating'); ?></span>
+        <div class="rating-box-big">
+            <div class="rating" style="width: <?php print $user_profile['avg_rating']; ?>%;"></div>
+        </div>
+
+        <span class="title margin-top20"><?php print t('Time played'); ?></span>
+        <div class="time-played">
+            <?php print $user_profile['time_played']; ?>
+        </div>
+    </div>
     <?php if ($user_profile['summary']): ?>
         <?php print render($user_profile['summary']); ?>
     <?php endif; ?>

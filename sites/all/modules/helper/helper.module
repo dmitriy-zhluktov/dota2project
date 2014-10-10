@@ -538,3 +538,53 @@ function helper_player_win_rating($user) {
 
     return $return;
 }
+
+function helper_player_pro_rating($user) {
+    if(!in_array('pro', $user->roles)) {
+        $res = db_query("SELECT AVG(rating) as rating FROM {players} WHERE uid = :uid AND rating != 0", array(':uid' => $user->uid))->fetchObject();
+    } else {
+        $query = new EntityFieldQuery();
+        $type = 'match';
+        $entities = $query->entityCondition('entity_type', 'node')
+            ->entityCondition('bundle', $type)
+            ->propertyCondition('uid', $user->uid)
+            ->fieldCondition('field_state', 'value', 2)
+            ->execute();
+        $res = null;
+        if(count($entities) > 0) {
+            $res = db_query("SELECT AVG(field_rating_value) as rating FROM {field_data_field_rating} WHERE entity_id IN (:nids)", array(':nids' => implode(",", array_keys($entities['node']))))->fetchObject();
+        }
+    }
+    return $res == null? 0 : $res->rating*20;
+}
+
+function helper_player_played_time($user) {
+    $nids = array();
+    $type = 'match';
+    $nodes = array();
+    $time = 0;
+    $exec = db_query("SELECT t.match_id FROM {teams} AS t JOIN {players} AS p ON p.team_id = t.id WHERE p.uid = :uid", array(":uid" => $user->uid));
+    while($res = $exec->fetchAssoc()) {
+        $nids[] = $res['match_id'];
+    }
+
+    if(count($nids) > 0) {
+        $query = new EntityFieldQuery();
+        $entities = $query->entityCondition('entity_type', 'node')
+            ->entityCondition('bundle', $type)
+            ->propertyCondition('nid', $nids, 'in')
+            ->fieldCondition('field_state', 'value', 2)
+            ->execute();
+        if(count($entities) > 0) {
+            $nodes = node_load_multiple(array_keys($entities['node']));
+        }
+    }
+    if(count($nodes) > 0) {
+        foreach($nodes as $node) {
+            $parts = explode(":", $node->field_duration[$node->language][0]['value']);
+            $time += 60*$parts[0] + $parts[1];
+        }
+    }
+
+    return $time;
+}
