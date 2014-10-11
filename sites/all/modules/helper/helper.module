@@ -588,3 +588,40 @@ function helper_player_played_time($user) {
 
     return $time;
 }
+
+function helper_pro_vods($user) {
+    $res = null;
+    if(in_array('pro', $user->roles)) {
+        $query = new EntityFieldQuery();
+        $type = 'match';
+        $entities = $query->entityCondition('entity_type', 'node')
+            ->entityCondition('bundle', $type)
+            ->propertyCondition('uid', $user->uid)
+            ->fieldCondition('field_state', 'value', 2)
+            ->execute();
+
+        if(count($entities) > 0) {
+            $nodes = node_load_multiple(array_keys($entities['node']));
+
+            foreach($nodes as $node) {
+                if(preg_match('/http:\/\/www\.youtube\.com\/watch\?v=[^&]+/', $node->field_vod['und'][0]['value'])) {
+                    $videoId = null;
+                    if(preg_match("#(?<=v=)[a-zA-Z0-9-]+(?=&)|(?<=v\/)[^&\n]+(?=\?)|(?<=v=)[^&\n]+|(?<=youtu.be/)[^&\n]+#", $node->field_vod['und'][0]['value'], $matches))
+                        $videoId = $matches[0];
+
+                    if($videoId != null)
+                        $info = helper_curl("http://gdata.youtube.com/feeds/api/videos/$videoId?v=2&alt=jsonc");
+
+                    $res[] = array(
+                        'source' => 'http://www.youtube.com/embed/'.$videoId,
+                        'date' => date('M d, Y', strtotime($node->field_date['und'][0]['value'])),
+                        'views' => $info == null? 0 : $info->data->viewCount,
+                        'title' => $info == null? t('Not found') : $info->data->title,
+                        'thumb' => $info == null? '#' : $info->data->thumbnail->sqDefault
+                    );
+                }
+            }
+        }
+    }
+    return $res;
+}

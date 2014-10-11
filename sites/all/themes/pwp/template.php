@@ -299,8 +299,6 @@ function pwp_preprocess_user_profile(&$vars) {
             'description' => $transReason->description,
             'expiration' => $days.' '.$hour.':'.$min.':'.$sec,
         );
-        drupal_add_css(drupal_get_path('theme', 'pwp').'/js/colorbox.css');
-        drupal_add_js(drupal_get_path('theme', 'pwp').'/js/jquery.colorbox-min.js');
     } else {
         $vars['user_profile']['ban'] = FALSE;
     }
@@ -323,6 +321,10 @@ function pwp_preprocess_user_profile(&$vars) {
 
     $vars['user_profile']['time_played'] = format_interval(helper_player_played_time($account), 2, $language->language);
     $vars['user_profile']['avg_rating'] = helper_player_pro_rating($account);
+    $vars['user_profile']['vods'] = helper_pro_vods($account);
+
+    drupal_add_css(drupal_get_path('theme', 'pwp').'/js/colorbox.css');
+    drupal_add_js(drupal_get_path('theme', 'pwp').'/js/jquery.colorbox-min.js');
 }
 function pwp_preprocess_menu_link(&$vars) {
     if($vars['element']['#href'] == 'user') {

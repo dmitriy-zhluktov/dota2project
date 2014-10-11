@@ -12,6 +12,14 @@
             $('input[name="files[profile]"]').change(function() {
                $('#helper-picture-form').find('.form-submit').trigger('click');
             });
+            $('#show-vods-list').click(function() {
+               $('.vods-list-wrapper').toggleClass('hide-left');
+            });
+
+            $('.play-button').click(function() {
+                $('#vod-player iframe').attr('src', $(this).attr('data-video'));
+                $.colorbox({inline:true, open:true, href:'#vod-player', closeButton:false});
+            });
         }
     }
 

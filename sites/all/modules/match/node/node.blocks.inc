@@ -986,7 +986,7 @@ function match_controll_form_submit($form, &$form_state) {
             $node->field_archived[$node->language][0]['value'] = $form_state['values']['archived'];
             $node->field_vod[$node->language][0]['value'] = $form_state['values']['vod'];
             node_save($node);
-            drupal_set_message(t('Match moved to archive'));
+            drupal_set_message(t('Match updated'));
         break;
         case 'leave':
             $node->field_free_place['und'][0]['value']++;

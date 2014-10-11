@@ -985,6 +985,96 @@ span.title {
     text-transform: uppercase;
     display: block;
 }
-.margin-top20 {
-    margin-top: 20px;
+.margin-top10 {
+    margin-top: 10px;
+}
+.vods-button {
+    float: right;
+    margin-right: 30px;
+    position: relative;
+    top: -40px;
+}
+#show-vods-list {
+    cursor: pointer;
+    padding: 5px 40px;
+    border-radius: 20px;
+    background: #cd3143;
+    border: #cd3143;
+    color: #fff;
+    font-size: 16px;
+    outline: none;
+}
+.vods-list-wrapper {
+
+}
+.jcarousel-skin-default .jcarousel-container-horizontal,
+.jcarousel-skin-default .jcarousel-clip-horizontal {
+    width: 984px;
+}
+.jcarousel-skin-default .jcarousel-container-horizontal {
+    height: 142px;
+    padding: 8px;
+    background: #ececec;
+}
+.jcarousel-skin-default .jcarousel-item {
+    height: 140px;
+    width: 155px;
+    position: relative;
+}
+.jcarousel-skin-default .jcarousel-item-1 {
+    margin-left: 0;
+}
+.jcarousel-skin-default .jcarousel-next, .jcarousel-skin-default .jcarousel-prev {
+    width: 38px;
+    height: 150px;
+    background: url('../images/red-arrow.png') 0% 0% no-repeat transparent;
+}
+.jcarousel-skin-default .jcarousel-next,
+.jcarousel-skin-default .jcarousel-next-horizontal:hover {
+    background-position: 100% 0%;
+    right: 0;
+    top: 0;
+}
+.jcarousel-skin-default .jcarousel-prev-horizontal,
+.jcarousel-skin-default .jcarousel-prev-horizontal:hover {
+    background-position: 0% 0%;
+    left: 0;
+    top: 0;
+}
+.vod-title {
+    font-weight: 600;
+    height: 20px;
+    overflow: hidden;
+    display: block;
+}
+.vod-info {
+    font-size: 11px;
+}
+.vod-info .float-left {
+     margin-left: 5px;
+ }
+.vod-info .float-right {
+    margin-right: 5px;
+    padding-left: 13px;
+    background: url('../images/big-brother-watches-you.png') 0% 50% no-repeat transparent;
+}
+.red-line {
+    height: 2px;
+    width: 150px;
+    background: url('../images/vod-redline.png') 50% 50% no-repeat transparent;
+    margin: 3px 0;
+}
+.play-button {
+    display: block;
+    width: 30px;
+    height: 30px;
+    background: url('../images/play-button.png') 50% 50% no-repeat transparent;
+    position: absolute;
+    top: 28px;
+    left: 60px;
+    cursor: pointer;
+    opacity: .6;
+}
+.play-button:hover {
+    opacity: .7;
 }

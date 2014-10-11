@@ -86,7 +86,7 @@
             <div class="rating" style="width: <?php print $user_profile['avg_rating']; ?>%;"></div>
         </div>
 
-        <span class="title margin-top20"><?php print t('Time played'); ?></span>
+        <span class="title margin-top10"><?php print t('Time played'); ?></span>
         <div class="time-played">
             <?php print $user_profile['time_played']; ?>
         </div>
@@ -110,3 +110,33 @@
         </script>
     <?php endif ?>
 </div>
+<?php if(isset($user_profile['vods']) && $user_profile['vods'] != null): ?>
+    <div class="user-vods-wrapper">
+        <div class="vods-button">
+            <button type="button" id="show-vods-list"><?php print t('VODs'); ?></button>
+        </div>
+        <div class="clear"></div>
+        <div class="vods-list-wrapper hide-left">
+            <div class="hidden">
+                <div id="vod-player">
+                    <iframe width="560" height="315" src="" frameborder="0" allowfullscreen></iframe>
+                </div>
+            </div>
+            <ul class="horizontalcarousel jcarousel-skin-default">
+                <?php foreach($user_profile['vods'] as $vod) : ?>
+                    <li>
+                        <img src="<?php print $vod['thumb'] ?>" title="<?php print $vod['title'] ?>" alt="<?php print $vod['title'] ?>" width="150" height="90"/>
+                        <span class="play-button" data-video="<?php print $vod['source'] ?>"></span>
+                        <span class="vod-title"><?php print $vod['title'] ?></span>
+                        <div class="red-line"></div>
+                        <div class="vod-info clearfix">
+                            <span class="float-left"><?php print $vod['date'] ?></span>
+                            <span class="float-right"><?php print $vod['views'] ?></span>
+                        </div>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+            <?php jcarousel_add('horizontalcarousel'); ?>
+        </div>
+    </div>
+<?php endif; ?>
