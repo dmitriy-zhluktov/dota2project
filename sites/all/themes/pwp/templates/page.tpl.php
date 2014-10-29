@@ -265,7 +265,7 @@
                         <ul>
                             <li><a href="#" title="<?php print t('Project rules') ?>"><?php print t('Project rules') ?></a></li>
                             <li><a href="#" title="<?php print t('FAQ') ?>"><?php print t('FAQ') ?></a></li>
-                            <li><a href="#" title="<?php print t('Company details') ?>"><?php print t('Company details') ?></a></li>
+                            <li><a href="<?php echo base_path()?>contacts" title="<?php print t('Company details') ?>"><?php print t('Company details') ?></a></li>
                             <li><a href="#" title="<?php print t('Privacy policy') ?>"><?php print t('Privacy policy') ?></a></li>
                             <li><a href="#" title="<?php print t('Site map') ?>"><?php print t('Site map') ?></a></li>
                         </ul>
