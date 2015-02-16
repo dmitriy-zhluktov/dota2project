@@ -131,6 +131,9 @@ function pwp_preprocess_block(&$variables) {
   if ($variables['block']->region == 'header') {
     $variables['title_attributes_array']['class'][] = 'element-invisible';
   }
+    if($variables['block']->module == 'match' && $variables['block']->delta == 4) {
+        $variables['classes_array'][] = 'clearfix';
+    }
 }
 
 /**
@@ -322,6 +325,12 @@ function pwp_preprocess_user_profile(&$vars) {
     $vars['user_profile']['time_played'] = format_interval(helper_player_played_time($account), 2, $language->language);
     $vars['user_profile']['avg_rating'] = helper_player_pro_rating($account);
     $vars['user_profile']['vods'] = helper_pro_vods($account);
+    if($account->field_mmr) {
+        $vars['user_profile']['mmr'] = $account->field_mmr['und'][0]['value'];
+    }
+    if($account->field_player_description) {
+        $vars['user_profile']['description'] = $account->field_player_description['und'][0]['safe_value'];
+    }
 
     drupal_add_css(drupal_get_path('theme', 'pwp').'/js/colorbox.css');
     drupal_add_js(drupal_get_path('theme', 'pwp').'/js/jquery.colorbox-min.js');

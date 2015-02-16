@@ -20,6 +20,12 @@
                 $('#vod-player iframe').attr('src', $(this).attr('data-video'));
                 $.colorbox({inline:true, open:true, href:'#vod-player', closeButton:false});
             });
+            $('.info-icon').hover(function() {
+                $('.show-info').removeClass('hidden');
+            },
+            function() {
+                $('.show-info').addClass('hidden');
+            });
         }
     }
 

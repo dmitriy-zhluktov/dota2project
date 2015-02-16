@@ -84,7 +84,7 @@ function match_get_node_planned_markup($node, $user) {
         $form = drupal_get_form('match_node_planned_form');
         $form = drupal_render($form);
     }
-    if($node->field_free_place[$node->language][0]['value'] > 0 && !in_array('ban', $user->roles)) {
+    if($node->uid != $user->uid && $node->field_free_place[$node->language][0]['value'] > 0 && !in_array('ban', $user->roles)) {
         $ticketform = drupal_get_form('match_node_planned_ticket_form');
         $html .= drupal_render($ticketform);
     }
@@ -1162,10 +1162,8 @@ function match_create_match_form($form, &$form_state) {
 }
  
 function match_create_match_form_submit($form, &$form_state) {
-    global $user;
 	$node = new stdClass();
 	$node->type = 'match';
-    $node->uid = $user->uid;
 	node_object_prepare($node);
 	
 	$date = $form_state['values']['date']['year'].'-'.$form_state['values']['date']['month'].'-'.$form_state['values']['date']['day'].' '.$form_state['values']['time'].':00';

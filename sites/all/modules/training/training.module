@@ -1,0 +1,243 @@
+<?php
+/**
+ * Implements hook_node_insert().
+ */
+function training_node_insert($node) {
+    if($node->type == 'training') {
+        $path = array (
+            'source' => 'node/'.$node->nid,
+            'alias' => 'training/'.$node->nid,
+        );
+        path_save($path);
+    }
+}
+
+/**
+ * Implements hook_block_info().
+ */
+
+function training_block_info() {
+    $blocks[0] = array(
+        'info' => t('Создать тренировочный матч'),
+    );
+
+    $blocks[1] = array(
+        'info' => t('Список тренировок'),
+    );
+
+    return $blocks;
+}
+
+function training_block_view($delta='') {
+    $block = array();
+    switch($delta) {
+        case 0:
+            $block['subject'] = t('Create training');
+            $block['content'] = training_create_node();
+            break;
+        case 1:
+            $count = 10;
+            $block['subject'] = t('Trainings list');
+            $block['content'] = training_get_list($count);
+            break;
+    }
+
+    return $block;
+}
+
+function training_create_node() {
+    return drupal_get_form('training_create_training_form');
+}
+
+function training_create_training_form($form, &$form_state) {
+    $form['title'] =  array(
+        '#type' => 'textfield',
+        '#title' => t('Training title'),
+        '#required' => TRUE
+    );
+    $form['description'] = array(
+        '#type' => 'textarea',
+        '#title' => t('Training description'),
+        '#required' => TRUE
+    );
+    $form['date'] = array(
+        '#type' => 'date',
+        '#title' => t('Training day'),
+        '#required' => TRUE
+    );
+
+    $form['time'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Time'),
+        '#description' => t('E.g. @time', array( '@time' => date('H:i'))),
+        '#size' => 5,
+        '#required' => TRUE
+    );
+
+    $form['create'] = array(
+        '#type' => 'actions',
+        'submit' => array(
+            '#type' => 'submit',
+            '#value' => t('Create training'),
+        ),
+    );
+
+    $form['actions']['submit']['#validate'][] = 'training_create_training_form_validate';
+
+    return $form;
+}
+
+function training_create_training_form_submit($form, &$form_state) {
+    $node = new stdClass();
+    $node->type = 'training';
+    node_object_prepare($node);
+
+    $vals = $form_state['values'];
+    $date = $vals['date']['year'].'-'.$vals['date']['month'].'-'.$vals['date']['day'].' '.$vals['time'].':00';
+
+    $node->title = $vals['title'];
+    $node->language = LANGUAGE_NONE;
+    $node->body[$node->language][0]['safe_value'] = '<p>'.nl2br($vals['description']).'</p>';
+    $node->body[$node->language][0]['value'] = strip_tags(nl2br($vals['description']));
+    $node->body[$node->language][0]['format'] = 'filtered_html';
+    $node->field_date[$node->language][0]['value'] = $date;
+    $node->field_training_finished[$node->language][0]['value'] = 0;
+    //krumo($node);exit;
+    node_save($node);
+
+    drupal_set_message(t('Training created'));
+}
+
+function training_create_training_form_validate($form, &$form_state) {
+    if(!empty($form_state['values']['time'])) {
+        if(!preg_match("/(2[0-3]|[01][0-9]):[0-5][0-9]/", $form_state['values']['time']))
+            form_error($form, t('Error! Wrong format'));
+    }
+}
+
+function training_get_list($count = null) {
+    $query = new EntityFieldQuery();
+    $query->entityCondition('entity_type', 'node')
+        ->entityCondition('bundle', 'training')
+        ->propertyCondition('status', 1);
+
+    if ($count != null)
+        $query->range(0, $count);
+
+    $result = $query->execute();
+
+    if (count($result) > 0) {
+        $nodes = node_load_multiple(array_keys($result['node']));
+
+        $uids = array();
+        if(count($nodes) > 0) {
+            foreach ($nodes as $node) {
+                $uids[] = $node->uid;
+            }
+        }
+        if(count($uids) > 0) {
+            $users = user_load_multiple($uids);
+        }
+    }
+}
+
+function training_accepted_player($node) {
+    global $user;
+    $html = '';
+    if($user->uid == $node->uid) {
+        $finished = $node->field_training_finished[$node->language][0]['value'];
+        if($finished == 0) {
+            $args = array(
+                'nid' => $node->nid
+            );
+            $form = drupal_get_form('training_finish_form', $args);
+            $html = drupal_render($form);
+        }
+        return $html;
+    }
+    $playerId = $node->field_training_player_id[$node->language][0]['value'];
+    $accepted = ($playerId > 0) ? TRUE : FALSE;
+
+    if($accepted) {
+        $player = user_load($playerId);
+        $html = '<div class="field field-label-inline clearfix">
+                    <div class="field-label">'.t('Accepted player').':</div>
+                    <div class="field-items">
+                        <div class="field-item even">
+                            <span class="accepted-player">'.l($player->name, 'user/'.$player->uid, array('attributes' => array('class' => array('regular-user'), 'target' => '_blank'))).'</span>
+                        </div>
+                    </div>
+                </div>';
+    } else {
+        $args = array(
+            'nid' => $node->nid
+        );
+        $form = drupal_get_form('training_buy_ticket_form', $args);
+        $html = drupal_render($form);
+    }
+    return $html;
+}
+
+function training_buy_ticket_form($form, &$form_state, $args) {
+    $form['nid'] = array(
+        '#type' => 'hidden',
+        '#default_value' => $args['nid'],
+    );
+
+    $form['buy'] = array(
+        '#type' => 'actions',
+        'submit' => array(
+            '#type' => 'submit',
+            '#value' => t('Buy a ticket'),
+        ),
+    );
+
+    return $form;
+}
+
+function training_buy_ticket_form_submit($form, &$form_state) {
+    $node = node_load($form_state['values']['nid']);
+    if ($node->field_training_player_id[$node->language][0]['value'] > 0)
+        drupal_set_message(t('No more free places on this match'), 'error');
+    else {
+        global $user;
+
+        if(uniteller_get_money($user) < variable_get('uniteller_price')) {
+            drupal_set_message(t('You have not enough PCOINS. You can update your wallet <a href="@href">here</a>',  array('@href' => url('uniteller/buy/'))), 'error');
+        } else {
+            $node->field_training_player_id[$node->language][0]['value'] = $user->uid;
+            node_save($node);
+            uniteller_update_wallet_amount($user, variable_get('uniteller_price'), false);
+            drupal_set_message(t('Thanks for register'));
+        }
+    }
+}
+
+function training_finish_form($form, &$form_state, $args) {
+    $form['nid'] = array(
+        '#type' => 'hidden',
+        '#default_value' => $args['nid'],
+    );
+
+    $form['finish'] = array(
+        '#type' => 'actions',
+        'submit' => array(
+            '#type' => 'submit',
+            '#value' => t('Finish training'),
+        ),
+    );
+
+    return $form;
+}
+
+function training_finish_form_submit($form, &$form_state) {
+    $node = node_load($form_state['values']['nid']);
+    global $user;
+    if($node->uid == $user->uid) {
+        $node->field_training_finished[$node->language][0]['value'] = 1;
+        node_save($node);
+        drupal_set_message(t('Training finished'));
+    } else {
+        drupal_set_message(t('Incorrect form data'), 'error');
+    }
+}

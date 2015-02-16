@@ -1,0 +1,5 @@
+name = Матч-тренировка
+description = Функционал тренировок
+core=7.x
+version=7.x-1.0
+files[] = training.module

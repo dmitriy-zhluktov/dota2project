@@ -41,7 +41,11 @@
         </div>
     </div>
     <div class="user-profile-level">
-        <h1><?php print $user_profile['name'] ?></h1>
+        <h1><?php print $user_profile['name'] ?></h1><span class="info-icon">i</span>
+        <?php if($user_profile['description']): ?>
+            <div class="show-info hidden"><?php print $user_profile['description'] ?></div>
+        <?php endif ?>
+
         <span class="<?php print $user_profile['is_online']? 'online': 'offline' ?>">•</span>
 
         <div class="<?php print $user_profile['pro']? 'pro ':''?>profile-level">

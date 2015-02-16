@@ -94,6 +94,10 @@ h1#page-title {
 .region-content {
     position: relative;
 }
+.node-training .content,
+.page-trainings .content {
+    padding: 0 15px;
+}
 .view-id-news .views-row {
     border-bottom: 2px solid #ee2d42;
     margin-top: 5px;
@@ -136,11 +140,15 @@ h2#control {
 .page-user-hybridauth div.vertical-tabs {
     display: none;
 }
-#match-create-match-form {
+#match-create-match-form .form-actions {
+    float: right;
+    padding: 0;
 }
 #match-create-match-form input.form-submit {
     border: none;
-    float: right;
+    padding: 2px 17px;
+    margin-bottom: 2px;
+    margin-top: 2px;
 }
 #match-create-match-form .form-item {
     float: left;
@@ -828,6 +836,7 @@ body {
 }
 .user-profile-level {
     margin-left: 20px;
+    position: relative;
 }
 .user-profile-level h1 {
     margin: 0 0 10px;
@@ -1078,3 +1087,16 @@ span.title {
 .play-button:hover {
     opacity: .7;
 }
+.accepted-player {
+    margin-left: 10px;
+}
+.training-list { list-style: none; }
+.training-list li { padding: 15px; margin-bottom: 15px; }
+.training-list li.last { margin-bottom: 0; }
+.training-list .user-pic,
+.training-list .training-desc { float: left; }
+.training-list .training-buy { float: right; }
+.training-list .training-desc { margin: 0 15px; }
+.training-list .training-desc h2 { margin-top: 0; }
+
+.info-icon { position: absolute; top: 0; }
