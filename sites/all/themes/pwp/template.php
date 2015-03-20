@@ -331,7 +331,9 @@ function pwp_preprocess_user_profile(&$vars) {
     if($account->field_player_description) {
         $vars['user_profile']['description'] = $account->field_player_description['und'][0]['safe_value'];
     }
-
+    if($account->field_dota_nick) {
+        $vars['user_profile']['dota_nick'] = $account->field_dota_nick['und'][0]['value'];
+    }
     drupal_add_css(drupal_get_path('theme', 'pwp').'/js/colorbox.css');
     drupal_add_js(drupal_get_path('theme', 'pwp').'/js/jquery.colorbox-min.js');
 }

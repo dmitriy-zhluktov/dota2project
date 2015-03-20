@@ -3,6 +3,13 @@
         <?php if ($user_profile['user_picture']): ?>
             <?php print render($user_profile['user_picture']); ?>
         <?php endif; ?>
+        <?php if(isset($user_profile['description'])): ?>
+            <span class="info-icon"></span>
+            <div class="hidden">
+                <div id="show-info"><?php print $user_profile['description'] ?></div>
+            </div>
+        <?php endif ?>
+
         <?php if($user_profile['self']): ?>
             <div class="pic-form">
                 <div class="hide-left">
@@ -41,12 +48,9 @@
         </div>
     </div>
     <div class="user-profile-level">
-        <h1><?php print $user_profile['name'] ?></h1><span class="info-icon">i</span>
-        <?php if($user_profile['description']): ?>
-            <div class="show-info hidden"><?php print $user_profile['description'] ?></div>
-        <?php endif ?>
+        <h1><?php print $user_profile['name'] ?><?php if(isset($user_profile['dota_nick'])) print '<span class="known-as">'.t('known as').'</span><span class="dota-nickname">'.$user_profile['dota_nick'].'</span>' ?></h1>
 
-        <span class="<?php print $user_profile['is_online']? 'online': 'offline' ?>">•</span>
+        <span class="<?php print $user_profile['is_online']? 'online': 'offline' ?>" title="<?php print $user_profile['is_online']? t('User is Online') : t('User is Offline') ?>">•</span>
 
         <div class="<?php print $user_profile['pro']? 'pro ':''?>profile-level">
 
@@ -82,6 +86,11 @@
             <div class="win-rating clearfix">
                 <span class="winrate-percents"><?php print $user_profile['match']['percents'] ?></span> <?php print t('winrate'); ?>
             </div>
+            <?php if(isset($user_profile['mmr'])): ?>
+                <div class="win-rating clearfix">
+                    <span class="winrate-percents"><?php print $user_profile['mmr'] ?></span> <?php print t('mmr'); ?>
+                </div>
+            <?php endif ?>
         </div>
     </div>
     <div class="user-ratings">

@@ -852,7 +852,7 @@ body {
     color: #cd3143;
     font-size: 25px;
 }
-.page-user-edit .form-wrapper {
+.page-user-edit .content {
     margin: 0 10px;
 }
 .pic-form {
@@ -883,8 +883,9 @@ body {
 .send-msg:hover {
     text-decoration: none;
 }
+.user-picture { line-height: 100%; margin-bottom: 10px; }
 .user-picture img {
-    margin-bottom: 5px;
+    margin-bottom: 0px;
 }
 #footer-wrapper {
     padding: 20px;
@@ -1025,10 +1026,19 @@ span.title {
     padding: 8px;
     background: #ececec;
 }
+.pro-list .jcarousel-skin-default .jcarousel-container-horizontal {
+    height: 175px;
+}
 .jcarousel-skin-default .jcarousel-item {
     height: 140px;
     width: 155px;
     position: relative;
+}
+.pro-list .jcarousel-skin-default .jcarousel-item {
+    height: 175px;
+    width: 150px;
+    border: none;
+    background: none;
 }
 .jcarousel-skin-default .jcarousel-item-1 {
     margin-left: 0;
@@ -1099,4 +1109,40 @@ span.title {
 .training-list .training-desc { margin: 0 15px; }
 .training-list .training-desc h2 { margin-top: 0; }
 
-.info-icon { position: absolute; top: 0; }
+.user-picture-wrap { position: relative; }
+.info-icon { position: absolute; top: 10px; right: 10px; background: url('../images/info.png') 50% 50% no-repeat transparent; background-size: 100%; width: 12px; height: 12px; cursor: pointer; }
+#show-info { padding: 25px; color: #fff; }
+.info#cboxContent { background: none; }
+.info #cboxLoadedContent { background: none; border: none; }
+#show-info p { margin-bottom: 0; }
+#block-training-0 { text-align: left; }
+#training-create-training-form .form-item label {
+    font-size: 15px;
+    text-align: center;
+    font-weight: 100;
+}
+#training-create-training-form .form-item-description label { text-align: left; }
+#training-create-training-form .form-item-title,
+#training-create-training-form .form-item-date,
+#training-create-training-form .form-item-time {
+    float: left;
+    margin: 0;
+    height: 75px;
+    font-size: 15px;
+    margin-right: 25px;
+}
+
+#training-create-training-form .form-item-title { margin-right: 120px; }
+#training-create-training-form .form-item .description {
+    font-size: 10px;
+    text-align: center;
+}
+#training-create-training-form input.form-text,
+#training-create-training-form textarea.form-textarea,
+#training-create-training-form select.form-select {
+    font-size: 15px;
+}
+
+.known-as { margin: 0 10px; font-size: 10px; }
+.dota-nickname { font-style: italic; font-weight: 700; color: #ee2d42; }
+.pro-list { margin-bottom: 10px; }

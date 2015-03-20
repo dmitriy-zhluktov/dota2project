@@ -30,6 +30,9 @@ function helper_block_info() {
     $blocks[2] = array(
         'info' => t('Картинка uniteller'),
     );
+    $blocks[3] = array(
+        'info' => t('Карусель PRO-игроков'),
+    );
 
     return $blocks;
 }
@@ -48,6 +51,10 @@ function helper_block_view($delta='') {
         case 2:
             $block['subject'] = t('');
             $block['content'] = helper_uniteller_buy_image();
+            break;
+        case 3:
+            $block['subject'] = t('PRO-players');
+            $block['content'] = helper_pro_list_carousel();
             break;
     }
 
@@ -624,4 +631,37 @@ function helper_pro_vods($user) {
         }
     }
     return $res;
+}
+
+function helper_pro_list_carousel() {
+    $role = user_role_load_by_name('frontpage');
+    $result = db_select('users_roles', 'ur')
+        ->fields('ur', array('uid'))
+        ->condition('rid', $role->rid)
+        ->execute();
+
+    foreach($result as $record) {
+        $uids[] = $record->uid;
+    }
+
+    $query = new EntityFieldQuery();
+    $query->entityCondition('entity_type', 'user')
+        ->entityCondition('entity_id', $uids, 'IN')
+        ->propertyCondition('status', 1);
+    $entities = $query->execute();
+
+    $users = array();
+    if (!empty($entities)) {
+        $users = entity_load('user', array_keys($entities['user']));
+    }
+
+    return theme('prolistfront', array('users' => $users));
+}
+function helper_theme() {
+    return array(
+        'prolistfront' => array(
+            'variables' => array('users' => NULL),
+            'template' => 'prolistfront'
+        )
+    );
 }

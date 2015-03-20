@@ -20,11 +20,14 @@
                 $('#vod-player iframe').attr('src', $(this).attr('data-video'));
                 $.colorbox({inline:true, open:true, href:'#vod-player', closeButton:false});
             });
-            $('.info-icon').hover(function() {
-                $('.show-info').removeClass('hidden');
-            },
-            function() {
-                $('.show-info').addClass('hidden');
+            $('.info-icon').click(function() {
+                $.colorbox({
+                    inline:true,
+                    open:true,
+                    href:"#show-info",
+                    onOpen: function() { console.log('open'); $('#cboxContent').addClass('info'); },
+                    onClosed: function() { console.log('close'); $('#cboxContent').removeClass('info'); }
+                });
             });
         }
     }
