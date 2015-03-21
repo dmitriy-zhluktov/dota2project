@@ -1151,7 +1151,7 @@ span.title {
 }
 
 .known-as { margin: 0 10px; font-size: 10px; }
-.dota-nickname { font-style: italic; font-weight: 700; color: #ee2d42; position: absolute; width: 100%; margin-left: 25px; }
+.dota-nickname { font-style: italic; font-weight: 700; color: #ee2d42; /*position: absolute; width: 100%; margin-left: 25px;*/ }
 div.pro-list { margin-bottom: 10px; }
 .training-list .user-pic a { display: block; text-align: center; }
 .node-training .meta .user-picture { display: none; }
