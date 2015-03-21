@@ -31,6 +31,10 @@
             });
             $('#edit-time').mask('00:00');
             $('#edit-time--2').mask('00:00');
+
+            if($('.quicktabs-tabs').length > 0) {
+                $('.quicktabs-tabs').addClass('items-count-' + $('.quicktabs-tabs').children().size());
+            }
         }
     }
 

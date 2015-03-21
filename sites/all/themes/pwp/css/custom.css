@@ -25,6 +25,7 @@ div.ctools-modal-content .modal-header { background: #ee2d42;}
 #block-system-user-menu ul li { list-style: none;}
 div.ctools-modal-content .form-item .description { display: none;}
 #block-quicktabs-front-mathces h2 { display: none; }
+#block-quicktabs-front-mathces .training-desc h2 { display: initial; }
 #control-panel {
     box-shadow: 0px 3px 10px rgba(0,0,0,0.5);
     position: relative;
@@ -37,7 +38,6 @@ ul.quicktabs-tabs {
 .item-list ul.quicktabs-tabs  li {
     display: block;
     float: left;
-    width: 330px;
     text-align: center;
     background: url('../images/tab-li-big.png') 50% 50% transparent;
     height: 45px;
@@ -46,7 +46,13 @@ ul.quicktabs-tabs {
     padding: 0;
     margin: 0;
     cursor: pointer;
-
+}
+.item-list ul.quicktabs-tabs.items-count-3 li {
+    width: 33.333%;
+}
+.item-list ul.quicktabs-tabs.items-count-2 li {
+    width: 50%;
+    background-size: 100%;
 }
 .block-quicktabs .content {
     margin: 0;
@@ -60,6 +66,7 @@ ul.quicktabs-tabs {
 .item-list ul.quicktabs-tabs li.active,
 .item-list ul.quicktabs-tabs li:hover {
     background: url('../images/tab-li-active-big.png') 50% 50% transparent;
+    background-size: 100%;
 }
 .item-list ul.quicktabs-tabs li.last:after {
     clear: both;
@@ -1144,5 +1151,7 @@ span.title {
 }
 
 .known-as { margin: 0 10px; font-size: 10px; }
-.dota-nickname { font-style: italic; font-weight: 700; color: #ee2d42; }
-.pro-list { margin-bottom: 10px; }
+.dota-nickname { font-style: italic; font-weight: 700; color: #ee2d42; position: absolute; width: 100%; margin-left: 25px; }
+div.pro-list { margin-bottom: 10px; }
+.training-list .user-pic a { display: block; text-align: center; }
+.node-training .meta .user-picture { display: none; }

@@ -100,11 +100,13 @@ function training_create_training_form_submit($form, &$form_state) {
 
     $node->title = $vals['title'];
     $node->language = LANGUAGE_NONE;
-    $node->body[$node->language][0]['safe_value'] = '<p>'.nl2br($vals['description']).'</p>';
-    $node->body[$node->language][0]['value'] = strip_tags(nl2br($vals['description']));
+    $desc = $vals['description'] != null ? $vals['description'] : 'No description yet';
+    $node->body[$node->language][0]['safe_value'] = '<p>'.nl2br($desc).'</p>';
+    $node->body[$node->language][0]['value'] = strip_tags(nl2br($desc));
     $node->body[$node->language][0]['format'] = 'filtered_html';
     $node->field_date[$node->language][0]['value'] = $date;
     $node->field_training_finished[$node->language][0]['value'] = 0;
+    $node->field_training_player_id[$node->language][0]['value'] = 0;
     //krumo($node);exit;
     node_save($node);
 
@@ -146,6 +148,11 @@ function training_get_list($count = null) {
 
 function training_accepted_player($node) {
     global $user;
+    $playerId = $node->field_training_player_id[$node->language][0]['value'];
+    $accepted = ($playerId > 0) ? TRUE : FALSE;
+    if($accepted) {
+        $player = user_load($playerId);
+    }
     $html = '';
     if($user->uid == $node->uid) {
         $finished = $node->field_training_finished[$node->language][0]['value'];
@@ -156,13 +163,22 @@ function training_accepted_player($node) {
             $form = drupal_get_form('training_finish_form', $args);
             $html = drupal_render($form);
         }
+
+        if($accepted) {
+            $html = '<div class="field field-label-inline clearfix">
+                    <div class="field-label">'.t('Accepted player').':</div>
+                    <div class="field-items">
+                        <div class="field-item even">
+                            <span class="accepted-player">'.l($player->name, 'user/'.$player->uid, array('attributes' => array('class' => array('regular-user'), 'target' => '_blank'))).'</span>
+                        </div>
+                    </div>
+                </div>'
+                .$html;
+        }
         return $html;
     }
-    $playerId = $node->field_training_player_id[$node->language][0]['value'];
-    $accepted = ($playerId > 0) ? TRUE : FALSE;
 
     if($accepted) {
-        $player = user_load($playerId);
         $html = '<div class="field field-label-inline clearfix">
                     <div class="field-label">'.t('Accepted player').':</div>
                     <div class="field-items">
@@ -171,13 +187,15 @@ function training_accepted_player($node) {
                         </div>
                     </div>
                 </div>';
-    } else {
-        $args = array(
-            'nid' => $node->nid
-        );
-        $form = drupal_get_form('training_buy_ticket_form', $args);
-        $html = drupal_render($form);
     }
+
+    $args = array(
+        'nid' => $node->nid,
+        'buy' => !$accepted
+    );
+    $form = drupal_get_form('training_buy_ticket_form', $args);
+    $html .= drupal_render($form);
+
     return $html;
 }
 
@@ -186,12 +204,15 @@ function training_buy_ticket_form($form, &$form_state, $args) {
         '#type' => 'hidden',
         '#default_value' => $args['nid'],
     );
-
+    $form['buy_action'] = array(
+        '#type' => 'hidden',
+        '#default_value' => $args['buy'],
+    );
     $form['buy'] = array(
         '#type' => 'actions',
         'submit' => array(
             '#type' => 'submit',
-            '#value' => t('Buy a ticket'),
+            '#value' => ($args['buy']) ? t('Buy a ticket') : t('Leave training'),
         ),
     );
 
@@ -200,19 +221,29 @@ function training_buy_ticket_form($form, &$form_state, $args) {
 
 function training_buy_ticket_form_submit($form, &$form_state) {
     $node = node_load($form_state['values']['nid']);
-    if ($node->field_training_player_id[$node->language][0]['value'] > 0)
-        drupal_set_message(t('No more free places on this match'), 'error');
-    else {
+    $buy = $form_state['values']['buy_action'];
+    if($buy) {
+        if ($node->field_training_player_id[$node->language][0]['value'] > 0)
+            drupal_set_message(t('No more free places on this match'), 'error');
+        else {
+            global $user;
+
+            if (uniteller_get_money($user) < variable_get('uniteller_price')) {
+                drupal_set_message(t('You have not enough PCOINS. You can update your wallet <a href="@href">here</a>', array('@href' => url('uniteller/buy/'))), 'error');
+            } else {
+                $node->field_training_player_id[$node->language][0]['value'] = $user->uid;
+                node_save($node);
+                uniteller_update_wallet_amount($user, variable_get('uniteller_price'), false);
+                drupal_set_message(t('Thanks for register'));
+            }
+        }
+    } else {
         global $user;
 
-        if(uniteller_get_money($user) < variable_get('uniteller_price')) {
-            drupal_set_message(t('You have not enough PCOINS. You can update your wallet <a href="@href">here</a>',  array('@href' => url('uniteller/buy/'))), 'error');
-        } else {
-            $node->field_training_player_id[$node->language][0]['value'] = $user->uid;
-            node_save($node);
-            uniteller_update_wallet_amount($user, variable_get('uniteller_price'), false);
-            drupal_set_message(t('Thanks for register'));
-        }
+        $node->field_training_player_id[$node->language][0]['value'] = 0;
+        node_save($node);
+        uniteller_update_wallet_amount($user, variable_get('uniteller_price'), true);
+        drupal_set_message(t('I had left the training'));
     }
 }
 

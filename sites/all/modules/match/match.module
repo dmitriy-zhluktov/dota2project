@@ -521,14 +521,15 @@ function match_get_planned_timing($timestamp, $uid) {
 	$minutes = $interval->format('%i');
 	$seconds = $interval->format('%s');
 	
-	$query = db_select('node', 'n')	
+	/*$query = db_select('node', 'n')
 		->fields('n', array('nid'));
 	$query->leftJoin('field_data_field_state','s', 'n.nid=s.entity_id');
 	$query->condition('s.field_state_value', 1)
 		->condition('n.uid', $uid)
 		->orderBy('n.nid', 'DESC');
 	$res = $query->execute();
-	$result = $res->fetchObject();
+	$result = $res->fetchObject();*/
+    $result = false;
 	if (isset($result) && $result && $result->nid)
 		$out = t('After !match match', array('!match' => '<a href="'.url('node/'.$result->nid, array('absolute' => true)).'">this</a>'));
 	else {
