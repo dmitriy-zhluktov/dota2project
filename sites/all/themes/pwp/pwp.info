@@ -9,6 +9,7 @@ stylesheets[all][] = css/layout.css
 stylesheets[all][] = css/style.css
 stylesheets[all][] = css/colors.css
 stylesheets[all][] = css/custom.css
+scripts[] = js/jquery.mask.js
 scripts[] = js/local.js
 stylesheets[print][] = css/print.css
 

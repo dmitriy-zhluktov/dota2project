@@ -25,10 +25,12 @@
                     inline:true,
                     open:true,
                     href:"#show-info",
-                    onOpen: function() { console.log('open'); $('#cboxContent').addClass('info'); },
-                    onClosed: function() { console.log('close'); $('#cboxContent').removeClass('info'); }
+                    onOpen: function() { $('#cboxContent').addClass('info'); },
+                    onClosed: function() { $('#cboxContent').removeClass('info'); }
                 });
             });
+            $('#edit-time').mask('00:00');
+            $('#edit-time--2').mask('00:00');
         }
     }
 

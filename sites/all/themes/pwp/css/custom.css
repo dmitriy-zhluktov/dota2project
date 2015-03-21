@@ -1111,7 +1111,7 @@ span.title {
 
 .user-picture-wrap { position: relative; }
 .info-icon { position: absolute; top: 10px; right: 10px; background: url('../images/info.png') 50% 50% no-repeat transparent; background-size: 100%; width: 12px; height: 12px; cursor: pointer; }
-#show-info { padding: 25px; color: #fff; }
+#show-info { padding: 25px; color: #fff; max-width: 1000px; }
 .info#cboxContent { background: none; }
 .info #cboxLoadedContent { background: none; border: none; }
 #show-info p { margin-bottom: 0; }
