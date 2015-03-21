@@ -6,7 +6,7 @@
         <?php foreach($users as $user) : ?>
             <li>
                 <?php
-                $uri = file_build_uri('user-default.png');
+                $uri = file_build_uri('pictures/user-default.png');
                 if(isset($user->picture) && $user->picture != NULL) {
                     $uri = $user->picture->uri;
                 }

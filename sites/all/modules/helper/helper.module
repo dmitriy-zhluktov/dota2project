@@ -384,7 +384,7 @@ function helper_user_menu_title() {
     }
 
     if($user->uid != 0 && !$ban) {
-        $pic = file_build_uri('user-default.png');
+        $pic = file_build_uri('pictures/user-default.png');
         if(isset($user->picture) && $user->picture != NULL) {
             $pic = $user->picture->uri;
         }
