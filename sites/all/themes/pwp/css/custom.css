@@ -501,8 +501,8 @@ span.cash {
 .text-right { text-align: right; }
 .text-left { text-align: left; }
 .text-center { text-align: center; }
-#uniteller-order-form { margin: 15px; }
-#uniteller-order-form label[for="edit-qty"] {
+#twocheckout-order-form { margin: 15px; }
+#twocheckout-order-form label[for="edit-qty"] {
     background: url('../images/pcoins-mini.png') 100% 50% no-repeat transparent;
     width: 200px;
     margin-bottom: 5px;
@@ -510,10 +510,10 @@ span.cash {
     font-weight: 100;
 }
 
-#uniteller-order-form #edit-qty {
+#twocheckout-order-form #edit-qty {
     width: 200px;
 }
-#uniteller-order-form label[for="edit-qty"] span {
+#twocheckout-order-form label[for="edit-qty"] span {
     display: none;
 }
 .recounter-text {
@@ -532,11 +532,11 @@ span.cash {
 #logo img {
     display: block;
 }
-.page-uniteller-buy #featured {
+.page-twocheckout-buy #featured {
     padding: 0;
     border: none;
 }
-.uniteller-image img {
+.twocheckout-image img {
     display: block;
 }
 .tabs ul.primary {
@@ -1155,3 +1155,6 @@ span.title {
 div.pro-list { margin-bottom: 10px; }
 .training-list .user-pic a { display: block; text-align: center; }
 .node-training .meta .user-picture { display: none; }
+
+.page-contact .region-content .content,
+.page-user-contact .region-content .content { padding: 0 15px; }

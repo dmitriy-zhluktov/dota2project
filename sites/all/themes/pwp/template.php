@@ -196,9 +196,9 @@ function pwp_preprocess_link(&$vars) {
         $vars['options']['html'] = TRUE;
         $vars['text'] = helper_privatemessage_menu_title();
     }
-    if($vars['path'] == 'uniteller/buy') {
+    if($vars['path'] == 'twocheckout/buy') {
         $vars['options']['html'] = TRUE;
-        $vars['text'] = '<span class="cash">'.uniteller_get_money(null).'</span><span class="update-wallet">'.t('Update wallet').'</span>';
+        $vars['text'] = '<span class="cash">'.twocheckout_get_money(null).'</span><span class="update-wallet">'.t('Update wallet').'</span>';
     }
     if($vars['path'] == 'user') {
         $params = helper_user_menu_title();

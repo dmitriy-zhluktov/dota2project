@@ -1,0 +1,7 @@
+name = 2Checkout
+description = Enable to process payments using https://www.2checkout.com
+core = 7.x
+configure = admin/config/twocheckout/settings
+files[] = twocheckout.module
+files[] = twocheckout.install
+version = "7.x-1.0"

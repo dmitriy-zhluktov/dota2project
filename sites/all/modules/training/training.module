@@ -228,12 +228,12 @@ function training_buy_ticket_form_submit($form, &$form_state) {
         else {
             global $user;
 
-            if (uniteller_get_money($user) < variable_get('uniteller_price')) {
-                drupal_set_message(t('You have not enough PCOINS. You can update your wallet <a href="@href">here</a>', array('@href' => url('uniteller/buy/'))), 'error');
+            if (twocheckout_get_money($user) < variable_get('twocheckout_ticketprice')) {
+                drupal_set_message(t('You have not enough PCOINS. You can update your wallet <a href="@href">here</a>', array('@href' => url('twocheckout/buy/'))), 'error');
             } else {
                 $node->field_training_player_id[$node->language][0]['value'] = $user->uid;
                 node_save($node);
-                uniteller_update_wallet_amount($user, variable_get('uniteller_price'), false);
+                twocheckout_update_wallet_amount($user, variable_get('twocheckout_ticketprice'), false);
                 drupal_set_message(t('Thanks for register'));
             }
         }
@@ -242,7 +242,7 @@ function training_buy_ticket_form_submit($form, &$form_state) {
 
         $node->field_training_player_id[$node->language][0]['value'] = 0;
         node_save($node);
-        uniteller_update_wallet_amount($user, variable_get('uniteller_price'), true);
+        twocheckout_update_wallet_amount($user, variable_get('twocheckout_ticketprice'), true);
         drupal_set_message(t('I had left the training'));
     }
 }

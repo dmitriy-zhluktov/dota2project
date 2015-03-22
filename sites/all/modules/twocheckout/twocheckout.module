@@ -1,0 +1,521 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function twocheckout_menu() {
+    $items['twocheckout/endpoint'] = array(
+        'title' => 'Internal Data',
+        'page callback' => 'twocheckout_endpoint',
+        'access callback' => true,
+        'page arguments' => array(),
+        'type' => MENU_CALLBACK,
+    );
+    /*$items['twocheckout/test'] = array(
+        'title' => 'Internal Data',
+        'page callback' => 'twocheckout_test',
+        'access callback' => true,
+        'page arguments' => array(),
+        'type' => MENU_CALLBACK,
+    );
+    $items['twocheckout/cron'] = array(
+        'title' => 'Uniteller Cron',
+        'page callback' => 'twocheckout_cron',
+        'access callback' => 'menu_access',
+        'page arguments' => array(),
+        'access arguments' => array('access cron'),
+        'type' => MENU_CALLBACK,
+    );*/
+
+    $items['twocheckout/buy'] = array(
+        'title' => t('Buy'),
+        'page callback' => 'twocheckout_buy_page',
+        'access callback' => 'user_is_logged_in',
+        'page arguments' => array(),
+        'menu_name' => 'menu-helper-menu',
+    );
+
+    $items['user/%/orders'] = array(
+        'title' => t('My orders'),
+        'page callback' => 'twocheckout_user_orders',
+        'page arguments' => array(1),
+        'access callback' => 'twocheckout_view_own_orders',
+        'access arguments' => array(1),
+        'type' => MENU_LOCAL_TASK,
+    );
+    $items['admin/config/twocheckout'] = array(
+        'title' => t('2Checkout'),
+        'description' => t('2Checkout integration'),
+        'position' => 'right',
+        'weight' => -20,
+        'page callback' => 'system_admin_menu_block_page',
+        'access arguments' => array('access administration pages'),
+        'file' => 'system.admin.inc',
+        'file path' => drupal_get_path('module', 'system'),
+    );
+    $items['admin/config/twocheckout/settings'] = array(
+        'title' => t('2Checkout settings'),
+        'description' => t('Configuration for 2Checkout'),
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('twocheckout_admin_config_form'),
+        'access arguments' => array('access administration pages'),
+        'type' => MENU_NORMAL_ITEM,
+    );
+
+    $items['admin/config/twocheckout/list'] = array(
+        'title' => t('2Checkout orders'),
+        'description' => t('List of orders'),
+        'page callback' => 'twocheckout_admin_order_list',
+        'access arguments' => array('access administration pages'),
+        'type' => MENU_NORMAL_ITEM,
+    );
+
+    $items['user/%user/edit/wallet'] = array(
+        'title' => t('Wallet'),
+        'page callback' => 'twocheckout_usertab',
+        'page arguments' => array(1),
+        'access arguments' => array('administer users'),
+        'type' => MENU_LOCAL_TASK,
+        'weight' => 5,
+    );
+
+    return $items;
+}
+
+function twocheckout_buy_page() {
+    $form = drupal_get_form('twocheckout_order_form');
+    $html = drupal_render($form);
+
+    drupal_add_js(
+        array('twocheckout' =>
+            array(
+                'currency' => variable_get('twocheckout_currency'),
+                'sellerId' => variable_get('twocheckout_sellerid'),
+                'publishableKey' => variable_get('twocheckout_publishablekey'),
+                'mode' => (variable_get('twocheckout_sandbox') == 1)? 'sandbox' : 'production'
+            )
+        ),
+        array('type' => 'setting')
+    );
+    drupal_add_js('https://www.2checkout.com/checkout/api/2co.min.js');
+    return $html;
+}
+
+function twocheckout_order_form($form, &$form_state) {
+
+    $form['qty'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Quantity'),
+        '#required' => true,
+        '#element_validate' => array('element_validate_integer_positive'),
+        '#field_suffix' => '<span class="recounter-text">=</span><input type="text" disabled="disabled" id="qty-recounter" /><span class="recounter-text bux">$</span>'
+    );
+    $form['ccNo'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Credit Card Number'),
+        '#required' => true,
+        '#size' => 20
+    );
+    $months = array();
+    for($i = 1; $i < 13; $i++) {
+        $data = $i < 10 ? '0'.$i : $i;
+        $months[$data] = $data;
+    }
+    $form['expMonth'] = array(
+        '#type' => 'select',
+        '#title' => t('Expiration month'),
+        '#required' => true,
+        '#options' => $months
+    );
+    $years = array();
+    for($i = 0; $i < 15; $i++) {
+        $data = date('Y') + $i;
+        $years[$data] = $data;
+    }
+    $form['expYear'] = array(
+        '#type' => 'select',
+        '#title' => t('Expiration year'),
+        '#required' => true,
+        '#options' => $years,
+    );
+    $form['cvv'] = array(
+        '#type' => 'textfield',
+        '#title' => t('CVV'),
+        '#required' => true,
+        '#size' => 5
+    );
+    $form['token'] = array(
+        '#type' => 'hidden',
+    );
+    $form['submit'] = array(
+        '#type' => 'actions',
+        'submit' => array(
+            '#type' => 'submit',
+            '#value' => t('Checkout'),
+        ),
+    );
+
+    return $form;
+}
+
+
+function twocheckout_order_form_submit($form, &$form_state) {
+    global $user;
+
+    $sellerId = variable_get('twocheckout_sellerid');
+    $privateKey = variable_get('twocheckout_privatekey');
+    $token = $form_state['values']['token'];
+    $currency = variable_get('twocheckout_realcurrency');
+    $total = $form_state['values']['qty']*variable_get('twocheckout_currency');
+    $qty = $form_state['values']['qty'];
+    db_insert('orders')
+        ->fields(array(
+            'uid' => $user->uid,
+            'qty' => $qty,
+            'total' => $total,
+            'created' => time()
+        ))
+        ->execute();
+    $orderId = Database::getConnection()->lastInsertId();
+
+    /*
+    $type = 'product';
+    $name = variable_get('twocheckout_currencyname');
+
+    $price = variable_get('twocheckout_currency', 1);
+    */
+
+    if(variable_get('twocheckout_sandbox')) {
+        $url = "https://sandbox.2checkout.com/checkout/api/1/$sellerId/rs/authService";
+    } else {
+        $url = "https://2checkout.com/checkout/api/1/$sellerId/rs/authService";
+    }
+
+    $data = array(
+        'sellerId' => $sellerId,
+        'privateKey' => $privateKey,
+        'merchantOrderId' => $orderId,
+        'token' => $token,
+        'currency' => $currency,
+        'total' => $total,
+        "billingAddr" => array(
+            "name" => 'Testing Tester',
+            "addrLine1" => '123 Test St',
+            "city" => 'Columbus',
+            "state" => 'OH',
+            "zipCode" => '43123',
+            "country" => 'USA',
+            "email" => 'testingtester@2co.com',
+            "phoneNumber" => '555-555-5555'
+        ),
+        "shippingAddr" => array(
+            "name" => 'Testing Tester',
+            "addrLine1" => '123 Test St',
+            "city" => 'Columbus',
+            "state" => 'OH',
+            "zipCode" => '43123',
+            "country" => 'USA',
+            "email" => 'testingtester@2co.com',
+            "phoneNumber" => '555-555-5555'
+        )
+    );
+    $data = json_encode($data);
+
+    $curl = curl_init();
+
+    curl_setopt($curl, CURLOPT_URL, $url);
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER,true);
+    curl_setopt($curl, CURLOPT_POST, true);
+    curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
+    curl_setopt($curl, CURLOPT_HTTPHEADER, array(
+            'Accept: application/json',
+            'Content-Type: application/json',
+            'Content-Length: ' . strlen($data))
+    );
+    curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+    $out = curl_exec($curl);
+    curl_close($curl);
+
+    $response = json_decode($out);
+    $orderData = array();
+    $resultMessage = array();
+    if($response->exception != NULL) {
+        $orderData = array(
+            'status' => 'Payment failed',
+            'resultcode' => 'errorCode - '.$response->exception->errorCode.' errorMsg - '.$response->exception->errorMsg
+        );
+        $contact = l('contact', 'contact');
+        $resultMessage['type'] = 'error';
+        $resultMessage['text'] = t(
+            "An error occured while processing checkout.
+            Error code %errCode: %errMsg
+            Please try again or $contact our administrator",
+            array(
+                '%errCode' => $response->exception->errorCode,
+                '%errMsg' => $response->exception->errorMsg
+            )
+        );
+    } else {
+        if($response->response == NULL) {
+            $orderData = array(
+                'status' => 'Payment failed',
+                'resultcode' => 'Empty response from payment system'
+            );
+            $resultMessage['type'] = 'error';
+            $resultMessage['text'] = t('Empty response from payment system');
+        } else {
+            $orderData = array(
+                'invoiceid' => $response->response->transactionId,
+                'transfered' => 1,
+                'status' => $response->response->responseCode,
+                'resultcode' => $response->response->type.' responseCode - '.$response->response->responseCode.' '.$response->response->responseMsg
+            );
+            $resultMessage['type'] = 'status';
+            $resultMessage['text'] = t('Success! Your order in process!');
+            twocheckout_update_wallet_amount($user, $qty);
+        }
+    }
+    twocheckout_order_update($orderId, $orderData);
+    drupal_set_message($resultMessage['text'], $resultMessage['type']);
+
+}
+
+function twocheckout_order_update($id, $data = array()) {
+    $data['modified'] = REQUEST_TIME;
+    db_update('orders')->fields($data)->condition('orders.id', $id)->execute();
+}
+
+function twocheckout_update_wallet_amount($user, $amount, $increase = true) {
+    if($increase) {
+        db_update('user_wallets')->expression('cash', 'cash + :qty', array(':qty' => $amount))->condition('user_wallets.uid', $user->uid)->execute();
+    } else {
+        db_update('user_wallets')->expression('cash', 'cash - :qty', array(':qty' => $amount))->condition('user_wallets.uid', $user->uid)->execute();
+    }
+}
+
+function twocheckout_admin_config_form($form, &$form_state) {
+
+    $form['twocheckout_sellerid'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Seller ID'),
+        '#required' => true,
+        '#default_value' => variable_get('twocheckout_sellerid', '901269432'),
+        '#size' => 20
+    );
+    $form['twocheckout_privatekey'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Private key'),
+        '#required' => true,
+        '#default_value' => variable_get('twocheckout_privatekey', '57D0A2F4-D833-4635-81AF-9601375E94B5'),
+        '#size' => 40
+    );
+    $form['twocheckout_publishablekey'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Publishable Key'),
+        '#required' => true,
+        '#default_value' => variable_get('twocheckout_publishablekey', '3246CBED-864A-43F3-8770-D7C119418BC1'),
+        '#size' => 40
+    );
+    $form['twocheckout_sandbox'] = array(
+        '#type' => 'radios',
+        '#title' => t('Режим'),
+        '#required' => true,
+        '#default_value' => variable_get('twocheckout_sandbox', 1),
+        '#options' => array(
+            1 => t('Тестовый'),
+            0 => t('Нормальный')
+        ),
+    );
+
+    $form['twocheckout_realcurrency'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Валюта для покупки'),
+        '#required' => true,
+        '#default_value' => variable_get('twocheckout_realcurrency', 'USD'),
+        '#size' => 10,
+        '#description' => 'Доступные варианты: ARS, AUD, BRL, GBP, CAD, DKK, EUR, HKD, INR, ILS, JPY, MYR, MXN, NZD, NOK, PHP, RON, RUB, SGD, ZAR, SEK, CHF, TRY, AED, USD'
+    );
+
+    $form['twocheckout_currencyname'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Название игровой валюты'),
+        '#required' => true,
+        '#default_value' => variable_get('twocheckout_currencyname', 'PCOINS'),
+        '#size' => 10
+    );
+
+    $form['twocheckout_currency'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Стоимость 1 игровой валюты'),
+        '#required' => true,
+        '#default_value' => variable_get('twocheckout_currency', 1),
+        '#size' => 10
+    );
+
+    $form['twocheckout_ticketprice'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Стоимость билета'),
+        '#required' => true,
+        '#default_value' => variable_get('twocheckout_ticketprice', 100),
+        '#size' => 10
+    );
+
+    return system_settings_form($form);
+}
+
+function twocheckout_admin_order_list() {
+    $res = db_select('orders', 'o')
+        ->fields('o')
+        ->execute();
+    $rows = array();
+    while($row = $res->fetchAssoc()) {
+
+        $row['created'] = date('Y-m-d H:i', $row['created']);
+        $row['modified'] = date('Y-m-d H:i', $row['modified']);
+        $row['transfered'] = ($row['transfered'] == 0)? t('No'): t('Yes');
+        $rows[] = $row;
+
+    }
+    if(count($rows) > 0) {
+        $header = array(
+            t('ID'),
+            t('Invoice ID'),
+            t('User ID'),
+            t('Quantity'),
+            t('Status'),
+            t('Total'),
+            t('Created'),
+            t('Modified'),
+            t('Transfered'),
+            t('Result code')
+        );
+        $attributes = array(
+            'class' => array('orders'),
+            'width' => '100%'
+        );
+        $html = theme('table', array(
+            'header' => $header,
+            'rows' => $rows,
+            'attributes' => $attributes
+        ));
+
+        return $html;
+    } else {
+        return t('No orders yet');
+    }
+}
+
+function twocheckout_usertab($user) {
+    $uid = $user->uid;
+    $cash = db_select('user_wallets', 'w')
+        ->fields('w', array('cash'))
+        ->condition('uid', $uid)
+        ->execute()
+        ->fetchField();
+
+    $args = array(
+        'uid' => $uid,
+        'cash' => $cash,
+    );
+    $form = drupal_get_form('twocheckout_user_wallet_form', $args);
+    return drupal_render($form);
+}
+
+function twocheckout_user_wallet_form($form, $form_state, $args) {
+    $form['uid'] = array(
+        '#type' => 'hidden',
+        '#default_value' => $args['uid'],
+        '#required' => true
+    );
+    $form['cash'] = array(
+        '#type' => 'textfield',
+        '#title' => 'Cash',
+        '#required' => true,
+        '#default_value' => $args['cash']
+    );
+
+    $form['submit'] = array(
+        '#type' => 'actions',
+        'submit' => array(
+            '#type' => 'submit',
+            '#value' => t('Update'),
+        ),
+    );
+
+    return $form;
+}
+
+function twocheckout_user_wallet_form_submit($form, $form_state) {
+    $uid = $form_state['values']['uid'];
+    $cash = $form_state['values']['cash'];
+    db_update('user_wallets')
+        ->fields(array('cash' => $cash))
+        ->condition('uid', $uid)
+        ->execute();
+    drupal_set_message('Updated');
+}
+
+function twocheckout_user_orders($uid) {
+    $res = db_select('orders', 'o')
+        ->fields('o', array('id', 'qty', 'total', 'created', 'status'))
+        ->condition('uid', $uid)
+        ->execute();
+    $rows = array();
+    while($row = $res->fetchAssoc()) {
+
+        $row['created'] = date('Y-m-d H:i', $row['created']);
+        $rows[] = $row;
+
+    }
+    if(count($rows) > 0) {
+        $header = array(
+            t('ID'),
+            t('Quantity'),
+            t('Total'),
+            t('Date'),
+            t('Status')
+        );
+        $attributes = array(
+            'class' => array('orders'),
+            'width' => '100%'
+        );
+        $html = theme('table', array(
+            'header' => $header,
+            'rows' => $rows,
+            'attributes' => $attributes
+        ));
+
+        return $html;
+    } else {
+        return t('No orders yet');
+    }
+}
+
+function twocheckout_view_own_orders($uid) {
+    return (($GLOBALS['user']->uid == $uid && user_is_logged_in()) || user_access('administer users'));
+}
+
+function twocheckout_order_load($id) {
+    $res = db_select('orders', 'o')
+        ->fields('o')
+        ->condition('id', $id)
+        ->execute();
+    $order = $res->fetchObject();
+
+    return $order;
+}
+
+function twocheckout_get_money($account) {
+    if(!$account) {
+        global $user;
+    } else {
+        $user = $account;
+    }
+
+    $res = db_select('user_wallets', 'w')
+        ->fields('w', array('cash'))
+        ->condition('uid', $user->uid)
+        ->execute();
+    $cash = $res->fetchObject();
+    return $cash->cash;
+}

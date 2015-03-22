@@ -28,7 +28,7 @@ function helper_block_info() {
         'info' => t('Картинка для новости'),
     );
     $blocks[2] = array(
-        'info' => t('Картинка uniteller'),
+        'info' => t('Картинка 2Checkout'),
     );
     $blocks[3] = array(
         'info' => t('Карусель PRO-игроков'),
@@ -50,7 +50,7 @@ function helper_block_view($delta='') {
             break;
         case 2:
             $block['subject'] = t('');
-            $block['content'] = helper_uniteller_buy_image();
+            $block['content'] = helper_buy_image();
             break;
         case 3:
             $block['subject'] = t('PRO-players');
@@ -333,7 +333,7 @@ function helper_node_delete($node) {
     }
 }
 
-function helper_uniteller_buy_image() {
+function helper_buy_image() {
     $attributes = array(
         'class' => 'image'
     );
@@ -346,7 +346,7 @@ function helper_uniteller_buy_image() {
         'attributes' => $attributes,
     ));
 
-    return '<div class="uniteller-image">'.$image.'</div>';
+    return '<div class="checkout-image">'.$image.'</div>';
 }
 
 function helper_module_implements_alter(&$implementations, $hook) {

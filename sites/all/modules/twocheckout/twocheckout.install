@@ -1,15 +1,22 @@
 <?php
 
-function uniteller_schema(){
+function twocheckout_schema(){
 
-	$schema['orders'] = array(
-		'description' => 'Таблица заказов(покупок валюты)',
-		'fields' => array(
-			'id' => array(
-				'type' => 'serial',
-				'not null' => true,
-				'description' => 'ID записи'
-			),
+    $schema['orders'] = array(
+        'description' => 'Таблица заказов(покупок валюты)',
+        'fields' => array(
+            'id' => array(
+                'type' => 'serial',
+                'not null' => true,
+                'description' => 'ID записи'
+            ),
+            'invoiceid' => array(
+                'type' => 'int',
+                'size' => 'big',
+                'not null' => false,
+                'default' => null,
+                'description' => 'ID операции'
+            ),
             'uid' => array(
                 'type' => 'int',
                 'size' => 'normal',
@@ -24,9 +31,9 @@ function uniteller_schema(){
             ),
             'status' => array(
                 'description' => 'Статус заказа',
-				'type' => 'varchar',
-				'length' => 255,
-				'default' => 'Not processed'
+                'type' => 'varchar',
+                'length' => 255,
+                'default' => 'Not processed'
             ),
             'total' => array(
                 'description' => 'Сумма заказа',
@@ -50,19 +57,25 @@ function uniteller_schema(){
                 'default' => 0,
                 'not null' => true,
             ),
-			'transfered' => array(
-				'type' => 'int',
-				'size' => 'tiny',
-				'description' => 'Зачислены ли средства игроку',
-				'not null' => true,
-				'default' => 0
-			)
-		),
-		'primary key' => array('id'),
-		'indexes' => array(
-			'id' => array('id'),
-			'status' => array('status')
-		)
+            'transfered' => array(
+                'type' => 'int',
+                'size' => 'tiny',
+                'description' => 'Зачислены ли средства игроку',
+                'not null' => true,
+                'default' => 0
+            ),
+            'resultcode' => array(
+                'description' => 'Код ответа от платёжной системы',
+                'type' => 'varchar',
+                'length' => 255,
+                'default' => ''
+            ),
+        ),
+        'primary key' => array('id'),
+        'indexes' => array(
+            'id' => array('id'),
+            'status' => array('status')
+        )
     );
 
     $schema['user_wallets'] = array(
@@ -86,7 +99,7 @@ function uniteller_schema(){
     return $schema;
 }
 
-function uniteller_install() {
+function twocheckout_install() {
     $res = db_select('users', 'u')
         ->fields('u', array('uid'))
         ->execute();
@@ -100,5 +113,4 @@ function uniteller_install() {
     }
 
     $query->execute();
-
 }

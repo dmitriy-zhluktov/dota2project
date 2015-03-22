@@ -991,7 +991,7 @@ function match_controll_form_submit($form, &$form_state) {
         case 'leave':
             $node->field_free_place['und'][0]['value']++;
             node_save($node);
-            uniteller_update_wallet_amount($user, variable_get('uniteller_price'));
+            twocheckout_update_wallet_amount($user, variable_get('twocheckout_ticketprice'));
             db_delete('players')
                 ->condition('team_id', $node->field_profi_command[$node->language][0]['value'])
                 ->condition('uid', $user->uid)
@@ -1014,8 +1014,8 @@ function match_controll_form_submit($form, &$form_state) {
 
                     if (isset($steam) && $steam) {
 
-                        if(uniteller_get_money($user) < variable_get('uniteller_price')) {
-                            drupal_set_message(t('You have not enough PCOINS. You can update your wallet <a href="@href">here</a>',  array('@href' => url('uniteller/buy/'))), 'error');
+                        if(twocheckout_get_money($user) < variable_get('twocheckout_ticketprice')) {
+                            drupal_set_message(t('You have not enough PCOINS. You can update your wallet <a href="@href">here</a>',  array('@href' => url('twocheckout/buy/'))), 'error');
                         } else {
                             $profile = unserialize($steam->data);
 
@@ -1030,7 +1030,7 @@ function match_controll_form_submit($form, &$form_state) {
                             db_insert('players')->fields(array('uid' => $user->uid, 'team_id' => $command, 'steam_id' => "$steam_id", 'nickname' => "$nickname",))->execute();
                             $node->field_free_place[$node->language][0]['value']--;
                             node_save($node);
-                            uniteller_update_wallet_amount($user, variable_get('uniteller_price'), false);
+                            twocheckout_update_wallet_amount($user, variable_get('twocheckout_ticketprice'), false);
                             drupal_set_message(t('Thanks for register'));
                         }
                     } else {
@@ -1116,7 +1116,7 @@ function match_controll_form_submit($form, &$form_state) {
                 $node->field_free_place[$node->language][0]['value']++;
                 node_save($node);
                 if($refund) {
-                    uniteller_update_wallet_amount($target, variable_get('uniteller_price'));
+                    twocheckout_update_wallet_amount($target, variable_get('twocheckout_ticketprice'));
                 }
                 drupal_set_message(t('Player kicked'));
             }
