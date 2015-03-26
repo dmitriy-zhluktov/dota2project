@@ -242,8 +242,8 @@ function training_buy_ticket_form_submit($form, &$form_state) {
 
         $node->field_training_player_id[$node->language][0]['value'] = 0;
         node_save($node);
-        twocheckout_update_wallet_amount($user, variable_get('twocheckout_ticketprice'), true);
-        drupal_set_message(t('I had left the training'));
+        twocheckout_update_wallet_amount($user, variable_get('twocheckout_ticketprice', 100)/2, true);
+        drupal_set_message(t('You had left the training'));
     }
 }
 
