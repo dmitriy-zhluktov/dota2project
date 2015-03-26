@@ -242,7 +242,7 @@ function training_buy_ticket_form_submit($form, &$form_state) {
 
         $node->field_training_player_id[$node->language][0]['value'] = 0;
         node_save($node);
-        twocheckout_update_wallet_amount($user, variable_get('twocheckout_ticketprice', 100)/2, true);
+        twocheckout_update_wallet_amount($user, variable_get('twocheckout_ticketprice', 100), true);
         drupal_set_message(t('You had left the training'));
     }
 }
@@ -271,7 +271,7 @@ function training_finish_form_submit($form, &$form_state) {
         $node->field_training_finished[$node->language][0]['value'] = 1;
         node_save($node);
         if($node->field_training_player_id[$node->language][0]['value'] > 0) {
-            twocheckout_update_wallet_amount($user, variable_get('twocheckout_ticketprice', 100));
+            twocheckout_update_wallet_amount($user, variable_get('twocheckout_ticketprice', 100)/2);
         }
 
         drupal_set_message(t('Training finished'));
