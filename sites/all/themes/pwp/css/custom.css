@@ -1157,4 +1157,5 @@ div.pro-list { margin-bottom: 10px; }
 .node-training .meta .user-picture { display: none; }
 
 .page-contact .region-content .content,
-.page-user-contact .region-content .content { padding: 0 15px; }
+.page-user-contact .region-content .content,
+.page-user-checkoutfunds .region-content .content { padding: 0 15px; }

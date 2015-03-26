@@ -43,6 +43,17 @@ function twocheckout_menu() {
         'access arguments' => array(1),
         'type' => MENU_LOCAL_TASK,
     );
+
+    $items['user/%/checkoutfunds'] = array(
+        'title' => t('Checkout funds'),
+        'page callback' => 'twocheckout_user_checkoutfunds',
+        'page arguments' => array(1),
+        'access callback' => 'twocheckout_view_own_checkoutfunds',
+        'access arguments' => array(1),
+        'type' => MENU_LOCAL_TASK,
+        'weight' => 5
+    );
+
     $items['admin/config/twocheckout'] = array(
         'title' => t('2Checkout'),
         'description' => t('2Checkout integration'),
@@ -87,17 +98,22 @@ function twocheckout_buy_page() {
     $html = drupal_render($form);
 
     drupal_add_js(
-        array('twocheckout' =>
-            array(
-                'currency' => variable_get('twocheckout_currency'),
-                'sellerId' => variable_get('twocheckout_sellerid'),
-                'publishableKey' => variable_get('twocheckout_publishablekey'),
-                'mode' => (variable_get('twocheckout_sandbox') == 1)? 'sandbox' : 'production'
-            )
+        array(
+            'twocheckout' =>
+                array(
+                    'currency' => variable_get('twocheckout_currency'),
+                ),
+            'tch' =>
+                array(
+                    'sellerId' => variable_get('twocheckout_sellerid'),
+                    'publishableKey' => variable_get('twocheckout_publishablekey'),
+                    'mode' => (variable_get('twocheckout_sandbox') == 1)? 'sandbox' : 'production'
+                )
         ),
         array('type' => 'setting')
     );
     drupal_add_js('https://www.2checkout.com/checkout/api/2co.min.js');
+    drupal_add_js(drupal_get_path('module', 'twocheckout').'/js/2ch.js');
     return $html;
 }
 
@@ -360,6 +376,14 @@ function twocheckout_admin_config_form($form, &$form_state) {
         '#size' => 10
     );
 
+    $form['twocheckout_outemail'] = array(
+        '#type' => 'textfield',
+        '#title' => t('E-mail для получения писем о выводе средств'),
+        '#required' => true,
+        '#default_value' => variable_get('twocheckout_outemail', 'pstemka@gmail.com'),
+        '#size' => 40
+    );
+
     return system_settings_form($form);
 }
 
@@ -518,4 +542,85 @@ function twocheckout_get_money($account) {
         ->execute();
     $cash = $res->fetchObject();
     return $cash->cash;
+}
+
+function twocheckout_view_own_checkoutfunds($uid) {
+    return (($GLOBALS['user']->uid == $uid && user_is_logged_in() && in_array('pro', $GLOBALS['user']->roles)) || user_access('administer users'));
+}
+
+function twocheckout_user_checkoutfunds($uid) {
+    $args = array(
+        'uid' => $uid
+    );
+    $form = drupal_get_form('twocheckout_checkoutfunds_form', $args);
+    $html = drupal_render($form);
+    drupal_add_js(
+        array('twocheckout' =>
+            array(
+                'currency' => variable_get('twocheckout_currency'),
+            )
+        ),
+        array('type' => 'setting')
+    );
+
+    return $html;
+}
+
+function twocheckout_checkoutfunds_form($form, $form_state, $args) {
+    $form['uid'] = array(
+        '#type' => 'hidden',
+        '#default_value' => $args['uid'],
+        '#required' => true
+    );
+    $form['qty'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Quantity'),
+        '#required' => true,
+        '#element_validate' => array('element_validate_integer_positive'),
+        '#field_suffix' => '<span class="recounter-text">=</span><input type="text" disabled="disabled" id="qty-recounter" /><span class="recounter-text bux">$</span>'
+    );
+
+    $form['submit'] = array(
+        '#type' => 'actions',
+        'submit' => array(
+            '#type' => 'submit',
+            '#value' => t('Checkout'),
+        ),
+    );
+
+    return $form;
+}
+
+function twocheckout_checkoutfunds_form_submit($form, &$form_state) {
+    global $user;
+    $values = $form_state['values'];
+
+    if($user->uid != $values['uid']) {
+        return form_set_error('uid', t('Invalid user'));
+    }
+    $amount = twocheckout_get_money($user);
+    if($values['qty'] > $amount) {
+        return form_set_error('qty', t('You have not enought funds to checkout'));
+    }
+
+    $message = '<strong>'.l($user->name, 'user/'.$user->uid, array('attributes' => array('title' => $user->name, 'target' => '_blank'))).'</strong> отправил запрос на вывод средств на сумму '.$values['qty'].' '.variable_get('twocheckout_currencyname', 'PCOINS');
+    $params = array(
+        'body' => $message,
+        'subject' => 'Запрос на вывод средств'
+    );
+    $to = variable_get('twocheckout_outemail', 'pstemka@gmail.com');
+    $res =  drupal_mail('twocheckout', 'checkoutfunds', $to, language_default(), $params);
+    if($res['result']) {
+        drupal_set_message(t('Request accepted'));
+    }
+}
+
+function twocheckout_mail($key, &$message, $params) {
+    switch($key) {
+        case 'checkoutfunds':
+            $message['subject'] = $params['subject'];
+            $message['body'][] = $params['body'];
+            $message['headers']['Content-Type'] = 'text/html; charset=UTF-8;';
+            break;
+    }
 }

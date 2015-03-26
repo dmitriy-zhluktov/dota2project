@@ -977,6 +977,9 @@ function match_controll_form_submit($form, &$form_state) {
                         $node->field_vod[$node->language][0]['value'] = '';
                         node_save($node);
 
+                        $moneyForPro = (4 - $node->field_free_place[$node->language][0]['value']) * variable_get('twocheckout_ticketprice', 100);
+                        twocheckout_update_wallet_amount($user, $moneyForPro);
+
                         drupal_set_message(t('Match finished'));
                     }
                 }
