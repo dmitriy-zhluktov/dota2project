@@ -626,3 +626,17 @@ function twocheckout_mail($key, &$message, $params) {
             break;
     }
 }
+
+function twocheckout_user_insert(&$edit, $account, $category) {
+    db_insert('user_wallets')
+    ->fields(array(
+        'uid' => $account->uid,
+    ))
+    ->execute();
+}
+
+function twocheckout_user_delete($account) {
+    db_delete('user_wallets')
+    ->condition('uid', $account->uid)
+    ->execute();
+}

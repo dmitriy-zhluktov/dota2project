@@ -700,7 +700,7 @@ table.active-matches {
     padding: 0 10px;
 }
 .user-wrapper {
-    padding: 10px;
+
 }
 .user-picture-wrap,
 .user-profile-level,
@@ -1157,5 +1157,8 @@ div.pro-list { margin-bottom: 10px; }
 .node-training .meta .user-picture { display: none; }
 
 .page-contact .region-content .content,
+.page-user .region-content .content,
 .page-user-contact .region-content .content,
-.page-user-checkoutfunds .region-content .content { padding: 0 15px; }
+.page-user-checkoutfunds .region-content .content,
+.page-user-password .region-content .content,
+.page-user-reset .region-content .content { padding: 0 15px; }
