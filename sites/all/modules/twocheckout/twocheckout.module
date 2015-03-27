@@ -603,7 +603,8 @@ function twocheckout_checkoutfunds_form_submit($form, &$form_state) {
         return form_set_error('qty', t('You have not enought funds to checkout'));
     }
 
-    $message = '<strong>'.l($user->name, 'user/'.$user->uid, array('attributes' => array('title' => $user->name, 'target' => '_blank'))).'</strong> отправил запрос на вывод средств на сумму '.$values['qty'].' '.variable_get('twocheckout_currencyname', 'PCOINS');
+    $link = url('user/'.$user->uid, array('absolute' => true));
+    $message = '<strong><a href="'.$link.'" target="_blank">'.$user->name.'</a></strong> отправил запрос на вывод средств на сумму '.$values['qty'].' '.variable_get('twocheckout_currencyname', 'PCOINS');
     $params = array(
         'body' => $message,
         'subject' => 'Запрос на вывод средств'

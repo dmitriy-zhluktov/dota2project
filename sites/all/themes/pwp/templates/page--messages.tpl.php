@@ -209,6 +209,7 @@
                 <div class="footer-bottom">
                     <div class="footer-left float-left">
                         <div class="logo-bottom float-left"></div>
+                        <?php /*
                         <div class="follow-us  float-left">
                             <div class="follow-title"><?php print t('Follow us at'); ?></div>
                             <div class="social">
@@ -217,8 +218,10 @@
                                 <a href="#" class="vk"></a>
                             </div>
                         </div>
+                        */ ?>
                     </div>
                     <div class="footer-right float-left">
+                        <?php /*
                         <ul>
                             <li><a href="#" title="<?php print t('Project rules') ?>"><?php print t('Project rules') ?></a></li>
                             <li><a href="#" title="<?php print t('FAQ') ?>"><?php print t('FAQ') ?></a></li>
@@ -226,6 +229,7 @@
                             <li><a href="#" title="<?php print t('Privacy policy') ?>"><?php print t('Privacy policy') ?></a></li>
                             <li><a href="#" title="<?php print t('Site map') ?>"><?php print t('Site map') ?></a></li>
                         </ul>
+                        */ ?>
                     </div>
                     <div class="clear"></div>
                 </div>
