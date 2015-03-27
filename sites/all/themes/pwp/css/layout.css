@@ -96,13 +96,7 @@ body,
 #footer-wrapper {
   padding: 35px 5px 30px;
 }
-.region-footer-firstcolumn,
-.region-footer-secondcolumn,
-.region-footer-thirdcolumn,
-.region-footer-fourthcolumn {
-  padding: 0 10px;
-  width: 220px;
-}
+
 #footer {
   width: 1000px;
   min-width: 920px;

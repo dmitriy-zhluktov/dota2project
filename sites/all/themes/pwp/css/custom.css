@@ -900,10 +900,10 @@ body {
 .footer-bottom {
 }
 .footer-left {
-    width: 30%;
+
 }
 .footer-right {
-    width: 70%;
+
 }
 .logo-bottom {
     width: 133px;
@@ -931,7 +931,8 @@ a.fb {
 a.vk {
     background: url('../images/vk.png') no-repeat 50% 50% transparent;
 }
-.footer-bottom ul {
+.footer-bottom ul,
+.footer-bottom ul li {
     list-style: none;
 }
 .footer-bottom ul li {
@@ -1162,3 +1163,4 @@ div.pro-list { margin-bottom: 10px; }
 .page-user-checkoutfunds .region-content .content,
 .page-user-password .region-content .content,
 .page-user-reset .region-content .content { padding: 0 15px; }
+.region-footer-fourthcolumn h2 { display: none; }
