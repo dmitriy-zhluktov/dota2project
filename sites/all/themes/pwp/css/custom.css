@@ -515,6 +515,11 @@ span.cash {
 #twocheckout-order-form label[for="edit-qty"] span {
     display: none;
 }
+#twocheckout-order-form .form-item { float: left; }
+#twocheckout-order-form .form-item-qty { float: none; }
+#twocheckout-order-form .form-item-cvv { margin-left: 15px; }
+#twocheckout-order-form .form-item-expYear { margin-top: 21px; }
+
 .recounter-text {
     color: #d2d2d2;
     font-size: 22px;

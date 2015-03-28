@@ -132,6 +132,15 @@ function twocheckout_order_form($form, &$form_state) {
         '#required' => true,
         '#size' => 20
     );
+    $form['cvv'] = array(
+        '#type' => 'textfield',
+        '#title' => t('CVV'),
+        '#required' => true,
+        '#size' => 5
+    );
+    $form['clear'] = array(
+        '#markup' => '<div class="clear"></div>'
+    );
     $months = array();
     for($i = 1; $i < 13; $i++) {
         $data = $i < 10 ? '0'.$i : $i;
@@ -139,7 +148,7 @@ function twocheckout_order_form($form, &$form_state) {
     }
     $form['expMonth'] = array(
         '#type' => 'select',
-        '#title' => t('Expiration month'),
+        '#title' => t('Expiration date'),
         '#required' => true,
         '#options' => $months
     );
@@ -150,15 +159,11 @@ function twocheckout_order_form($form, &$form_state) {
     }
     $form['expYear'] = array(
         '#type' => 'select',
-        '#title' => t('Expiration year'),
         '#required' => true,
         '#options' => $years,
     );
-    $form['cvv'] = array(
-        '#type' => 'textfield',
-        '#title' => t('CVV'),
-        '#required' => true,
-        '#size' => 5
+    $form['clear2'] = array(
+        '#markup' => '<div class="clear"></div>'
     );
     $form['token'] = array(
         '#type' => 'hidden',
