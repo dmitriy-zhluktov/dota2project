@@ -134,6 +134,9 @@ function pwp_preprocess_block(&$variables) {
     if($variables['block']->module == 'match' && $variables['block']->delta == 4) {
         $variables['classes_array'][] = 'clearfix';
     }
+    if($variables['block']->module == 'locale' && $variables['block']->delta == 'language') {
+        $variables['block']->subject = '';
+    }
 }
 
 /**
@@ -192,13 +195,17 @@ function pwp_username(&$vars) {
 }
 
 function pwp_preprocess_link(&$vars) {
-    if($vars['path'] == 'messages' && $vars['text'] == 'Messages') {
+    if($vars['path'] == 'messages' && $vars['text'] == t('Messages')) {
         $vars['options']['html'] = TRUE;
         $vars['text'] = helper_privatemessage_menu_title();
     }
-    if($vars['path'] == 'twocheckout/buy') {
+    if($vars['path'] == 'twocheckout/buy' && $vars['text'] == t('Buy')) {
+        global $base_root;
         $vars['options']['html'] = TRUE;
-        $vars['text'] = '<span class="cash">'.twocheckout_get_money(null).'</span><span class="update-wallet">'.t('Update wallet').'</span>';
+        $vars['text'] = '<span class="cash">'.twocheckout_get_money(null).
+            '<img class="pcoins-cash" src="'.$base_root.'/sites/all/themes/pwp/images/pcoins-mini.png" />
+            </span><span class="update-wallet">'.t('Update wallet').'</span>';
+
     }
     if($vars['path'] == 'user') {
         $params = helper_user_menu_title();
@@ -353,4 +360,12 @@ function pwp_form_alter(&$form, &$form_state, $form_id) {
         unset($form['field_kick_reason']);
         unset($form['contact']);
     }
+}
+
+function pwp_links__locale_block($variables) {
+    foreach($variables['links'] as $key => $link) {
+        $variables['links'][$key]['title'] = '';
+        $variables['links'][$key]['attributes']['class'][] = $key;
+    }
+    return theme('links', $variables);
 }

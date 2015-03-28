@@ -14,7 +14,7 @@ scripts[] = js/local.js
 stylesheets[print][] = css/print.css
 
 regions[control_panel] = Control panel
-;regions[header] = Header
+regions[header] = Header
 regions[help] = Help
 regions[page_top] = Page top
 regions[page_bottom] = Page bottom
