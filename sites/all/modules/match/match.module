@@ -105,7 +105,7 @@ function match_planned_block_markup() {
 		$addClass = ($row->field_need_player_value == 1)? 'we-need-a-hero': false;
         $leftHero = '';
         $rightHero = '';
-        if($addClass) {
+        /*if($addClass) {
             $leftImage = theme('image', array(
                 'path' => drupal_get_path('theme', 'pwp').'/images/hero-left.GIF',
                 'alt' => t('We need a hero!'),
@@ -122,7 +122,7 @@ function match_planned_block_markup() {
             ));
             $leftHero = '<span class="hero-span hero-left">'.$leftImage.'</span>';
             $rightHero = '<span class="hero-span hero-right">'.$rightImage.'</span>';
-        }
+        }*/
         $yesImage = theme('image', array(
             'path' => drupal_get_path('theme', 'pwp').'/images/checked.png',
             'alt' => t('Last match'),
@@ -149,7 +149,7 @@ function match_planned_block_markup() {
 
         $rows[] = array(
             'data' => array(
-                $leftHero.l(t('Match №'.$row->nid), 'match/'.$row->nid),
+                $leftHero.l(t('Match №@num', array('@num' => $row->nid)), 'match/'.$row->nid),
                 match_get_planned_timing(strtotime($row->field_date_value), $row->uid),
                 $row->field_mod_value,
                 l($row->name, 'user/'.$row->uid, array('attributes' => array('class' => array('pro-user')))),
