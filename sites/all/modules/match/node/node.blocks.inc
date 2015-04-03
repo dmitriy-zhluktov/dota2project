@@ -978,7 +978,7 @@ function match_controll_form_submit($form, &$form_state) {
                         node_save($node);
 
                         $moneyForPro = ((4 - $node->field_free_place[$node->language][0]['value']) * variable_get('twocheckout_ticketprice', 100))/2;
-                        twocheckout_update_wallet_amount($user, $moneyForPro);
+                        twocheckout_update_wallet_amount($user->uid, $moneyForPro);
 
                         drupal_set_message(t('Match finished'));
                     }
@@ -994,7 +994,7 @@ function match_controll_form_submit($form, &$form_state) {
         case 'leave':
             $node->field_free_place['und'][0]['value']++;
             node_save($node);
-            twocheckout_update_wallet_amount($user, variable_get('twocheckout_ticketprice'));
+            twocheckout_update_wallet_amount($user->uid, variable_get('twocheckout_ticketprice'));
             db_delete('players')
                 ->condition('team_id', $node->field_profi_command[$node->language][0]['value'])
                 ->condition('uid', $user->uid)
@@ -1033,7 +1033,7 @@ function match_controll_form_submit($form, &$form_state) {
                             db_insert('players')->fields(array('uid' => $user->uid, 'team_id' => $command, 'steam_id' => "$steam_id", 'nickname' => "$nickname",))->execute();
                             $node->field_free_place[$node->language][0]['value']--;
                             node_save($node);
-                            twocheckout_update_wallet_amount($user, variable_get('twocheckout_ticketprice'), false);
+                            twocheckout_update_wallet_amount($user->uid, variable_get('twocheckout_ticketprice'), false);
                             drupal_set_message(t('Thanks for register'));
                         }
                     } else {
@@ -1119,7 +1119,7 @@ function match_controll_form_submit($form, &$form_state) {
                 $node->field_free_place[$node->language][0]['value']++;
                 node_save($node);
                 if($refund) {
-                    twocheckout_update_wallet_amount($target, variable_get('twocheckout_ticketprice'));
+                    twocheckout_update_wallet_amount($target->uid, variable_get('twocheckout_ticketprice'));
                 }
                 drupal_set_message(t('Player kicked'));
             }

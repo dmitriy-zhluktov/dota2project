@@ -199,7 +199,7 @@ function pwp_preprocess_link(&$vars) {
         $vars['options']['html'] = TRUE;
         $vars['text'] = helper_privatemessage_menu_title();
     }
-    if($vars['path'] == 'twocheckout/buy' && $vars['text'] == t('Buy')) {
+    if($vars['path'] == 'payment/buy' && $vars['text'] == t('Buy')) {
         global $base_root;
         $vars['options']['html'] = TRUE;
         $vars['text'] = '<span class="cash">'.twocheckout_get_money(null).

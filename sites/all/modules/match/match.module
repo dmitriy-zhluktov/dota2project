@@ -611,7 +611,7 @@ function match_get_ticket_form_submit($form, &$form_state) {
             db_insert('players')->fields(array('uid' => $user->uid, 'team_id' => $command, 'steam_id' => "$steam_id", 'nickname' => "$nickname",))->execute();
             $node->field_free_place[$node->language][0]['value']--;
             node_save($node);
-            twocheckout_update_wallet_amount($user, variable_get('twocheckout_ticketprice'), false);
+            twocheckout_update_wallet_amount($user->uid, variable_get('twocheckout_ticketprice'), false);
             drupal_set_message(t('Thanks for register'));
         }
 	}

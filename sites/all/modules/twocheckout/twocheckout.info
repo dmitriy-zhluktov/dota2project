@@ -1,5 +1,5 @@
-name = 2Checkout
-description = Enable to process payments using https://www.2checkout.com
+name = Paypal payment
+description = Enable to process payments using https://www.paypal.com
 core = 7.x
 configure = admin/config/twocheckout/settings
 files[] = twocheckout.module

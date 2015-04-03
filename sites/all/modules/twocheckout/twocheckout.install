@@ -114,3 +114,15 @@ function twocheckout_install() {
 
     $query->execute();
 }
+
+function twocheckout_update_7101(&$sandbox) {
+    $spec = array(
+        'type' => 'varchar',
+        'description' => t('Invoice ID'),
+        'length' => '35',
+        'not null' => FALSE,
+    );
+    db_change_field('orders', 'invoiceid', 'invoiceid' ,$spec);
+    field_cache_clear(TRUE);
+    return t('Database column converted to varchar.');
+}
