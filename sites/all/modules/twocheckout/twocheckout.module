@@ -2,6 +2,7 @@
 define('AUTH_TOKEN', 'authToken');
 define('CRON_AUTH_TOKEN', 'cronAuthToken');
 define('STATE_COMPLETE', 'completed');
+define('ORDER_ID', 'orderId');
 /**
  * Implements hook_menu().
  */
@@ -156,8 +157,8 @@ function twocheckout_order_form_submit($form, &$form_state) {
         ))
         ->execute();
     $orderId = Database::getConnection()->lastInsertId();
-
     $sandbox = variable_get('twocheckout_sandbox');
+
     $authToken = twocheckout_get_auth_token();
     if(!$authToken) {
         twocheckout_order_update($orderId, null, true);
@@ -206,10 +207,12 @@ function twocheckout_order_form_submit($form, &$form_state) {
         curl_close($curl);
 
         $response = json_decode($out);
+
         if($response == NULL) {
             twocheckout_order_update($orderId, null, true);
             $resultMessage['type'] = 'error';
             $resultMessage['text'] = t('Incorrect data sent');
+
         } else {
             $orderData = array(
                 'invoiceid' => $response->id,
@@ -223,6 +226,7 @@ function twocheckout_order_form_submit($form, &$form_state) {
                 }
             }
             if($redirect) {
+                twocheckout_lists_session(ORDER_ID, $orderId);
                 drupal_goto($redirect, array('external' => true));
                 exit();
             } else {
@@ -609,20 +613,21 @@ function twocheckout_endpoint() {
 
     $resultMessage['type'] = 'error';
     $resultMessage['text'] = t('Incorrect data sent');
-
+    krumo($data);
     if(count($data) == 0 || (array_key_exists('cancel', $data) && $data['cancel'] == 'true')) {
-        $paymentId = $data['paymentId'];
+        $orderId = twocheckout_lists_session(ORDER_ID);
+        twocheckout_lists_session(ORDER_ID, NULL);
         $orderData = array(
-            'resultcode' => 'Incorrect data or canceled by paypal',
-            'status' => 'error'
+            'resultcode' => 'Payment canceled by user',
+            'status' => 'canceled'
         );
-        twocheckout_order_update_by_invoice($paymentId, $orderData);
+        twocheckout_order_update($orderId, $orderData);
         $resultMessage['type'] = 'error';
-        $resultMessage['text'] = t('Incorrect data sent');
+        $resultMessage['text'] = t('You have canceled the payment');
     } elseif($data['success'] == 'true') {
         $paymentId = $data['paymentId'];
         $payerID = $data['PayerID'];
-        $authToken = twocheckout_lists_session(AUTH_TOKEN);
+        $authToken = twocheckout_get_auth_token();
 
         if(variable_get('twocheckout_sandbox')) {
             $url = "https://api.sandbox.paypal.com/v1/payments/payment/$paymentId/execute";
@@ -677,13 +682,15 @@ function twocheckout_endpoint() {
     drupal_goto('payment/buy');
 }
 
-function twocheckout_lists_session($key, $value = NULL) {
+function twocheckout_lists_session($key, $value = false) {
     static $storage;
+    if($value === NULL) {
+        unset($_SESSION['lists'][$key]);
+    }
     if ($value) {
         $storage[$key] = $value ;
         $_SESSION['lists'][$key] = $value ;
-    }
-    else if (empty($storage[$key]) && isset($_SESSION['lists'][$key])) {
+    } else if (empty($storage[$key]) && isset($_SESSION['lists'][$key])) {
         $storage[$key] = $_SESSION['lists'][$key];
     }
     return $storage[$key];
@@ -701,7 +708,7 @@ function twocheckout_order_update_by_invoice($invoceId, $data = array(), $delete
 function twocheckout_cron() {
     $orders = twocheckout_orders_load_by_status('approved');
     foreach($orders as $order) {
-        $authToken = twocheckout_lists_session(CRON_AUTH_TOKEN);
+        $authToken = twocheckout_get_auth_token(true);
         if (!$authToken) {
             $authToken = twocheckout_get_auth_token(true);
         }
@@ -759,12 +766,24 @@ function twocheckout_cron() {
 
 function twocheckout_get_auth_token($cron = false) {
     $authToken = null;
+    $tokenData = null;
+    $tokenIsValid = false;
     if($cron) {
-        $authToken = twocheckout_lists_session(CRON_AUTH_TOKEN);
+        $tokenData = twocheckout_lists_session(CRON_AUTH_TOKEN);
     } else {
-        $authToken = twocheckout_lists_session(AUTH_TOKEN);
+        $tokenData = twocheckout_lists_session(AUTH_TOKEN);
     }
-    if(!$authToken) {
+
+    if(!$tokenData) {
+        $tokenIsValid = false;
+    } elseif($tokenData['expiration'] <= time()) {
+        $tokenIsValid = false;
+    } else {
+        $tokenIsValid = true;
+        $authToken = $tokenData['token'];
+    }
+
+    if(!$tokenIsValid) {
         if(variable_get('twocheckout_sandbox')) {
             $url = "https://api.sandbox.paypal.com/v1/oauth2/token";
         } else {
@@ -793,10 +812,16 @@ function twocheckout_get_auth_token($cron = false) {
             $tokenType = $response->token_type;
             $token = $response->access_token;
             $authToken = $tokenType.' '.$token;
+            $expiresIn = $response->expires_in;
+            $auth = array(
+                'token' => $authToken,
+                'expiration' => time() + $expiresIn
+            );
+
             if($cron) {
-                twocheckout_lists_session(CRON_AUTH_TOKEN, $authToken);
+                twocheckout_lists_session(CRON_AUTH_TOKEN, $auth);
             } else {
-                twocheckout_lists_session(AUTH_TOKEN, $authToken);
+                twocheckout_lists_session(AUTH_TOKEN, $auth);
             }
         }
     }
